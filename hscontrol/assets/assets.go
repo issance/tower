@@ -20,5 +20,5 @@ var CSS string
 
 // SVG is the embedded headscale.svg logo used in HTML templates.
 //
-//go:embed headscale.svg
+//go:embed tower.svg
 var SVG string
