@@ -101,7 +101,7 @@ additional protection despite listening on all interfaces.
     tower serve
     ```
 
-    Access the debug interface on your device by opening `http://<IP_OF_HEADSCALE>:9090/debug/?debugkey=<DEBUG_KEY>` in
+    Access the debug interface on your device by opening `http://<IP_OF_TOWER>:9090/debug/?debugkey=<DEBUG_KEY>` in
     your web browser. The `debugkey` parameter must be sent with every request.
 
 === "Via debug IP address"
@@ -115,4 +115,4 @@ additional protection despite listening on all interfaces.
     tower serve
     ```
 
-    Access the debug interface on your device by opening `http://<IP_OF_HEADSCALE>:9090/debug/` in your web browser.
+    Access the debug interface on your device by opening `http://<IP_OF_TOWER>:9090/debug/` in your web browser.
