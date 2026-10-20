@@ -9,7 +9,7 @@
 
 Tower can be built from source using the latest version of [Go](https://golang.org) and [Buf](https://buf.build)
 (Protobuf generator). See the [Contributing section in the GitHub
-README](https://github.com/juanfont/headscale#contributing) for more information.
+README](https://github.com/juanfont/tower#contributing) for more information.
 
 ## OpenBSD
 
@@ -19,7 +19,7 @@ README](https://github.com/juanfont/headscale#contributing) for more information
 # Install prerequisites
 pkg_add go git
 
-git clone https://github.com/juanfont/headscale.git
+git clone https://github.com/juanfont/tower.git
 
 cd tower
 
@@ -46,7 +46,7 @@ cp tower /usr/local/sbin
 # 1. go v1.27+: see the go directive in go.mod for the exact minimum
 # 2. gmake: Makefile in the tower repo is written in GNU make syntax
 
-git clone https://github.com/juanfont/headscale.git
+git clone https://github.com/juanfont/tower.git
 
 cd tower
 

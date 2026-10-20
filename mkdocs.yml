@@ -8,7 +8,7 @@ site_description: >-
 
 # Repository
 repo_name: juanfont/tower
-repo_url: https://github.com/juanfont/headscale
+repo_url: https://github.com/juanfont/tower
 
 # Copyright
 copyright: Copyright &copy; 2026 Tower authors
@@ -105,11 +105,11 @@ extra:
     json: [.s2]
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/juanfont/headscale
+      link: https://github.com/juanfont/tower
     - icon: material/coffee
       link: https://ko-fi.com/tower
     - icon: fontawesome/brands/docker
-      link: https://github.com/juanfont/headscale/pkgs/container/headscale
+      link: https://github.com/juanfont/tower/pkgs/container/tower
     - icon: fontawesome/brands/discord
       link: https://discord.gg/c84AZQhmpx
   tower:

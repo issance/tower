@@ -25,7 +25,7 @@ provides on overview of Tower's feature and compatibility with the Tailscale con
 - [x] Ephemeral nodes
 - [x] Embedded [DERP server](../ref/derp.md)
 - [x] [Peer relays](https://tailscale.com/docs/features/peer-relay)
-- [x] [Policy](../ref/policy.md) ([GitHub label "policy"](https://github.com/juanfont/headscale/labels/policy%20%F0%9F%93%9D))
+- [x] [Policy](../ref/policy.md) ([GitHub label "policy"](https://github.com/juanfont/tower/labels/policy%20%F0%9F%93%9D))
     - [x] ACLs
     - [x] Grants
     - [x] Some [Autogroups](../ref/policy.md#autogroups)
@@ -36,7 +36,7 @@ provides on overview of Tower's feature and compatibility with the Tailscale con
     - [x] [Node attributes](../ref/policy.md#node-attributes)
     - [x] [Tests](https://tailscale.com/docs/reference/syntax/policy-file#tests) and
       [sshTests](https://tailscale.com/docs/reference/syntax/policy-file#ssh-tests)
-- [x] [Node registration using Single-Sign-On (OpenID Connect)](../ref/oidc.md) ([GitHub label "OIDC"](https://github.com/juanfont/headscale/labels/OIDC))
+- [x] [Node registration using Single-Sign-On (OpenID Connect)](../ref/oidc.md) ([GitHub label "OIDC"](https://github.com/juanfont/tower/labels/OIDC))
     - [x] Basic registration
     - [x] Update user profile from identity provider
     - [ ] OIDC groups cannot be used in ACLs

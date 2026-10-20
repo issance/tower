@@ -104,7 +104,7 @@ func pageFooter() *elem.Element {
 		},
 		elem.Text("Powered by "),
 		elem.A(attrs.Props{
-			attrs.Href:   "https://github.com/juanfont/headscale",
+			attrs.Href:   "https://github.com/issance/tower",
 			attrs.Rel:    "noreferrer noopener",
 			attrs.Target: "_blank",
 		}, elem.Text("Tower")),

@@ -252,7 +252,7 @@ endpoint.
     - It must only contain letters, digits, hyphens, dots, underscores, and up to a single `@`.
     - The username must start with a letter.
 
-Please see the [GitHub label "OIDC"](https://github.com/juanfont/headscale/labels/OIDC) for OIDC related issues.
+Please see the [GitHub label "OIDC"](https://github.com/juanfont/tower/labels/OIDC) for OIDC related issues.
 
 ## Identity provider specific configuration
 

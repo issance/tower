@@ -127,7 +127,7 @@ var rootCmd = &cobra.Command{
 	Long: `
 tower is an open source implementation of the Tailscale control server
 
-https://github.com/juanfont/headscale`,
+https://github.com/issance/tower`,
 	SilenceErrors: true,
 	SilenceUsage:  true,
 }

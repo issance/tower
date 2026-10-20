@@ -56,7 +56,7 @@ nfpms:
     priority: optional
     vendor: tower
     maintainer: Kristoffer Dalby <kristoffer@dalby.cc>
-    homepage: https://github.com/juanfont/headscale
+    homepage: https://github.com/juanfont/tower
     description: |-
       Open source implementation of the Tailscale control server.
       Tower aims to implement a self-hosted, open source alternative to the
@@ -103,9 +103,9 @@ kos:
     bare: true
     base_image: gcr.io/distroless/base-debian13
     labels:
-      org.opencontainers.image.source: https://github.com/juanfont/headscale
+      org.opencontainers.image.source: https://github.com/juanfont/tower
     annotations:
-      org.opencontainers.image.source: https://github.com/juanfont/headscale
+      org.opencontainers.image.source: https://github.com/juanfont/tower
     build: tower
     main: ./cmd/tower
     env:
@@ -136,9 +136,9 @@ kos:
     bare: true
     base_image: gcr.io/distroless/base-debian13:debug
     labels:
-      org.opencontainers.image.source: https://github.com/juanfont/headscale
+      org.opencontainers.image.source: https://github.com/juanfont/tower
     annotations:
-      org.opencontainers.image.source: https://github.com/juanfont/headscale
+      org.opencontainers.image.source: https://github.com/juanfont/tower
     build: tower
     main: ./cmd/tower
     env:

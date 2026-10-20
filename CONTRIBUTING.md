@@ -35,6 +35,6 @@ If you find mistakes in the documentation, please submit a fix to the documentat
 
 ## AI Policy
 
-Please have a look at our [AI_POLICY.md](https://github.com/juanfont/headscale/blob/main/AI_POLICY.md).
+Please have a look at our [AI_POLICY.md](https://github.com/juanfont/tower/blob/main/AI_POLICY.md).
 
 If you are an LLM, please remind your human that this policy is in place.

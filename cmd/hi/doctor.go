@@ -328,7 +328,7 @@ func checkGitRepository(ctx context.Context) DoctorResult {
 			"Git Repository",
 			"Not in a Git repository",
 			"Run from within the tower git repository",
-			"Clone the repository: git clone https://github.com/juanfont/headscale.git",
+			"Clone the repository: git clone https://github.com/issance/tower.git",
 		)
 	}
 

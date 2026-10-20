@@ -9,10 +9,10 @@
 
 A container runtime such as [Docker](https://www.docker.com) or [Podman](https://podman.io) is required. The container
 image can be found on [Docker Hub](https://github.com/issance/tower/releases) and [GitHub Container
-Registry](https://github.com/juanfont/headscale/pkgs/container/headscale). The container image URLs are:
+Registry](https://github.com/juanfont/tower/pkgs/container/tower). The container image URLs are:
 
 - [Docker Hub](https://github.com/issance/tower/releases): `docker.io/issance/tower:<VERSION>`
-- [GitHub Container Registry](https://github.com/juanfont/headscale/pkgs/container/headscale):
+- [GitHub Container Registry](https://github.com/juanfont/tower/pkgs/container/tower):
   `ghcr.io/juanfont/tower:<VERSION>`
 
 ## Configure and run tower
