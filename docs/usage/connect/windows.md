@@ -14,7 +14,7 @@ Download the [Official Windows Client](https://tailscale.com/download/windows) a
 ## Configuring the tower URL
 
 Open a Command Prompt or Powershell and use Tailscale's login command to connect with your tower instance (e.g
-`https://headscale.example.com`):
+`https://tower.example.com`):
 
 ```
 tailscale login --login-server <YOUR_HEADSCALE_URL>

@@ -3,7 +3,7 @@
 - Tower loads its configuration from a YAML file
 - It searches for `config.yaml` in the following paths:
     - `/etc/tower`
-    - `$HOME/.headscale`
+    - `$HOME/.tower`
     - the current working directory
 - To load the configuration from a different path, use:
     - the command line flag `-c`, `--config`
@@ -24,18 +24,18 @@
 
         ```shell
         # Development version
-        wget -O config.yaml https://raw.githubusercontent.com/juanfont/headscale/main/config-example.yaml
+        wget -O config.yaml https://raw.githubusercontent.com/juanfont/tower/main/config-example.yaml
 
         # Version {{ tower.version }}
-        wget -O config.yaml https://raw.githubusercontent.com/juanfont/headscale/v{{ tower.version }}/config-example.yaml
+        wget -O config.yaml https://raw.githubusercontent.com/juanfont/tower/v{{ tower.version }}/config-example.yaml
         ```
 
     === "Download with `curl`"
 
         ```shell
         # Development version
-        curl -o config.yaml https://raw.githubusercontent.com/juanfont/headscale/main/config-example.yaml
+        curl -o config.yaml https://raw.githubusercontent.com/juanfont/tower/main/config-example.yaml
 
         # Version {{ tower.version }}
-        curl -o config.yaml https://raw.githubusercontent.com/juanfont/headscale/v{{ tower.version }}/config-example.yaml
+        curl -o config.yaml https://raw.githubusercontent.com/juanfont/tower/v{{ tower.version }}/config-example.yaml
         ```

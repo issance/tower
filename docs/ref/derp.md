@@ -150,7 +150,7 @@ clients.
     Tailscale's `derper` provides two parameters to configure client verification:
 
     - Use the `-verify-client-url` parameter of the `derper` and point it towards the `/verify` endpoint of your
-      Tower server (e.g `https://headscale.example.com/verify`). The DERP server will query your Tower instance
+      Tower server (e.g `https://tower.example.com/verify`). The DERP server will query your Tower instance
       as soon as a client connects with it to ask whether access should be allowed or denied. Access is allowed if
       Tower knows about the connecting client and denied otherwise.
     - The parameter `-verify-client-url-fail-open` controls what should happen when the DERP server can't reach the

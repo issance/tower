@@ -53,7 +53,7 @@ The metrics/debug port is `port + 1010` (default 9090).
 5. Prints a banner with server URL, auth key, and usage instructions
 6. Blocks until Ctrl+C, then kills tower
 
-State lives in `/tmp/headscale-dev-*/`. Pass `--keep` to preserve it
+State lives in `/tmp/tower-dev-*/`. Pass `--keep` to preserve it
 across restarts (useful for inspecting the database or reusing keys).
 
 ## Useful endpoints
@@ -69,8 +69,8 @@ The banner prints the full path to the built binary and config. Use it
 for any tower CLI command:
 
 ```bash
-/tmp/headscale-dev-*/headscale -c /tmp/headscale-dev-*/config.yaml nodes list
-/tmp/headscale-dev-*/headscale -c /tmp/headscale-dev-*/config.yaml users list
+/tmp/tower-dev-*/tower -c /tmp/tower-dev-*/config.yaml nodes list
+/tmp/tower-dev-*/tower -c /tmp/tower-dev-*/config.yaml users list
 ```
 
 ## Known issues

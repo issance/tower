@@ -7,8 +7,8 @@ Tailscale ecosystem that cannot talk to Tower today works: the
 (`tailscale.com/client/tailscale/v2`).
 
 It is **not** a port of the whole Tailscale API. Ported endpoints are added one
-at a time, only as we need them; a headscale-native v2 endpoint may use
-tower's own conventions. The headscale-native admin API stays at `/api/v1`
+at a time, only as we need them; a tower-native v2 endpoint may use
+tower's own conventions. The tower-native admin API stays at `/api/v1`
 (`hscontrol/api/v1`). This guide is for the endpoints **ported from Tailscale**.
 
 [Terraform/OpenTofu provider]: https://registry.terraform.io/providers/tailscale/tailscale/latest
@@ -22,7 +22,7 @@ tower's own conventions. The headscale-native admin API stays at `/api/v1`
   anything else is `404`. See `requireDefaultTailnet`.
 - Errors use **Tailscale's** body (`{"message","data","status"}`), installed as
   a per-API transform (`tailscaleErrorTransformer` in `errors.go`). A future
-  headscale-native v2 operation would keep Huma's RFC 9457 problem+json.
+  tower-native v2 operation would keep Huma's RFC 9457 problem+json.
 - Auth accepts a credential as **HTTP Basic** (key as username, what the SDK
   sends) or **Bearer**: an admin API key (`hskey-api-…`), or an OAuth access
   token (`hskey-oauthtok-…`). See `authMiddleware`.

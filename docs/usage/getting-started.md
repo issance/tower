@@ -10,7 +10,7 @@ This page helps you get started with tower and provides a few usage examples for
     - The configuration file exists and is adjusted to suit your environment, see
       [Configuration](../ref/configuration.md) for details.
     - Tower is reachable from the Internet. Verify this by visiting the health endpoint:
-      https://headscale.example.com/health
+      https://tower.example.com/health
     - The Tailscale client is installed, see [Client and operating system support](../about/clients.md) for more
       information.
 
@@ -44,7 +44,7 @@ options, run:
 !!! note "Manage tower from another local user"
 
     By default only the user `tower` or `root` will have the necessary permissions to access the unix socket
-    (`/var/run/tower/headscale.sock`) that is used to communicate with the service. In order to be able to
+    (`/var/run/tower/tower.sock`) that is used to communicate with the service. In order to be able to
     communicate with the tower service you have to make sure the unix socket is accessible by the user that runs
     the commands. In general you can achieve this by any of the following methods:
 

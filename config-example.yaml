@@ -2,13 +2,13 @@
 # tower will look for a configuration file named `config.yaml` (or `config.json`) in the following order:
 #
 # - `/etc/tower`
-# - `~/.headscale`
+# - `~/.tower`
 # - current working directory
 
 # The url clients will connect to.
 # Typically this will be a domain like:
 #
-# https://myheadscale.example.com:443
+# https://control.example.com:443
 #
 server_url: http://127.0.0.1:8080
 
@@ -382,7 +382,7 @@ dns:
     # a file.
     # provider:
     #   name: cloudflare
-    #   api_token_path: /run/credentials/headscale.service/cloudflare-token
+    #   api_token_path: /run/credentials/tower.service/cloudflare-token
     #
     # acmedns needs a registration per certificate name under config, and
     # each _acme-challenge name CNAMEd to its registration's fulldomain. A
@@ -401,7 +401,7 @@ dns:
 
 # Unix socket used for the CLI to connect without authentication
 # Note: for production you will want to set this to something like:
-unix_socket: /var/run/tower/headscale.sock
+unix_socket: /var/run/tower/tower.sock
 # Octal, quoted: YAML reads an unquoted 0770 as the number 504.
 unix_socket_permission: "0770"
 
@@ -459,7 +459,7 @@ unix_socket_permission: "0770"
 #   # Only accept users which are members of at least one group in the
 #   # allowed_groups list.
 #   allowed_groups:
-#     - /headscale
+#     - /tower
 #
 #   # Optional: PKCE (Proof Key for Code Exchange) configuration
 #   # PKCE adds an additional layer of security to the OAuth 2.0 authorization code flow

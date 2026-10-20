@@ -24,13 +24,13 @@ aim to be upstreamed to nixpkgs.
 Add to your flake inputs:
 
 ```nix
-inputs.headscale.url = "github:juanfont/headscale";
+inputs.tower.url = "github:juanfont/tower";
 ```
 
 Then import the module:
 
 ```nix
-imports = [ inputs.headscale.nixosModules.default ];
+imports = [ inputs.tower.nixosModules.default ];
 ```
 
 See [`example-configuration.nix`](./example-configuration.nix) for configuration
@@ -48,8 +48,8 @@ line.
 ```nix
 pkgs.testers.runNixOSTest {
   name = "my-app";
-  nodes.headscale.imports = [ inputs.headscale.nixosModules.testkit ];
-  nodes.peer.imports = [ inputs.headscale.nixosModules.testkit-peer ];
+  nodes.tower.imports = [ inputs.tower.nixosModules.testkit ];
+  nodes.peer.imports = [ inputs.tower.nixosModules.testkit-peer ];
   testScript = ''
     start_all()
     key = tower.succeed("hs-authkey alice").strip()
@@ -67,7 +67,7 @@ must come from the same release or newer: the kit relies on its
 Breaking changes to anything below get a "NixOS test kit" BREAKING entry in the
 CHANGELOG.
 
-- Control: `http://<node hostname>`, so `http://headscale` for a node named
+- Control: `http://<node hostname>`, so `http://tower` for a node named
   `tower`. Use it for `tailscale up --login-server`,
   `tsnet.Server.ControlURL` and tailscale-rs `TS_CONTROL_URL`.
 - The same router is also served on TLS :443 with a throwaway self-signed
@@ -92,18 +92,18 @@ CHANGELOG.
     A policy may name users before `hs-authkey` creates them.
   - MagicDNS with `dns.base_domain = "tailnet"`.
   - `dns.override_local_dns = false`.
-- Everything else is plain `services.headscale.*` on that node.
+- Everything else is plain `services.tower.*` on that node.
   - Override the package with a plain assignment, e.g. to carry a patch:
-    `services.headscale.package = inputs.headscale.packages.${system}.headscale.overrideAttrs (o: { patches = (o.patches or [ ]) ++ [ ./fix.patch ]; });`
+    `services.tower.package = inputs.tower.packages.${system}.tower.overrideAttrs (o: { patches = (o.patches or [ ]) ++ [ ./fix.patch ]; });`
   - Don't bind :80 or :443 on that node yourself.
 
 ### Clients
 
 - **tailscaled**: import `testkit-peer` and use `hs-join`, or run
-  `tailscale up --login-server http://headscale --auth-key KEY` yourself. Its
+  `tailscale up --login-server http://tower --auth-key KEY` yourself. Its
   log warns that it "could not establish an encrypted connection": that is the
   untrusted certificate on :443, and it is expected.
-- **tsnet**: set `ControlURL` to `http://headscale` and hand it the key,
+- **tsnet**: set `ControlURL` to `http://tower` and hand it the key,
   e.g. `TS_AUTHKEY` in an `EnvironmentFile` that the test writes before it
   starts the unit.
 - **tailscale-rs**: build with its `ts_control/insecure-keyfetch` and
@@ -154,7 +154,7 @@ noise: { private_key_path: /tmp/hs/noise.key }
 database: { type: sqlite, sqlite: { path: /tmp/hs/db.sqlite } }
 prefixes: { v4: 100.64.0.0/10, v6: "fd7a:115c:a1e0::/48" }
 dns: { magic_dns: false, override_local_dns: false }
-unix_socket: /tmp/hs/headscale.sock
+unix_socket: /tmp/hs/tower.sock
 disable_check_updates: true
 derp:
   urls: []
@@ -187,7 +187,7 @@ Delete these and import the kit:
 ### Cost
 
 - tower builds from source with its own pinned nixpkgs and Go.
-- Setting `inputs.headscale.inputs.nixpkgs.follows` works only if your nixpkgs
+- Setting `inputs.tower.inputs.nixpkgs.follows` works only if your nixpkgs
   has the Go version `go.mod` requires. Compare
   `nix eval --raw nixpkgs#go_latest.version` against it.
 - The input also brings tower's development inputs into your lock file. If
@@ -195,7 +195,7 @@ Delete these and import the kit:
 
 ## Upstream
 
-- [nixpkgs module](https://github.com/NixOS/nixpkgs/blob/master/nixos/modules/services/networking/headscale.nix)
-- [nixpkgs package](https://github.com/NixOS/nixpkgs/blob/master/pkgs/by-name/he/headscale/package.nix)
+- [nixpkgs module](https://github.com/NixOS/nixpkgs/blob/master/nixos/modules/services/networking/tower.nix)
+- [nixpkgs package](https://github.com/NixOS/nixpkgs/blob/master/pkgs/by-name/he/tower/package.nix)
 
 The module in this repository may be newer than the nixpkgs version.

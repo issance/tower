@@ -36,7 +36,7 @@ file that cannot be projected in. So the CA has to be baked into the images.
 
    ```Dockerfile
    FROM <base>
-   COPY headscale-ca.crt /usr/local/share/ca-certificates/headscale-ca.crt
+   COPY tower-ca.crt /usr/local/share/ca-certificates/tower-ca.crt
    RUN update-ca-certificates
    ```
 

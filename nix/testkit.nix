@@ -35,7 +35,7 @@ in
 
   services.headscale = {
     enable = true;
-    package = lib.mkDefault self.packages.${pkgs.stdenv.hostPlatform.system}.headscale;
+    package = lib.mkDefault self.packages.${pkgs.stdenv.hostPlatform.system}.tower;
     address = "[::]";
     port = 80;
     settings = {

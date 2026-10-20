@@ -503,7 +503,7 @@ func LoadConfig(path string, isFile bool) error {
 
 		if path == "" {
 			viper.AddConfigPath("/etc/tower/")
-			viper.AddConfigPath("$HOME/.headscale")
+			viper.AddConfigPath("$HOME/.tower")
 			viper.AddConfigPath(".")
 		} else {
 			// For testing
@@ -537,7 +537,7 @@ func LoadConfig(path string, isFile bool) error {
 	viper.SetDefault("derp.server.automatically_add_embedded_derp_region", true)
 	viper.SetDefault("derp.update_frequency", "3h")
 
-	viper.SetDefault("unix_socket", "/var/run/tower/headscale.sock")
+	viper.SetDefault("unix_socket", "/var/run/tower/tower.sock")
 	viper.SetDefault("unix_socket_permission", "0o770")
 
 	viper.SetDefault("cli.timeout", "5s")

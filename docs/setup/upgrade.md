@@ -41,7 +41,7 @@ upgrading. A full backup of Tower depends on your individual setup, but below ar
     that contains the configuration file, data directory and the SQLite database.
 
     ```console
-    cp -aR /path/to/headscale /path/to/headscale.backup-$(date +%Y%m%d%H%M%S)
+    cp -aR /path/to/tower /path/to/tower.backup-$(date +%Y%m%d%H%M%S)
     ```
 
 === "PostgreSQL"

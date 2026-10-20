@@ -2,7 +2,7 @@
 
 All tower releases are available on the [GitHub release page](https://github.com/juanfont/headscale/releases). Those
 releases are available as binaries for various platforms and architectures, packages for Debian based systems and source
-code archives. Container images are available on [Docker Hub](https://hub.docker.com/r/headscale/headscale) and
+code archives. Container images are available on [Docker Hub](https://github.com/issance/tower/releases) and
 [GitHub Container Registry](https://github.com/juanfont/headscale/pkgs/container/headscale).
 
 An Atom/RSS feed of tower releases is available [here](https://github.com/juanfont/headscale/releases.atom).

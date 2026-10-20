@@ -47,8 +47,8 @@ nfpms:
   # See https://goreleaser.com/customization/package/nfpm/
   #
   # Useful tools for debugging .debs:
-  # List file contents: dpkg -c dist/headscale...deb
-  # Package metadata: dpkg --info dist/headscale....deb
+  # List file contents: dpkg -c dist/tower...deb
+  # Package metadata: dpkg --info dist/tower....deb
   #
   - ids:
       - tower
@@ -74,14 +74,14 @@ nfpms:
         type: config|noreplace
         file_info:
           mode: 0644
-      - src: ./packaging/systemd/headscale.service
-        dst: /usr/lib/systemd/system/headscale.service
+      - src: ./packaging/systemd/tower.service
+        dst: /usr/lib/systemd/system/tower.service
       - dst: /var/lib/tower
         type: dir
       - src: ./config-example.yaml
-        dst: /usr/share/doc/headscale/examples/config-example.yaml
+        dst: /usr/share/doc/tower/examples/config-example.yaml
       - src: LICENSE
-        dst: /usr/share/doc/headscale/copyright
+        dst: /usr/share/doc/tower/copyright
     scripts:
       postinstall: ./packaging/deb/postinst
       postremove: ./packaging/deb/postrm
@@ -95,8 +95,8 @@ nfpms:
 kos:
   - id: ghcr
     repositories:
-      - ghcr.io/juanfont/headscale
-      - headscale/headscale
+      - ghcr.io/juanfont/tower
+      - issance/tower
 
     # bare tells KO to only use the repository
     # for tagging and naming the container.
@@ -130,8 +130,8 @@ kos:
 
   - id: ghcr-debug
     repositories:
-      - ghcr.io/juanfont/headscale
-      - headscale/headscale
+      - ghcr.io/juanfont/tower
+      - issance/tower
 
     bare: true
     base_image: gcr.io/distroless/base-debian13:debug

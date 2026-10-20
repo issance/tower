@@ -121,7 +121,7 @@ The tower project itself does not provide a tool to migrate from PostgreSQL to S
 related tools documentation](../ref/integration/tools.md) for migration tooling provided by the community.
 
 The choice of database has little to no impact on the performance of the server,
-see [Scaling / How many clients does Tower support?](#scaling-how-many-clients-does-headscale-support) for understanding how Tower spends its resources.
+see [Scaling / How many clients does Tower support?](#scaling-how-many-clients-does-tower-support) for understanding how Tower spends its resources.
 
 ## Why is my reverse proxy not working with tower?
 

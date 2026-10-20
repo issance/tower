@@ -124,9 +124,9 @@ branches — never on `main`.
 ## Project Layout
 
 ```
-headscale/
+tower/
 ├── cmd/
-│   ├── headscale/    # Main tower server binary
+│   ├── tower/    # Main tower server binary
 │   └── hi/           # Integration test runner (see cmd/hi/README.md)
 ├── hscontrol/        # Core control plane
 ├── integration/      # End-to-end Docker-based tests (see integration/README.md)

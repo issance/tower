@@ -84,7 +84,7 @@ func codeBlockText(code string) *elem.Element {
 }
 
 // headscaleLogo returns the Tower SVG logo for consistent branding across all pages.
-// The logo is styled by the .headscale-logo CSS class.
+// The logo is styled by the .tower-logo CSS class.
 func headscaleLogo() elem.Node {
 	// Return the embedded SVG as-is
 	return elem.Raw(assets.SVG)

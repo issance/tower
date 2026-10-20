@@ -11,7 +11,7 @@ Install the official Tailscale Android client from the [Google Play Store](https
 - Open the app and select the settings menu in the upper-right corner
 - Tap on `Accounts`
 - In the kebab menu icon (three dots) in the upper-right corner select `Use an alternate server`
-- Enter your server URL (e.g `https://headscale.example.com`) and follow the instructions
+- Enter your server URL (e.g `https://tower.example.com`) and follow the instructions
 - The client connects automatically as soon as the node registration is complete on tower. Until then, nothing is
   visible in the server logs.
 
@@ -20,7 +20,7 @@ Install the official Tailscale Android client from the [Google Play Store](https
 - Open the app and select the settings menu in the upper-right corner
 - Tap on `Accounts`
 - In the kebab menu icon (three dots) in the upper-right corner select `Use an alternate server`
-- Enter your server URL (e.g `https://headscale.example.com`). If login prompts open, close it and continue
+- Enter your server URL (e.g `https://tower.example.com`). If login prompts open, close it and continue
 - Open the settings menu in the upper-right corner
 - Tap on `Accounts`
 - In the kebab menu icon (three dots) in the upper-right corner select `Use an auth key`

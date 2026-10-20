@@ -13,7 +13,7 @@ for their targeted operating system and usually:
     The packages mentioned on this page might be outdated or unmaintained. Use the [official releases](official.md) to
     get the current stable version or to [test pre-releases](main.md).
 
-    [![Packaging status](https://repology.org/badge/vertical-allrepos/headscale.svg)](https://repology.org/project/headscale/versions)
+    [![Packaging status](https://repology.org/badge/vertical-allrepos/tower.svg)](https://repology.org/project/tower/versions)
 
 ## Arch Linux
 
@@ -26,7 +26,7 @@ pacman -S tower
 ## Fedora, RHEL, CentOS
 
 A third-party repository for various RPM based distributions is available at:
-<https://copr.fedorainfracloud.org/coprs/jonathanspw/headscale/>. The site provides detailed setup and installation
+<https://copr.fedorainfracloud.org/coprs/jonathanspw/tower/>. The site provides detailed setup and installation
 instructions.
 
 ## Nix, NixOS
@@ -37,7 +37,7 @@ details](https://search.nixos.org/packages?show=tower).
 ## Gentoo
 
 ```shell
-emerge --ask net-vpn/headscale
+emerge --ask net-vpn/tower
 ```
 
 Gentoo specific documentation is available [here](https://wiki.gentoo.org/wiki/User:Maffblaster/Drafts/Tower).

@@ -28,9 +28,9 @@ tower apikeys expire --prefix <PREFIX>
 
 ## REST API
 
-- API endpoint: `/api/v1`, e.g. `https://headscale.example.com/api/v1`
-- Documentation: `/api/v1/docs`, e.g. `https://headscale.example.com/api/v1/docs`
-- Tower Version: `/version`, e.g. `https://headscale.example.com/version`
+- API endpoint: `/api/v1`, e.g. `https://tower.example.com/api/v1`
+- Documentation: `/api/v1/docs`, e.g. `https://tower.example.com/api/v1/docs`
+- Tower Version: `/version`, e.g. `https://tower.example.com/version`
 - Authenticate using HTTP Bearer authentication by sending the [API key](#api) with the HTTP `Authorization: Bearer <API_KEY>` header.
 
 Start by [creating an API key](#api) and test it with the examples below. Read the API documentation provided by your
@@ -40,14 +40,14 @@ Tower server at `/api/v1/docs` for details.
 
     ```console
     curl -H "Authorization: Bearer <API_KEY>" \
-        https://headscale.example.com/api/v1/user
+        https://tower.example.com/api/v1/user
     ```
 
 === "Get details for user 'bob'"
 
     ```console
     curl -H "Authorization: Bearer <API_KEY>" \
-        https://headscale.example.com/api/v1/user?name=bob
+        https://tower.example.com/api/v1/user?name=bob
     ```
 
 === "Register a node"
@@ -55,7 +55,7 @@ Tower server at `/api/v1/docs` for details.
     ```console
     curl -H "Authorization: Bearer <API_KEY>" \
         --json '{"user": "<USER>", "authId": "<AUTH_ID>"}' \
-        https://headscale.example.com/api/v1/auth/register
+        https://tower.example.com/api/v1/auth/register
     ```
 
 ## Join nodes with an OAuth client
@@ -85,7 +85,7 @@ Build the auth key from the secret:
    one of the OAuth client's tags, or owned by one of them.
 
 ```text
-tskey-client-<id>-<secret>?baseURL=https://headscale.example.com
+tskey-client-<id>-<secret>?baseURL=https://tower.example.com
 ```
 
 !!! warning
@@ -111,16 +111,16 @@ Booleans take any Go `strconv.ParseBool` value (`true`, `false`, `1`, `0`, …).
 `file:/path/to/secret`):
 
 ```shell
-tailscale up --login-server https://headscale.example.com --advertise-tags tag:ci \
-  --auth-key 'tskey-client-<id>-<secret>?baseURL=https://headscale.example.com&ephemeral=false'
+tailscale up --login-server https://tower.example.com --advertise-tags tag:ci \
+  --auth-key 'tskey-client-<id>-<secret>?baseURL=https://tower.example.com&ephemeral=false'
 ```
 
 Container image:
 
 ```shell
 docker run -d --name tailscale \
-  -e TS_AUTHKEY='tskey-client-<id>-<secret>?baseURL=https://headscale.example.com' \
-  -e TS_EXTRA_ARGS='--login-server=https://headscale.example.com --advertise-tags=tag:ci' \
+  -e TS_AUTHKEY='tskey-client-<id>-<secret>?baseURL=https://tower.example.com' \
+  -e TS_EXTRA_ARGS='--login-server=https://tower.example.com --advertise-tags=tag:ci' \
   tailscale/tailscale
 ```
 
@@ -128,8 +128,8 @@ docker run -d --name tailscale \
 
 ```go
 srv := &tsnet.Server{
-    ControlURL:    "https://headscale.example.com",
-    AuthKey:       "tskey-client-<id>-<secret>?baseURL=https://headscale.example.com",
+    ControlURL:    "https://tower.example.com",
+    AuthKey:       "tskey-client-<id>-<secret>?baseURL=https://tower.example.com",
     AdvertiseTags: []string{"tag:ci"},
 }
 ```
@@ -142,7 +142,7 @@ GitHub Action, with the whole string stored as a repository secret:
 - uses: tailscale/github-action@v4
   with:
     authkey: ${{ secrets.HEADSCALE_AUTHKEY }}
-    args: --login-server=https://headscale.example.com --advertise-tags=tag:ci
+    args: --login-server=https://tower.example.com --advertise-tags=tag:ci
 ```
 
 {% endraw %}
@@ -165,9 +165,9 @@ The `tower` binary can control a Tower instance from a remote machine over the H
 1. Download the [`tower` binary from GitHub's release page](https://github.com/juanfont/headscale/releases). Make
    sure to use the same version as on the server.
 
-1. Put the binary somewhere in your `PATH`, e.g. `/usr/local/bin/headscale`
+1. Put the binary somewhere in your `PATH`, e.g. `/usr/local/bin/tower`
 
-1. Make `tower` executable: `chmod +x /usr/local/bin/headscale`
+1. Make `tower` executable: `chmod +x /usr/local/bin/tower`
 
 1. [Create an API key](#api) on the Tower server.
 
@@ -190,7 +190,7 @@ The `tower` binary can control a Tower instance from a remote machine over the H
         ```
 
     This instructs the `tower` binary to connect to a remote instance at `<HEADSCALE_URL>` (e.g.
-    `https://headscale.example.com`), instead of connecting to the local instance. A bare host without a scheme is
+    `https://tower.example.com`), instead of connecting to the local instance. A bare host without a scheme is
     assumed to be `https`.
 
 1. Test the connection by listing all nodes:

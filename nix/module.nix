@@ -15,7 +15,7 @@ let
     # is nixpkgs and not Github.
     disable_check_updates = true;
 
-    unix_socket = "${runDir}/headscale.sock";
+    unix_socket = "${runDir}/tower.sock";
   };
 
   settingsFormat = pkgs.formats.yaml { };
@@ -109,7 +109,7 @@ in
               description = ''
                 The url clients will connect to.
               '';
-              example = "https://myheadscale.example.com:443";
+              example = "https://control.example.com:443";
             };
 
             noise.private_key_path = lib.mkOption {

@@ -185,7 +185,7 @@ Same as [envoy](#envoy), we can use `EnvoyFilter` to add a new upgrade_type name
 apiVersion: networking.istio.io/v1alpha3
 kind: EnvoyFilter
 metadata:
-  name: headscale-behind-istio-ingress
+  name: tower-behind-istio-ingress
   namespace: istio-system
 spec:
   configPatches:
@@ -265,7 +265,7 @@ server {
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
     proxy_buffering off;
-    proxy_pass http://headscale;
+    proxy_pass http://tower;
   }
 }
 ```

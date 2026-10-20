@@ -70,7 +70,7 @@ log:
 policy:
   mode: database
 
-unix_socket: %s/headscale.sock
+unix_socket: %s/tower.sock
 unix_socket_permission: "0770"
 `
 

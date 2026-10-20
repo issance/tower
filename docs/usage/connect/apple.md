@@ -18,7 +18,7 @@ Install the official Tailscale iOS client from the [App Store](https://apps.appl
 - Open the Tailscale app
 - Click the account icon in the top-right corner and select `Log in…`.
 - Tap the top-right options menu button and select `Use custom coordination server`.
-- Enter your instance url (e.g `https://headscale.example.com`)
+- Enter your instance url (e.g `https://tower.example.com`)
 - Enter your credentials and log in. Tower should now be working on your iOS device.
 
 ## macOS
@@ -32,7 +32,7 @@ install it.
 
 #### Command line
 
-Use Tailscale's login command to connect with your tower instance (e.g `https://headscale.example.com`):
+Use Tailscale's login command to connect with your tower instance (e.g `https://tower.example.com`):
 
 ```
 tailscale login --login-server <YOUR_HEADSCALE_URL>
@@ -42,7 +42,7 @@ tailscale login --login-server <YOUR_HEADSCALE_URL>
 
 - Option + Click the Tailscale icon in the menu and hover over the Debug menu
 - Under `Custom Login Server`, select `Add Account...`
-- Enter the URL of your tower instance (e.g `https://headscale.example.com`) and press `Add Account`
+- Enter the URL of your tower instance (e.g `https://tower.example.com`) and press `Add Account`
 - Follow the login procedure in the browser
 
 ## tvOS
@@ -61,6 +61,6 @@ Install the official Tailscale tvOS client from the [App Store](https://apps.app
 - Click the button `Install VPN configuration` and confirm the appearing popup by clicking the `Allow` button, but don't sign in yet
 - Open Settings (the Apple tvOS settings) > Apps > Tailscale
 - Under `ALTERNATE COORDINATION SERVER URL`, select `URL`
-- Enter the URL of your tower instance (e.g `https://headscale.example.com`) and press `OK`
+- Enter the URL of your tower instance (e.g `https://tower.example.com`) and press `OK`
 - Return to the tvOS Home screen and open Tailscale
 - Scan the QR code and follow the login procedure

@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/jagottsicher/termcolor"
-	"github.com/juanfont/headscale/cmd/headscale/cli"
+	"github.com/juanfont/headscale/cmd/tower/cli"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )

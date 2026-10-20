@@ -1,13 +1,13 @@
 ---
 site_name: Tower
-site_url: https://juanfont.github.io/headscale/
+site_url: https://juanfont.github.io/tower/
 edit_uri: blob/main/docs/
 site_author: Tower authors
 site_description: >-
   An open source, self-hosted implementation of the Tailscale control server.
 
 # Repository
-repo_name: juanfont/headscale
+repo_name: juanfont/tower
 repo_url: https://github.com/juanfont/headscale
 
 # Copyright
@@ -107,7 +107,7 @@ extra:
     - icon: fontawesome/brands/github
       link: https://github.com/juanfont/headscale
     - icon: material/coffee
-      link: https://ko-fi.com/headscale
+      link: https://ko-fi.com/tower
     - icon: fontawesome/brands/docker
       link: https://github.com/juanfont/headscale/pkgs/container/headscale
     - icon: fontawesome/brands/discord
