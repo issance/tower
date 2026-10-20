@@ -378,6 +378,11 @@ func (a *AuthProviderWeb) RegisterHandler(
 		return
 	}
 
+	if _, isOIDC := issanceTower.authProvider.(*AuthProviderOIDC); !isOIDC {
+		issanceRegisterRender(writer, http.StatusOK, authId, "", false)
+		return
+	}
+
 	writer.Header().Set("Content-Type", "text/html; charset=utf-8")
 	writer.WriteHeader(http.StatusOK)
 

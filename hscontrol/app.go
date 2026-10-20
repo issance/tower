@@ -196,6 +196,7 @@ func NewHeadscale(cfg *types.Config) (*Headscale, error) {
 	var authProvider AuthProvider
 
 	authProvider = NewAuthProviderWeb(cfg.ServerURL)
+	issanceTower = &app
 	if cfg.OIDC.Issuer != "" {
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
@@ -508,6 +509,7 @@ func (h *Headscale) createRouter(apiV1Mux, apiV2Mux http.Handler) *chi.Mux {
 	r.Get("/version", h.VersionHandler)
 	r.Get("/key", h.KeyHandler)
 	r.Get("/register/{auth_id}", h.authProvider.RegisterHandler)
+	r.Post("/register/{auth_id}", issanceRegisterPost)
 	r.Get("/auth/{auth_id}", h.authProvider.AuthHandler)
 
 	if provider, ok := h.authProvider.(*AuthProviderOIDC); ok {
