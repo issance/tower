@@ -542,7 +542,7 @@ func (n seededTaggedNode) get(t *testing.T) types.NodeView {
 // TestTaggedReauthAddTagAsOwner reproduces issue #3374 with the issue's own
 // scenario: a tag-owned node holding tag:tag1 re-authenticates with
 // --advertise-tags=tag:tag1,tag:tag2, and the authenticating user (ci-admin,
-// via group:ci) owns BOTH tags. Today tower rejects the whole set as
+// via group:ci) owns BOTH tags. Today headscale rejects the whole set as
 // "invalid or not permitted", leaving the re-keyed node logged out.
 //
 // This is stronger than re-advertising the already-held set: it exercises BOTH
@@ -934,7 +934,7 @@ func TestIssue3371_TaggedNodeInteractiveReloginAfterLogout(t *testing.T) {
 }
 
 // TestIssue3371_TaggedNodePastExpirySelfHealsOnReregister covers the 0.29.x
-// upgrade path: a tagged node broken by an OLDER tower carries a past
+// upgrade path: a tagged node broken by an OLDER headscale carries a past
 // expiry persisted in its DB row. After a restart (State reloads the row) it
 // comes back expired, and its next auth-key re-registration must self-heal it
 // by clearing the stale past expiry. This is the "part b" defensive clear.

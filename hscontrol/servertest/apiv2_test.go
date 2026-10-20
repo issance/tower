@@ -19,7 +19,7 @@ import (
 
 // TestAPIv2 proves the v2 API's Tailscale-compatible (ported) endpoints against the three real
 // clients it exists to support: the official Go SDK, tscli, and the Tailscale
-// Terraform provider (via OpenTofu). All three run against one Tower bound
+// Terraform provider (via OpenTofu). All three run against one Headscale bound
 // to a real loopback port, authenticating with a user-owned API key.
 //
 // Every mutation is validated three ways — the tool's own get-after-set, the
@@ -198,7 +198,7 @@ func apiv2UsersGoClient(t *testing.T, srv *servertest.TestServer, baseURL, apiKe
 	assert.True(t, containsUserID(all, ownerID), "owner present in user list")
 	assert.Len(t, all, srvUserCount(t, srv))
 
-	// member matches every Tower user; shared/admin match nothing.
+	// member matches every Headscale user; shared/admin match nothing.
 	members, err := ur.List(ctx, new(tsclient.UserTypeMember), nil)
 	require.NoError(t, err)
 	assert.Len(t, members, len(all))
@@ -382,7 +382,7 @@ func apiv2Terraform(t *testing.T, srv *servertest.TestServer, baseURL, apiKey st
 
 // usersTFConfig drives the tailscale_user (by login name) and tailscale_users
 // data sources, plus tailscale_4via6 (provider-local compute, no server call) to
-// prove that data source resolves against Tower unchanged. %s is the owner's
+// prove that data source resolves against Headscale unchanged. %s is the owner's
 // login name. Data sources create nothing, so the assertions are value
 // correctness plus no drift on re-read.
 const usersTFConfig = `

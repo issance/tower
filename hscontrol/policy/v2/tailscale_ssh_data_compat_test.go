@@ -1,6 +1,6 @@
 // Replay golden HuJSON captures under testdata/ssh_results/ssh-*.hujson:
-// the 200 path compares tower's compileSSHPolicy output node-by-node
-// against the captured SSHRules; the non-200 path requires tower to
+// the 200 path compares headscale's compileSSHPolicy output node-by-node
+// against the captured SSHRules; the non-200 path requires headscale to
 // reject the same input with the captured error body as a substring.
 // Divergences are listed in sshSkipReasons (200) and sshRejectSkipReasons
 // (non-200) with the engine gap each represents.
@@ -59,14 +59,14 @@ func loadSSHTestFile(t *testing.T, path string) *testcapture.Capture {
 }
 
 // sshSkipReasons documents captures the upstream control plane accepts
-// but tower cannot yet represent. Each entry names the feature gap.
+// but headscale cannot yet represent. Each entry names the feature gap.
 var sshSkipReasons = map[string]string{
 	"ssh-b5":  "tower has no passkey authentication; user:*@passkey wildcard unsupported",
 	"ssh-d10": "tower has no passkey authentication; user:*@passkey wildcard unsupported",
 }
 
 // sshRejectSkipReasons documents captures the upstream control plane
-// rejects for reasons tower cannot apply. Each entry names the
+// rejects for reasons headscale cannot apply. Each entry names the
 // feature gap.
 var sshRejectSkipReasons = map[string]string{
 	"ssh-b4": "tower has no associated-tailnet-domains config; user:*@domain / localpart:*@domain are not domain-validated",
@@ -79,7 +79,7 @@ var sshRejectSkipReasons = map[string]string{
 // TestSSHDataCompat loads every ssh-*.hujson capture, parses the policy
 // it pinned, and compiles the same per-node SSH rules to compare against
 // the captured shape. Non-200 captures replay the rejection path: the
-// recorded error body must appear as a substring of tower's
+// recorded error body must appear as a substring of headscale's
 // rejection.
 func TestSSHDataCompat(t *testing.T) {
 	t.Parallel()
@@ -177,7 +177,7 @@ func TestSSHDataCompat(t *testing.T) {
 					require.NotNilf(t, node,
 						"golden node %s not found in test setup", nodeName)
 
-					// Compile tower SSH policy for this node
+					// Compile headscale SSH policy for this node
 					gotSSH, err := pol.compileSSHPolicy(
 						"https://unused",
 						users,
@@ -200,7 +200,7 @@ func TestSSHDataCompat(t *testing.T) {
 						wantSSH = nil
 					}
 
-					// Compare tower output against Tailscale expected.
+					// Compare headscale output against Tailscale expected.
 					// EquateEmpty treats nil and empty slices as equal.
 					// Sort principals within rules (order doesn't matter).
 					// Do NOT sort rules — order matters (first-match-wins).
@@ -233,7 +233,7 @@ func TestSSHDataCompat(t *testing.T) {
 
 					// Separate presence check: the fields ignored by
 					// the diff above must still be populated on matching
-					// rules. This catches regressions where tower
+					// rules. This catches regressions where headscale
 					// would silently drop the HoldAndDelegate URL or
 					// flip Accept to false while we are not looking.
 					if wantSSH != nil && gotSSH != nil {
@@ -382,7 +382,7 @@ func TestSSHCheckParamsMatchesCaptures(t *testing.T) {
 	}
 }
 
-// TestSSHCheckParamsMatchesCompiledRules pins SSHCheckParams to tower's
+// TestSSHCheckParamsMatchesCompiledRules pins SSHCheckParams to headscale's
 // own compiled rules for shapes the captures lack, such as a user whose
 // email localpart is root.
 func TestSSHCheckParamsMatchesCompiledRules(t *testing.T) {

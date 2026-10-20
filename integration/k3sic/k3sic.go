@@ -4,13 +4,13 @@
 //
 // It exists so that integration tests can install the real Tailscale
 // Kubernetes operator (via its Helm chart) into a real Kubernetes cluster and
-// point it at an in-test Tower. k3s bundles kubectl and we run helm inside
+// point it at an in-test Headscale. k3s bundles kubectl and we run helm inside
 // the container through Execute, so the host dev shell needs no kube tooling.
 //
-// The operator is pointed at Tower over plain HTTP (see
+// The operator is pointed at Headscale over plain HTTP (see
 // hsic.WithoutTLS), so the operator and proxy pods need no CA: there is no
 // image baking and no CoreDNS hostname mapping. To run instead against a TLS
-// Tower with a private CA, see tls-ca-baking.md.
+// Headscale with a private CA, see tls-ca-baking.md.
 //
 // The harness runs as sibling containers on the host docker daemon (the
 // test-suite container has the host docker socket bind-mounted); it is NOT
@@ -91,9 +91,9 @@ var (
 )
 
 // OperatorImageTag is the image tag the operator and proxy images use, derived
-// from the Tailscale minor Tower tracks via capver (e.g. "v1.98"). The
+// from the Tailscale minor Headscale tracks via capver (e.g. "v1.98"). The
 // operator shares the Tailscale release train, so this keeps the images and the
-// Helm chart in lockstep with the client versions Tower is tested against,
+// Helm chart in lockstep with the client versions Headscale is tested against,
 // without a hand-pinned constant. The tag is a rolling tag within the minor.
 func OperatorImageTag() string {
 	return capver.TailscaleLatestMajorMinor(1, false)[0]
@@ -106,7 +106,7 @@ func ProxyImage() string    { return proxyImageRepo + ":" + OperatorImageTag() }
 
 // OperatorChartVersion is the Helm chart version constraint matching the derived
 // minor; helm resolves the latest patch in that line. The top-level loginServer
-// value the operator needs to target Tower instead of the Tailscale SaaS
+// value the operator needs to target Headscale instead of the Tailscale SaaS
 // first shipped in chart 1.98.4.
 func OperatorChartVersion() string {
 	return strings.TrimPrefix(OperatorImageTag(), "v") + ".*"
@@ -420,8 +420,8 @@ func (k *K3sInContainer) waitForClusterDNS() error {
 }
 
 // ConfigureCoreDNSHost makes in-cluster pods resolve hostname to ip via CoreDNS.
-// The operator targets Tower's control plane by IP, but the embedded DERP map
-// references Tower by hostname; without this, the proxy pods cannot resolve
+// The operator targets Headscale's control plane by IP, but the embedded DERP map
+// references Headscale by hostname; without this, the proxy pods cannot resolve
 // the DERP server, never connect to it, and — since they only advertise
 // unreachable pod-network endpoints — get no data path to nodes outside the
 // cluster. It installs a coredns-custom ConfigMap (a k3s-native extension point:

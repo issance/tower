@@ -43,7 +43,7 @@ const (
 // This is useful for integration testing where DNS resolution may be unreliable.
 var debugUseDERPIP = envknob.Bool("HEADSCALE_DEBUG_DERP_USE_IP")
 
-// DebugInsecureTLSListenAddr makes tower also serve on this address over
+// DebugInsecureTLSListenAddr makes headscale also serve on this address over
 // TLS with a throwaway self-signed certificate, advertised as the embedded
 // DERP node with InsecureForTests. Test harnesses (nix/testkit.nix) need it:
 // clients that cannot be handed a CA (tailscale-rs, Android) still get TLS
@@ -331,7 +331,7 @@ func DERPProbeHandler(
 // this endpoint provides a way to help a client when it fails to start up
 // because its DNS are broken.
 // The initial implementation is here https://github.com/tailscale/tailscale/pull/1406
-// They have a cache, but not clear if that is really necessary at Tower, uh, scale.
+// They have a cache, but not clear if that is really necessary at Headscale, uh, scale.
 // An example implementation is found here https://derp.tailscale.com/bootstrap-dns
 // Coordination server is included automatically, since local DERP is using the same DNS Name in d.serverURL.
 // derpMap is called per request so DERP map updates are served.

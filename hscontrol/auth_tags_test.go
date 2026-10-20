@@ -14,7 +14,7 @@ import (
 )
 
 // createTestAppWithNodeExpiry creates a test app with a specific node.expiry config.
-func createTestAppWithNodeExpiry(t *testing.T, nodeExpiry time.Duration) *Tower {
+func createTestAppWithNodeExpiry(t *testing.T, nodeExpiry time.Duration) *Headscale {
 	t.Helper()
 
 	tmpDir := t.TempDir()

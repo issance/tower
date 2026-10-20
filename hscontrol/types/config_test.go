@@ -780,11 +780,11 @@ dns:
 }
 
 // OK
-// server_url: tower.com, base: clients.headscale.com
-// server_url: tower.com, base: issance.com
+// server_url: headscale.com, base: clients.headscale.com
+// server_url: headscale.com, base: issance.com
 //
 // NOT OK
-// server_url: server.headscale.com, base: tower.com.
+// server_url: server.headscale.com, base: headscale.com.
 func TestSafeServerURL(t *testing.T) {
 	tests := []struct {
 		serverURL, baseDomain,
@@ -885,7 +885,7 @@ func TestSafeServerURLWithPort(t *testing.T) {
 
 // TestConfigJSONOmitsSecrets verifies that marshalling a [Config] to JSON
 // (as /debug/config does via [state.State.DebugConfig]) does not leak the
-// Postgres password, the OIDC client secret, or the tower admin
+// Postgres password, the OIDC client secret, or the headscale admin
 // API key. Operators who widen metrics_listen_addr to 0.0.0.0 should
 // not be able to read these back via debug endpoints reachable over
 // CGNAT/loopback.

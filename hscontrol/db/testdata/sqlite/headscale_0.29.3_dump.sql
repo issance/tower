@@ -1,5 +1,5 @@
--- Database created by a real tower v0.29.3 binary (go build of tag
--- v0.29.3): `tower serve` ran the migrations and wrote
+-- Database created by a real headscale v0.29.3 binary (go build of tag
+-- v0.29.3): `headscale serve` ran the migrations and wrote
 -- database_versions; users, the API key and the bcrypt pre-auth keys were
 -- created with the v0.29.3 CLI. The legacy plaintext pre-auth key and all
 -- nodes were inserted by SQL against that schema; node 6 was inserted then

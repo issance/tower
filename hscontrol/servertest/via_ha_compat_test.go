@@ -91,7 +91,7 @@ func runViaHACompat(t *testing.T, c *testcapture.Capture) {
 		srv.App.Change(changes...)
 	}
 
-	// Create nodes in SaaS node ID order so tower assigns
+	// Create nodes in SaaS node ID order so headscale assigns
 	// sequential DB IDs in the same relative order.
 	clients := map[string]*servertest.TestClient{}
 	order := captureNodeOrder(t, c)
@@ -203,7 +203,7 @@ func runViaHACompat(t *testing.T, c *testcapture.Capture) {
 	}
 }
 
-// compareCaptureNetmap compares tower's [tailcfg.MapResponse] against a
+// compareCaptureNetmap compares headscale's [tailcfg.MapResponse] against a
 // [testcapture.Node]'s [netmap.NetworkMap] data. Same logic as [compareNetmap] but
 // reads from typed [testcapture] fields instead of goldenFile strings.
 // It takes [require.TestingT] so it can run inside [requireNetmapHolds].
@@ -260,7 +260,7 @@ func compareCaptureNetmap(
 		}
 	}
 
-	// Build peer summaries from tower [tailcfg.MapResponse].
+	// Build peer summaries from headscale [tailcfg.MapResponse].
 	gotPeers := map[string]capturePeerSummary{}
 
 	for _, peer := range nm.Peers {
@@ -395,7 +395,7 @@ var captureUserNames = map[string]string{
 	"freya@example.com": "freya",
 }
 
-// createCaptureUsers creates a tower user for each capture identity,
+// createCaptureUsers creates a headscale user for each capture identity,
 // keyed by name.
 func createCaptureUsers(t *testing.T, srv *servertest.TestServer) map[string]*types.User {
 	t.Helper()
@@ -408,7 +408,7 @@ func createCaptureUsers(t *testing.T, srv *servertest.TestServer) map[string]*ty
 	return users
 }
 
-// convertCapturePolicy converts a [testcapture.Capture]'s policy for tower,
+// convertCapturePolicy converts a [testcapture.Capture]'s policy for headscale,
 // replacing each SaaS email with the "<name>@" form that resolves to the
 // users [createCaptureUsers] creates. Fails the test if none of the known
 // SaaS emails are present: that would mean the capture was regenerated

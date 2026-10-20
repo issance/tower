@@ -1041,7 +1041,7 @@ func TestPolicyUpdateWhileRunningWithCLIInDatabase(t *testing.T) {
 		}
 	}
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	require.NoError(t, err)
 
 	p := policyv2.Policy{
@@ -1057,7 +1057,7 @@ func TestPolicyUpdateWhileRunningWithCLIInDatabase(t *testing.T) {
 		Hosts: policyv2.Hosts{},
 	}
 
-	err = tower.SetPolicy(&p)
+	err = headscale.SetPolicy(&p)
 	require.NoError(t, err)
 
 	assert.EventuallyWithT(t, func(ct *assert.CollectT) {
@@ -1066,7 +1066,7 @@ func TestPolicyUpdateWhileRunningWithCLIInDatabase(t *testing.T) {
 		var output *policyv2.Policy
 
 		err = executeAndUnmarshal(
-			tower,
+			headscale,
 			[]string{
 				"tower",
 				"policy",
@@ -1217,8 +1217,8 @@ func TestACLAutogroupTagged(t *testing.T) {
 		},
 	}
 
-	// Create only the tower server (not the full environment with users/nodes)
-	tower, err := scenario.Tower(
+	// Create only the headscale server (not the full environment with users/nodes)
+	headscale, err := scenario.Headscale(
 		hsic.WithACLPolicy(policy),
 		hsic.WithTestName("acl-autogroup-tagged"),
 	)
@@ -1271,8 +1271,8 @@ func TestACLAutogroupTagged(t *testing.T) {
 			// nodes created via [Scenario.CreateTailscaleNode] are not part of
 			// the standard [Scenario.CreateHeadscaleEnv] flow.
 			opts := []tsic.Option{
-				tsic.WithCACert(tower.GetCert()),
-				tsic.WithHeadscaleName(tower.GetHostname()),
+				tsic.WithCACert(headscale.GetCert()),
+				tsic.WithHeadscaleName(headscale.GetHostname()),
 				tsic.WithNetwork(network),
 				tsic.WithNetfilter("off"),
 				tsic.WithPackages("curl"),
@@ -1291,7 +1291,7 @@ func TestACLAutogroupTagged(t *testing.T) {
 			require.NoError(t, err)
 
 			// Login with the appropriate auth key (tags come from the PreAuthKey)
-			err = tsClient.Login(tower.GetEndpoint(), authKey)
+			err = tsClient.Login(headscale.GetEndpoint(), authKey)
 			require.NoError(t, err)
 
 			err = tsClient.WaitForRunning(integrationutil.PeerSyncTimeout())
@@ -1546,7 +1546,7 @@ func TestACLAutogroupSelf(t *testing.T) {
 		network = networks[0]
 	}
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	require.NoError(t, err)
 
 	routerUser, err := scenario.CreateUser("user-router")
@@ -1563,8 +1563,8 @@ func TestACLAutogroupSelf(t *testing.T) {
 	routerClient, err := tsic.New(
 		scenario.Pool(),
 		"unstable",
-		tsic.WithCACert(tower.GetCert()),
-		tsic.WithHeadscaleName(tower.GetHostname()),
+		tsic.WithCACert(headscale.GetCert()),
+		tsic.WithHeadscaleName(headscale.GetHostname()),
 		tsic.WithNetwork(network),
 		tsic.WithNetfilter("off"),
 		tsic.WithPackages("curl"),
@@ -1576,7 +1576,7 @@ func TestACLAutogroupSelf(t *testing.T) {
 	err = routerClient.WaitForNeedsLogin(integrationutil.PeerSyncTimeout())
 	require.NoError(t, err)
 
-	err = routerClient.Login(tower.GetEndpoint(), authKey.Key)
+	err = routerClient.Login(headscale.GetEndpoint(), authKey.Key)
 	require.NoError(t, err)
 
 	err = routerClient.WaitForRunning(integrationutil.PeerSyncTimeout())
@@ -1767,7 +1767,7 @@ func TestACLPolicyPropagationOverTime(t *testing.T) {
 
 	allClients := append(user1Clients, user2Clients...)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	require.NoError(t, err)
 
 	// Define the four policies we'll cycle through
@@ -1815,7 +1815,7 @@ func TestACLPolicyPropagationOverTime(t *testing.T) {
 		// Phase 1: Allow all policy
 		t.Logf("Iteration %d: Setting allow-all policy", iteration)
 
-		err = tower.SetPolicy(allowAllPolicy)
+		err = headscale.SetPolicy(allowAllPolicy)
 		require.NoError(t, err)
 
 		// Wait for peer lists to sync with allow-all policy
@@ -1851,7 +1851,7 @@ func TestACLPolicyPropagationOverTime(t *testing.T) {
 
 		preFilters := snapshotClientFilters(t, allClients)
 
-		err = tower.SetPolicy(autogroupSelfPolicy)
+		err = headscale.SetPolicy(autogroupSelfPolicy)
 		require.NoError(t, err)
 
 		// Wait for peer lists to sync with autogroup:self - ensures cross-user peers are removed
@@ -1946,7 +1946,7 @@ func TestACLPolicyPropagationOverTime(t *testing.T) {
 		networks := scenario.Networks()
 		require.NotEmpty(t, networks, "scenario should have at least one network")
 
-		newClient := scenario.MustAddAndLoginClient(t, "user1", "all", tower,
+		newClient := scenario.MustAddAndLoginClient(t, "user1", "all", headscale,
 			tsic.WithNetfilter("off"),
 			tsic.WithPackages("curl"),
 			tsic.WithWebserver(80),
@@ -2013,7 +2013,7 @@ func TestACLPolicyPropagationOverTime(t *testing.T) {
 		)
 
 		assert.EventuallyWithT(t, func(ct *assert.CollectT) {
-			nodeList, err = tower.ListNodes("user1")
+			nodeList, err = headscale.ListNodes("user1")
 			assert.NoError(ct, err)
 			assert.Len(ct, nodeList, 3, "should have 3 user1 nodes before deletion")
 
@@ -2026,9 +2026,9 @@ func TestACLPolicyPropagationOverTime(t *testing.T) {
 			}
 		}, integrationutil.ScaledTimeout(10*time.Second), integrationutil.SlowPoll, "iteration %d: Phase 2b - listing nodes before deletion", iteration)
 
-		// Delete the node via tower helper
+		// Delete the node via headscale helper
 		t.Logf("Iteration %d: Phase 2b - Deleting node ID %d from tower", iteration, nodeToDeleteID)
-		err = tower.DeleteNode(nodeToDeleteID)
+		err = headscale.DeleteNode(nodeToDeleteID)
 		require.NoError(t, err, "iteration %d: failed to delete node %d", iteration, nodeToDeleteID)
 
 		// Remove the deleted client from the scenario's user.Clients map
@@ -2050,7 +2050,7 @@ func TestACLPolicyPropagationOverTime(t *testing.T) {
 		// Verify the node has been deleted
 		t.Logf("Iteration %d: Phase 2b - Verifying node deletion (expecting 2 user1 nodes)", iteration)
 		assert.EventuallyWithT(t, func(ct *assert.CollectT) {
-			nodeListAfter, err := tower.ListNodes("user1")
+			nodeListAfter, err := headscale.ListNodes("user1")
 			assert.NoError(ct, err, "failed to list nodes after deletion")
 			assert.Len(ct, nodeListAfter, 2, "iteration %d: should have 2 user1 nodes after deletion, got %d", iteration, len(nodeListAfter))
 		}, integrationutil.ScaledTimeout(10*time.Second), integrationutil.SlowPoll, "iteration %d: Phase 2b - node should be deleted", iteration)
@@ -2078,7 +2078,7 @@ func TestACLPolicyPropagationOverTime(t *testing.T) {
 		// Phase 3: User1 can access user2 but not reverse
 		t.Logf("Iteration %d: Phase 3 - Setting user1->user2 directional policy", iteration)
 
-		err = tower.SetPolicy(user1ToUser2Policy)
+		err = headscale.SetPolicy(user1ToUser2Policy)
 		require.NoError(t, err)
 
 		// Note: Cannot use [Scenario.WaitForTailscaleSync] here because directional policy means
@@ -2124,7 +2124,7 @@ func TestACLPolicyPropagationOverTime(t *testing.T) {
 }
 
 // TestACLTagPropagation validates that tag changes propagate immediately
-// to ACLs without requiring a Tower restart.
+// to ACLs without requiring a Headscale restart.
 // This is the primary test for GitHub issue #2389.
 func TestACLTagPropagation(t *testing.T) {
 	IntegrationSkip(t)
@@ -2134,7 +2134,7 @@ func TestACLTagPropagation(t *testing.T) {
 		policy *policyv2.Policy
 		spec   ScenarioSpec
 		// setup returns clients and any initial state needed
-		setup func(t *testing.T, scenario *Scenario, tower ControlServer) (
+		setup func(t *testing.T, scenario *Scenario, headscale ControlServer) (
 			sourceClient TailscaleClient,
 			targetClient TailscaleClient,
 			targetNodeID uint64,
@@ -2191,7 +2191,7 @@ func TestACLTagPropagation(t *testing.T) {
 				NodesPerUser: 1,
 				Users:        []string{"user1", "user2"},
 			},
-			setup: func(t *testing.T, scenario *Scenario, tower ControlServer) (TailscaleClient, TailscaleClient, uint64) {
+			setup: func(t *testing.T, scenario *Scenario, headscale ControlServer) (TailscaleClient, TailscaleClient, uint64) {
 				t.Helper()
 
 				user1Clients, err := scenario.ListTailscaleClients("user1")
@@ -2199,7 +2199,7 @@ func TestACLTagPropagation(t *testing.T) {
 				user2Clients, err := scenario.ListTailscaleClients("user2")
 				require.NoError(t, err)
 
-				nodes, err := tower.ListNodes("user1")
+				nodes, err := headscale.ListNodes("user1")
 				require.NoError(t, err)
 
 				return user2Clients[0], user1Clients[0], mustParseID(nodes[0].Id)
@@ -2245,10 +2245,10 @@ func TestACLTagPropagation(t *testing.T) {
 				NodesPerUser: 0, // manual creation for tagged node
 				Users:        []string{"user1", "user2"},
 			},
-			setup: func(t *testing.T, scenario *Scenario, tower ControlServer) (TailscaleClient, TailscaleClient, uint64) {
+			setup: func(t *testing.T, scenario *Scenario, headscale ControlServer) (TailscaleClient, TailscaleClient, uint64) {
 				t.Helper()
 
-				userMap, err := tower.MapUsers()
+				userMap, err := headscale.MapUsers()
 				require.NoError(t, err)
 
 				// Create user1's node WITH tag:shared via PreAuthKey
@@ -2266,7 +2266,7 @@ func TestACLTagPropagation(t *testing.T) {
 					tsic.WithNetfilter("off"),
 				)
 				require.NoError(t, err)
-				err = user1Node.Login(tower.GetEndpoint(), taggedKey.Key)
+				err = user1Node.Login(headscale.GetEndpoint(), taggedKey.Key)
 				require.NoError(t, err)
 
 				// Create user2's node (untagged)
@@ -2282,14 +2282,14 @@ func TestACLTagPropagation(t *testing.T) {
 					tsic.WithNetfilter("off"),
 				)
 				require.NoError(t, err)
-				err = user2Node.Login(tower.GetEndpoint(), untaggedKey.Key)
+				err = user2Node.Login(headscale.GetEndpoint(), untaggedKey.Key)
 				require.NoError(t, err)
 
 				err = scenario.WaitForTailscaleSync()
 				require.NoError(t, err)
 
 				// Tagged nodes have no user_id, so list all and find by tag.
-				allNodes, err := tower.ListNodes()
+				allNodes, err := headscale.ListNodes()
 				require.NoError(t, err)
 
 				tagged := findNode(allNodes, func(n *clientv1.Node) bool { return len(n.Tags) > 0 })
@@ -2338,10 +2338,10 @@ func TestACLTagPropagation(t *testing.T) {
 				NodesPerUser: 0,
 				Users:        []string{"user1", "user2"},
 			},
-			setup: func(t *testing.T, scenario *Scenario, tower ControlServer) (TailscaleClient, TailscaleClient, uint64) {
+			setup: func(t *testing.T, scenario *Scenario, headscale ControlServer) (TailscaleClient, TailscaleClient, uint64) {
 				t.Helper()
 
-				userMap, err := tower.MapUsers()
+				userMap, err := headscale.MapUsers()
 				require.NoError(t, err)
 
 				// Create user1's node with tag:team-a (user2 has NO ACL for this)
@@ -2359,7 +2359,7 @@ func TestACLTagPropagation(t *testing.T) {
 					tsic.WithNetfilter("off"),
 				)
 				require.NoError(t, err)
-				err = user1Node.Login(tower.GetEndpoint(), taggedKey.Key)
+				err = user1Node.Login(headscale.GetEndpoint(), taggedKey.Key)
 				require.NoError(t, err)
 
 				// Create user2's node
@@ -2375,14 +2375,14 @@ func TestACLTagPropagation(t *testing.T) {
 					tsic.WithNetfilter("off"),
 				)
 				require.NoError(t, err)
-				err = user2Node.Login(tower.GetEndpoint(), untaggedKey.Key)
+				err = user2Node.Login(headscale.GetEndpoint(), untaggedKey.Key)
 				require.NoError(t, err)
 
 				err = scenario.WaitForTailscaleSync()
 				require.NoError(t, err)
 
 				// Tagged nodes have no user_id, so list all and find by tag.
-				allNodes, err := tower.ListNodes()
+				allNodes, err := headscale.ListNodes()
 				require.NoError(t, err)
 
 				tagged := findNode(allNodes, func(n *clientv1.Node) bool { return len(n.Tags) > 0 })
@@ -2431,10 +2431,10 @@ func TestACLTagPropagation(t *testing.T) {
 				NodesPerUser: 0,
 				Users:        []string{"user1", "user2"},
 			},
-			setup: func(t *testing.T, scenario *Scenario, tower ControlServer) (TailscaleClient, TailscaleClient, uint64) {
+			setup: func(t *testing.T, scenario *Scenario, headscale ControlServer) (TailscaleClient, TailscaleClient, uint64) {
 				t.Helper()
 
-				userMap, err := tower.MapUsers()
+				userMap, err := headscale.MapUsers()
 				require.NoError(t, err)
 
 				// Create user1's node with BOTH tags
@@ -2452,7 +2452,7 @@ func TestACLTagPropagation(t *testing.T) {
 					tsic.WithNetfilter("off"),
 				)
 				require.NoError(t, err)
-				err = user1Node.Login(tower.GetEndpoint(), taggedKey.Key)
+				err = user1Node.Login(headscale.GetEndpoint(), taggedKey.Key)
 				require.NoError(t, err)
 
 				// Create user2's node
@@ -2468,14 +2468,14 @@ func TestACLTagPropagation(t *testing.T) {
 					tsic.WithNetfilter("off"),
 				)
 				require.NoError(t, err)
-				err = user2Node.Login(tower.GetEndpoint(), untaggedKey.Key)
+				err = user2Node.Login(headscale.GetEndpoint(), untaggedKey.Key)
 				require.NoError(t, err)
 
 				err = scenario.WaitForTailscaleSync()
 				require.NoError(t, err)
 
 				// Tagged nodes have no user_id, so list all and find by tag.
-				allNodes, err := tower.ListNodes()
+				allNodes, err := headscale.ListNodes()
 				require.NoError(t, err)
 
 				tagged := findNode(allNodes, func(n *clientv1.Node) bool { return len(n.Tags) > 0 })
@@ -2521,7 +2521,7 @@ func TestACLTagPropagation(t *testing.T) {
 				NodesPerUser: 1,
 				Users:        []string{"user1", "user2"},
 			},
-			setup: func(t *testing.T, scenario *Scenario, tower ControlServer) (TailscaleClient, TailscaleClient, uint64) {
+			setup: func(t *testing.T, scenario *Scenario, headscale ControlServer) (TailscaleClient, TailscaleClient, uint64) {
 				t.Helper()
 
 				user1Clients, err := scenario.ListTailscaleClients("user1")
@@ -2529,7 +2529,7 @@ func TestACLTagPropagation(t *testing.T) {
 				user2Clients, err := scenario.ListTailscaleClients("user2")
 				require.NoError(t, err)
 
-				nodes, err := tower.ListNodes("user1")
+				nodes, err := headscale.ListNodes("user1")
 				require.NoError(t, err)
 
 				return user2Clients[0], user1Clients[0], mustParseID(nodes[0].Id)
@@ -2559,11 +2559,11 @@ func TestACLTagPropagation(t *testing.T) {
 			)
 			require.NoError(t, err)
 
-			tower, err := scenario.Tower()
+			headscale, err := scenario.Headscale()
 			require.NoError(t, err)
 
 			// Run test-specific setup
-			sourceClient, targetClient, targetNodeID := tt.setup(t, scenario, tower)
+			sourceClient, targetClient, targetNodeID := tt.setup(t, scenario, headscale)
 
 			targetFQDN, err := targetClient.FQDN()
 			require.NoError(t, err)
@@ -2605,12 +2605,12 @@ func TestACLTagPropagation(t *testing.T) {
 
 			// Step 2: Apply tag change
 			t.Logf("Step 2: Setting tags on node %d to %v", targetNodeID, tt.tagChange)
-			err = tower.SetNodeTags(targetNodeID, tt.tagChange)
+			err = headscale.SetNodeTags(targetNodeID, tt.tagChange)
 			require.NoError(t, err)
 
 			// Verify tag was applied
 			assert.EventuallyWithT(t, func(c *assert.CollectT) {
-				allNodes, err := tower.ListNodes()
+				allNodes, err := headscale.ListNodes()
 				assert.NoError(c, err)
 
 				node := findNode(allNodes, func(n *clientv1.Node) bool { return mustParseID(n.Id) == targetNodeID })
@@ -2748,10 +2748,10 @@ func TestACLTagPropagationPortSpecific(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	require.NoError(t, err)
 
-	userMap, err := tower.MapUsers()
+	userMap, err := headscale.MapUsers()
 	require.NoError(t, err)
 
 	// Create user1's node WITH tag:webserver
@@ -2770,7 +2770,7 @@ func TestACLTagPropagationPortSpecific(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	err = user1Node.Login(tower.GetEndpoint(), taggedKey.Key)
+	err = user1Node.Login(headscale.GetEndpoint(), taggedKey.Key)
 	require.NoError(t, err)
 
 	// Create user2's node
@@ -2786,14 +2786,14 @@ func TestACLTagPropagationPortSpecific(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	err = user2Node.Login(tower.GetEndpoint(), untaggedKey.Key)
+	err = user2Node.Login(headscale.GetEndpoint(), untaggedKey.Key)
 	require.NoError(t, err)
 
 	err = scenario.WaitForTailscaleSync()
 	require.NoError(t, err)
 
 	// Tagged nodes have no user_id, so list all and find by tag.
-	allNodes, err := tower.ListNodes()
+	allNodes, err := headscale.ListNodes()
 	require.NoError(t, err)
 
 	tagged := findNode(allNodes, func(n *clientv1.Node) bool { return len(n.Tags) > 0 })
@@ -2814,7 +2814,7 @@ func TestACLTagPropagationPortSpecific(t *testing.T) {
 
 	// Step 2: Change tag from webserver to sshonly
 	t.Logf("Step 2: Changing tag from webserver to sshonly on node %d", targetNodeID)
-	err = tower.SetNodeTags(targetNodeID, []string{"tag:sshonly"})
+	err = headscale.SetNodeTags(targetNodeID, []string{"tag:sshonly"})
 	require.NoError(t, err)
 
 	// Step 2b: Verify tag was actually applied on the server before
@@ -2822,7 +2822,7 @@ func TestACLTagPropagationPortSpecific(t *testing.T) {
 	// may race against the server still processing the tag change.
 	t.Log("Step 2b: Verifying tag change applied on server")
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		allNodes, err := tower.ListNodes()
+		allNodes, err := headscale.ListNodes()
 		assert.NoError(c, err) //nolint:testifylint // CollectT requires assert
 
 		node := findNode(allNodes, func(n *clientv1.Node) bool { return mustParseID(n.Id) == targetNodeID })
@@ -2969,7 +2969,7 @@ func TestACLGroupWithUnknownUser(t *testing.T) {
 func TestACLGroupAfterUserDeletion(t *testing.T) {
 	IntegrationSkip(t)
 
-	// This test verifies that when a user is deleted from tower but
+	// This test verifies that when a user is deleted from headscale but
 	// their reference remains in an ACL group, the remaining valid users
 	// in the group should still be able to connect to each other.
 	//
@@ -3024,7 +3024,7 @@ func TestACLGroupAfterUserDeletion(t *testing.T) {
 	err = scenario.WaitForTailscaleSync()
 	require.NoError(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	require.NoError(t, err)
 
 	user1Clients, err := scenario.ListTailscaleClients("user1")
@@ -3064,25 +3064,25 @@ func TestACLGroupAfterUserDeletion(t *testing.T) {
 	t.Log("Step 2: Deleting user3's node and user from tower")
 
 	// First, get user3's node ID
-	nodes, err := tower.ListNodes("user3")
+	nodes, err := headscale.ListNodes("user3")
 	require.NoError(t, err)
 	require.Len(t, nodes, 1, "user3 should have exactly one node")
 	user3NodeID := mustParseID(nodes[0].Id)
 
 	// Delete user3's node first (required before deleting the user)
-	err = tower.DeleteNode(user3NodeID)
+	err = headscale.DeleteNode(user3NodeID)
 	require.NoError(t, err, "failed to delete user3's node")
 
 	// Now get user3's user ID and delete the user
-	user3, err := GetUserByName(tower, "user3")
+	user3, err := GetUserByName(headscale, "user3")
 	require.NoError(t, err, "user3 should exist")
 
 	// Now delete user3 (after their nodes are deleted)
-	err = tower.DeleteUser(mustParseID(user3.Id))
+	err = headscale.DeleteUser(mustParseID(user3.Id))
 	require.NoError(t, err)
 
 	// Verify user3 is deleted
-	_, err = GetUserByName(tower, "user3")
+	_, err = GetUserByName(headscale, "user3")
 	require.Error(t, err, "user3 should be deleted")
 
 	// Step 3: Verify that user1 and user2 can still communicate (before triggering policy refresh)
@@ -3101,11 +3101,11 @@ func TestACLGroupAfterUserDeletion(t *testing.T) {
 	// the deleted user3@ in the group causes the entire group to fail resolution.
 	t.Log("Step 4: Creating a new user (user4) to trigger policy re-evaluation")
 
-	_, err = tower.CreateUser("user4")
+	_, err = headscale.CreateUser("user4")
 	require.NoError(t, err, "failed to create user4")
 
 	// Verify user4 was created
-	_, err = GetUserByName(tower, "user4")
+	_, err = GetUserByName(headscale, "user4")
 	require.NoError(t, err, "user4 should exist after creation")
 
 	// Step 5: THIS IS THE CRITICAL TEST - verify connectivity STILL works after
@@ -3206,7 +3206,7 @@ func TestACLGroupDeletionExactReproduction(t *testing.T) {
 	err = scenario.WaitForTailscaleSync()
 	require.NoError(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	require.NoError(t, err)
 
 	// Get all clients
@@ -3243,16 +3243,16 @@ func TestACLGroupDeletionExactReproduction(t *testing.T) {
 	// The ACL still references user2@ but user2 no longer exists
 	t.Log("Step 2: Deleting user2 (node + user) from database - ACL still references user2@")
 
-	nodes, err := tower.ListNodes(userToDelete)
+	nodes, err := headscale.ListNodes(userToDelete)
 	require.NoError(t, err)
 	require.Len(t, nodes, 1)
-	err = tower.DeleteNode(mustParseID(nodes[0].Id))
+	err = headscale.DeleteNode(mustParseID(nodes[0].Id))
 	require.NoError(t, err)
 
-	userToDeleteObj, err := GetUserByName(tower, userToDelete)
+	userToDeleteObj, err := GetUserByName(headscale, userToDelete)
 	require.NoError(t, err, "user to delete should exist")
 
-	err = tower.DeleteUser(mustParseID(userToDeleteObj.Id))
+	err = headscale.DeleteUser(mustParseID(userToDeleteObj.Id))
 	require.NoError(t, err)
 
 	t.Log("Step 2: DONE - user2 deleted, ACL still has user2@ reference")
@@ -3276,7 +3276,7 @@ func TestACLGroupDeletionExactReproduction(t *testing.T) {
 	// According to the reporter, this is when the bug manifests
 	t.Log("Step 4: Creating new user (user4) - this triggers policy re-evaluation")
 
-	_, err = tower.CreateUser("user4")
+	_, err = headscale.CreateUser("user4")
 	require.NoError(t, err)
 
 	// Step 5: THE CRITICAL TEST - verify connectivity STILL works
@@ -3296,7 +3296,7 @@ func TestACLGroupDeletionExactReproduction(t *testing.T) {
 	}, integrationutil.PolicyPropagationTimeout, integrationutil.SlowPoll, "user3 -> user1 after user4 creation (issue #2967)")
 
 	// Additional verification: check filter rules are not empty
-	filter, err := tower.DebugFilter()
+	filter, err := headscale.DebugFilter()
 	require.NoError(t, err)
 	t.Logf("Filter rules: %d", len(filter))
 	require.NotEmpty(t, filter, "Filter rules should not be empty")
@@ -3371,7 +3371,7 @@ func TestACLDynamicUnknownUserAddition(t *testing.T) {
 	err = scenario.WaitForTailscaleSync()
 	require.NoError(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	require.NoError(t, err)
 
 	user1Clients, err := scenario.ListTailscaleClients("user1")
@@ -3426,7 +3426,7 @@ func TestACLDynamicUnknownUserAddition(t *testing.T) {
 		},
 	}
 
-	err = tower.SetPolicy(policyWithUnknown)
+	err = headscale.SetPolicy(policyWithUnknown)
 	require.NoError(t, err)
 
 	// Wait for policy to propagate
@@ -3519,7 +3519,7 @@ func TestACLDynamicUnknownUserRemoval(t *testing.T) {
 	err = scenario.WaitForTailscaleSync()
 	require.NoError(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	require.NoError(t, err)
 
 	user1Clients, err := scenario.ListTailscaleClients("user1")
@@ -3574,7 +3574,7 @@ func TestACLDynamicUnknownUserRemoval(t *testing.T) {
 		},
 	}
 
-	err = tower.SetPolicy(cleanPolicy)
+	err = headscale.SetPolicy(cleanPolicy)
 	require.NoError(t, err)
 
 	// Wait for policy to propagate

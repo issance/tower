@@ -158,7 +158,7 @@ type ScenarioSpec struct {
 	// Versions is specific list of versions to use for the test.
 	Versions []string
 
-	// OIDCSkipUserCreation, if true, skips creating users via tower CLI
+	// OIDCSkipUserCreation, if true, skips creating users via headscale CLI
 	// during environment setup. Useful for OIDC tests where the SSH policy
 	// references users by name, since OIDC login creates users automatically
 	// and pre-creating them via CLI causes duplicate user records.
@@ -462,38 +462,38 @@ func (s *Scenario) Users() []string {
 	return users
 }
 
-/// Tower related stuff
-// Note: These functions assume that there is a _single_ tower instance for now
+/// Headscale related stuff
+// Note: These functions assume that there is a _single_ headscale instance for now
 
-// Tower returns a [ControlServer] instance based on hsic ([hsic.HeadscaleInContainer]).
+// Headscale returns a [ControlServer] instance based on hsic ([hsic.HeadscaleInContainer]).
 // If the [Scenario] already has an instance, the pointer to the running container
 // will be return, otherwise a new instance will be created.
-// TODO(kradalby): make port and tower configurable, multiple instances support?
-func (s *Scenario) Tower(opts ...hsic.Option) (ControlServer, error) {
+// TODO(kradalby): make port and headscale configurable, multiple instances support?
+func (s *Scenario) Headscale(opts ...hsic.Option) (ControlServer, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	if tower, ok := s.controlServers.Load("tower"); ok {
-		return tower, nil
+	if headscale, ok := s.controlServers.Load("tower"); ok {
+		return headscale, nil
 	}
 
 	if usePostgresForTest {
 		opts = append(opts, hsic.WithPostgres())
 	}
 
-	tower, err := hsic.New(s.pool, s.Networks(), opts...)
+	headscale, err := hsic.New(s.pool, s.Networks(), opts...)
 	if err != nil {
 		return nil, fmt.Errorf("creating tower container: %w", err)
 	}
 
-	err = tower.WaitForRunning()
+	err = headscale.WaitForRunning()
 	if err != nil {
 		return nil, fmt.Errorf("reaching tower container: %w", err)
 	}
 
-	s.controlServers.Store("tower", tower)
+	s.controlServers.Store("tower", headscale)
 
-	return tower, nil
+	return headscale, nil
 }
 
 // Pool returns the [dockertest.Pool] for the scenario.
@@ -519,14 +519,14 @@ func (s *Scenario) GetOrCreateUser(userStr string) *User {
 }
 
 // CreatePreAuthKey creates a "pre authentorised key" to be created in the
-// Tower instance on behalf of the [Scenario].
+// Headscale instance on behalf of the [Scenario].
 func (s *Scenario) CreatePreAuthKey(
 	user uint64,
 	reusable bool,
 	ephemeral bool,
 ) (*clientv1.PreAuthKey, error) {
-	if tower, err := s.Tower(); err == nil { //nolint:noinlineerr
-		key, err := tower.CreateAuthKey(user, reusable, ephemeral)
+	if headscale, err := s.Headscale(); err == nil { //nolint:noinlineerr
+		key, err := headscale.CreateAuthKey(user, reusable, ephemeral)
 		if err != nil {
 			return nil, fmt.Errorf("creating user: %w", err)
 		}
@@ -538,14 +538,14 @@ func (s *Scenario) CreatePreAuthKey(
 }
 
 // CreatePreAuthKeyWithOptions creates a "pre authorised key" with the specified options
-// to be created in the Tower instance on behalf of the [Scenario].
+// to be created in the Headscale instance on behalf of the [Scenario].
 func (s *Scenario) CreatePreAuthKeyWithOptions(opts hsic.AuthKeyOptions) (*clientv1.PreAuthKey, error) {
-	tower, err := s.Tower()
+	headscale, err := s.Headscale()
 	if err != nil {
 		return nil, fmt.Errorf("creating preauth key with options: %w", errNoHeadscaleAvailable)
 	}
 
-	key, err := tower.CreateAuthKeyWithOptions(opts)
+	key, err := headscale.CreateAuthKeyWithOptions(opts)
 	if err != nil {
 		return nil, fmt.Errorf("creating preauth key with options: %w", err)
 	}
@@ -554,19 +554,19 @@ func (s *Scenario) CreatePreAuthKeyWithOptions(opts hsic.AuthKeyOptions) (*clien
 }
 
 // CreatePreAuthKeyWithTags creates a "pre authorised key" with the specified tags
-// to be created in the Tower instance on behalf of the [Scenario].
+// to be created in the Headscale instance on behalf of the [Scenario].
 func (s *Scenario) CreatePreAuthKeyWithTags(
 	user uint64,
 	reusable bool,
 	ephemeral bool,
 	tags []string,
 ) (*clientv1.PreAuthKey, error) {
-	tower, err := s.Tower()
+	headscale, err := s.Headscale()
 	if err != nil {
 		return nil, fmt.Errorf("creating preauth key with tags: %w", errNoHeadscaleAvailable)
 	}
 
-	key, err := tower.CreateAuthKeyWithTags(user, reusable, ephemeral, tags)
+	key, err := headscale.CreateAuthKeyWithTags(user, reusable, ephemeral, tags)
 	if err != nil {
 		return nil, fmt.Errorf("creating preauth key with tags: %w", err)
 	}
@@ -575,10 +575,10 @@ func (s *Scenario) CreatePreAuthKeyWithTags(
 }
 
 // CreateUser creates a [User] to be created in the
-// Tower instance on behalf of the [Scenario].
+// Headscale instance on behalf of the [Scenario].
 func (s *Scenario) CreateUser(user string) (*clientv1.User, error) {
-	if tower, err := s.Tower(); err == nil { //nolint:noinlineerr
-		u, err := tower.CreateUser(user)
+	if headscale, err := s.Headscale(); err == nil { //nolint:noinlineerr
+		u, err := headscale.CreateUser(user)
 		if err != nil {
 			return nil, fmt.Errorf("creating user: %w", err)
 		}
@@ -601,13 +601,13 @@ func (s *Scenario) CreateTailscaleNode(
 	version string,
 	opts ...tsic.Option,
 ) (TailscaleClient, error) {
-	tower, err := s.Tower()
+	headscale, err := s.Headscale()
 	if err != nil {
 		return nil, fmt.Errorf("creating tailscale node (version: %s): %w", version, err)
 	}
 
-	cert := tower.GetCert()
-	hostname := tower.GetHostname()
+	cert := headscale.GetCert()
+	hostname := headscale.GetHostname()
 
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -665,13 +665,13 @@ func (s *Scenario) CreateTailscaleNodesInUser(
 
 			versions = append(versions, version)
 
-			tower, err := s.Tower()
+			headscale, err := s.Headscale()
 			if err != nil {
 				return fmt.Errorf("creating tailscale node (version: %s): %w", version, err)
 			}
 
-			cert := tower.GetCert()
-			hostname := tower.GetHostname()
+			cert := headscale.GetCert()
+			hostname := headscale.GetHostname()
 
 			// Determine which network this tailscale client will be in
 			var network *dockertest.Network
@@ -681,8 +681,8 @@ func (s *Scenario) CreateTailscaleNodesInUser(
 				network = s.networks[s.testDefaultNetwork]
 			}
 
-			// Get tower IP in this network for /etc/hosts fallback DNS
-			headscaleIP := tower.GetIPInNetwork(network)
+			// Get headscale IP in this network for /etc/hosts fallback DNS
+			headscaleIP := headscale.GetIPInNetwork(network)
 			extraHosts := []string{hostname + ":" + headscaleIP}
 
 			s.mu.Lock()
@@ -897,7 +897,7 @@ func (s *Scenario) CreateHeadscaleEnv(
 	return s.createHeadscaleEnv(false, tsOpts, opts...)
 }
 
-// CreateHeadscaleEnv starts the tower environment and the clients
+// CreateHeadscaleEnv starts the headscale environment and the clients
 // according to the [ScenarioSpec] passed to the [Scenario].
 func (s *Scenario) createHeadscaleEnv(
 	withURL bool,
@@ -907,7 +907,7 @@ func (s *Scenario) createHeadscaleEnv(
 	return s.createHeadscaleEnvWithTags(withURL, tsOpts, nil, "", opts...)
 }
 
-// createHeadscaleEnvWithTags starts the tower environment and the clients
+// createHeadscaleEnvWithTags starts the headscale environment and the clients
 // according to the [ScenarioSpec] passed to the [Scenario]. If preAuthKeyTags is
 // non-empty and withURL is false, the tags will be applied to the PreAuthKey
 // (tags-as-identity model).
@@ -923,7 +923,7 @@ func (s *Scenario) createHeadscaleEnvWithTags(
 	webauthTagUser string,
 	opts ...hsic.Option,
 ) error {
-	tower, err := s.Tower(opts...)
+	headscale, err := s.Headscale(opts...)
 	if err != nil {
 		return err
 	}
@@ -932,7 +932,7 @@ func (s *Scenario) createHeadscaleEnvWithTags(
 		var u *clientv1.User
 
 		if s.spec.OIDCSkipUserCreation {
-			// Only register locally — OIDC login will create the tower user.
+			// Only register locally — OIDC login will create the headscale user.
 			s.mu.Lock()
 			s.users[user] = &User{Clients: make(map[string]TailscaleClient)}
 			s.mu.Unlock()
@@ -962,7 +962,7 @@ func (s *Scenario) createHeadscaleEnvWithTags(
 		}
 
 		if withURL {
-			err = s.RunTailscaleUpWithURL(user, tower.GetEndpoint())
+			err = s.RunTailscaleUpWithURL(user, headscale.GetEndpoint())
 			if err != nil {
 				return err
 			}
@@ -979,7 +979,7 @@ func (s *Scenario) createHeadscaleEnvWithTags(
 				return err
 			}
 
-			err = s.RunTailscaleUp(user, tower.GetEndpoint(), key.Key)
+			err = s.RunTailscaleUp(user, headscale.GetEndpoint(), key.Key)
 			if err != nil {
 				return err
 			}
@@ -1364,8 +1364,8 @@ func (s *Scenario) runHeadscaleRegister(userStr string, body string) error {
 	key = strings.SplitN(key, " ", 2)[0]
 	log.Printf("registering node %s", key)
 
-	if tower, err := s.Tower(); err == nil { //nolint:noinlineerr
-		_, err = tower.Execute(
+	if headscale, err := s.Headscale(); err == nil { //nolint:noinlineerr
+		_, err = headscale.Execute(
 			[]string{"tower", "auth", "register", "--user", userStr, "--auth-id", key},
 		)
 		if err != nil {
@@ -1644,7 +1644,7 @@ func (s *Scenario) runMockOIDC(accessTTL time.Duration, users []mockoidc.MockUse
 
 	var container *dockertest.Resource
 
-	// CI already built and loaded the Tower image, including its mockoidc command.
+	// CI already built and loaded the Headscale image, including its mockoidc command.
 	// Reuse it instead of downloading dependencies and rebuilding for every OIDC test.
 	if prebuiltImage := os.Getenv("HEADSCALE_INTEGRATION_HEADSCALE_IMAGE"); prebuiltImage != "" {
 		repo, tag, ok := strings.Cut(prebuiltImage, ":")
@@ -1674,7 +1674,7 @@ func (s *Scenario) runMockOIDC(accessTTL time.Duration, users []mockoidc.MockUse
 
 	s.mockOIDC.r = container
 
-	// tower needs to set up the provider with a specific
+	// headscale needs to set up the provider with a specific
 	// IP addr to ensure we get the correct config from the well-known
 	// endpoint.
 	network := s.Networks()[0]
@@ -1788,7 +1788,7 @@ func Webservice(s *Scenario, networkName string) (*dockertest.Resource, error) {
 		return nil, err
 	}
 
-	// tower needs to set up the provider with a specific
+	// headscale needs to set up the provider with a specific
 	// IP addr to ensure we get the correct config from the well-known
 	// endpoint.
 	// ipAddr := web.GetIPInNetwork(network)

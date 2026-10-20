@@ -29,7 +29,7 @@ var p = func(prefStr string) netip.Prefix {
 }
 
 // hsExitNodeDestForTest is the list of destination IP ranges that are allowed when
-// we use tower "autogroup:internet".
+// we use headscale "autogroup:internet".
 var hsExitNodeDestForTest = []tailcfg.NetPortRange{
 	{IP: "0.0.0.0/5", Ports: tailcfg.PortRangeAny},
 	{IP: "8.0.0.0/7", Ports: tailcfg.PortRangeAny},
@@ -794,7 +794,7 @@ func TestReduceFilterRules(t *testing.T) {
 // (RoutableIPs) AND approved (ApprovedRoutes), matching Tailscale
 // SaaS behavior. Advertised-but-unapproved routes do not cause rule
 // preservation: SaaS never generates filter rules for unapproved
-// routes, and tower consults node.SubnetRoutes() (which filters
+// routes, and headscale consults node.SubnetRoutes() (which filters
 // by approval) rather than Hostinfo.RoutableIPs() (which does not).
 func TestReduceFilterRulesPartialApproval(t *testing.T) {
 	tests := []struct {

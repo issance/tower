@@ -84,7 +84,7 @@ func initConfig() {
 			if err == nil && res.Outdated {
 				//nolint
 				log.Warn().Msgf(
-					"An updated version of Tower has been found (%s vs. your current %s). Check it out https://github.com/juanfont/headscale/releases\n",
+					"An updated version of Tower has been found (%s vs. your current %s). Check it out https://github.com/issance/tower/releases\n",
 					res.Current,
 					versionInfo.Version,
 				)

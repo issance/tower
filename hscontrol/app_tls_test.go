@@ -154,7 +154,7 @@ func freePort(t *testing.T) int {
 	return p
 }
 
-// TestDNS01SolverWait pins that tower's own certificate waits for the
+// TestDNS01SolverWait pins that headscale's own certificate waits for the
 // value certmagic published, at the name it published it.
 func TestDNS01SolverWait(t *testing.T) {
 	provider := &dnstest.Provider{}
@@ -188,8 +188,8 @@ func TestDNS01SolverWait(t *testing.T) {
 	assert.Equal(t, provider.Values(fqdn), waited[1:])
 }
 
-// TestACMETLSSettings obtains tower's own certificate from Pebble with
-// each challenge type, serving it the way [Tower.Serve] does.
+// TestACMETLSSettings obtains headscale's own certificate from Pebble with
+// each challenge type, serving it the way [Headscale.Serve] does.
 func TestACMETLSSettings(t *testing.T) {
 	for _, challenge := range []string{
 		types.DNS01ChallengeType,
@@ -200,7 +200,7 @@ func TestACMETLSSettings(t *testing.T) {
 			httpPort, tlsPort := freePort(t), freePort(t)
 			acme := startTestACME(t, httpPort, tlsPort)
 
-			h := &Tower{cfg: &types.Config{
+			h := &Headscale{cfg: &types.Config{
 				ServerURL: "https://" + acmeTestHost,
 				Addr:      net.JoinHostPort("127.0.0.1", strconv.Itoa(tlsPort)),
 				TLS: types.TLSConfig{ACME: types.ACMEConfig{

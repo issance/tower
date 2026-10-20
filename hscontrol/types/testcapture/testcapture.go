@@ -1,11 +1,11 @@
-// Package testcapture defines the on-disk format used by Tower's
+// Package testcapture defines the on-disk format used by Headscale's
 // policy v2 compatibility tests for golden data captured from a
 // Tailscale-hosted control plane by an external capture tool.
 //
 // Files are HuJSON. Wire-format Tailscale data (filter rules, netmap,
 // whois, SSH rules) is stored as proper tailcfg/netmap/filtertype/
 // apitype values rather than [json.RawMessage] so that schema drift
-// between the capture tool and tower becomes a compile error
+// between the capture tool and headscale becomes a compile error
 // rather than a silent test failure, and so that consumers don't
 // have to repeat [json.Unmarshal] at every read site. Storing data as
 // [json.RawMessage] previously hid a serious capture-pipeline bug (the
@@ -102,7 +102,7 @@ type Capture struct {
 type Input struct {
 	// FullPolicy is the unchanged policy that was POSTed to the SaaS
 	// API. Stored as a string because it is opaque JSON that round-
-	// trips losslessly without parsing — tower's policy parser
+	// trips losslessly without parsing — headscale's policy parser
 	// reads it on demand.
 	FullPolicy string `json:"full_policy"`
 
@@ -229,7 +229,7 @@ type DNSInput struct {
 // Pointer fields are nil when the scenario does not override the
 // reset default for that setting. The fields mirror the
 // PATCH /tailnet/{tailnet}/settings request shape exposed by
-// tailscale.com/client/tailscale/v2 — in practice the tower
+// tailscale.com/client/tailscale/v2 — in practice the headscale
 // compatibility tests use the subset that observably affects the
 // captured netmap CapMap or DNSConfig.
 type SettingsInput struct {
@@ -242,7 +242,7 @@ type SettingsInput struct {
 }
 
 // Topology describes the users and nodes present in the tailnet at
-// capture time. Tower's compat tests use this to construct
+// capture time. Headscale's compat tests use this to construct
 // equivalent [types.User] and [types.Node] objects.
 type Topology struct {
 	// Users in the tailnet. Always populated by the capture tool.
@@ -276,7 +276,7 @@ type TopologyNode struct {
 	RoutableIPs []string `json:"routable_ips"`
 
 	// ApprovedRoutes is the subset of [TopologyNode.RoutableIPs] the tailnet has
-	// approved. Used by Tower's NodeCanApproveRoute test.
+	// approved. Used by Headscale's NodeCanApproveRoute test.
 	ApprovedRoutes []string `json:"approved_routes"`
 }
 

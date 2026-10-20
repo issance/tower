@@ -25,7 +25,7 @@ var errTestUnexpected = errors.New("unexpected failure")
 
 // TestHandleVerifyRequest_OversizedBodyRejected verifies that the
 // /verify handler refuses POST bodies larger than [verifyBodyLimit].
-// The [http.MaxBytesReader] is applied in [Tower.VerifyHandler], so we simulate
+// The [http.MaxBytesReader] is applied in [Headscale.VerifyHandler], so we simulate
 // the same wrapping here.
 func TestHandleVerifyRequest_OversizedBodyRejected(t *testing.T) {
 	t.Parallel()
@@ -40,7 +40,7 @@ func TestHandleVerifyRequest_OversizedBodyRejected(t *testing.T) {
 	)
 	req.Body = http.MaxBytesReader(rec, req.Body, verifyBodyLimit)
 
-	h := &Tower{}
+	h := &Headscale{}
 
 	err := h.handleVerifyRequest(req, &bytes.Buffer{})
 	if err == nil {
@@ -224,7 +224,7 @@ func TestKeyHandler_UnsupportedCapVerDoesNotLeakKey(t *testing.T) {
 	t.Parallel()
 
 	noise := key.NewMachine()
-	h := &Tower{noisePrivateKey: &noise}
+	h := &Headscale{noisePrivateKey: &noise}
 
 	unsupported := capver.MinSupportedCapabilityVersion - 1
 

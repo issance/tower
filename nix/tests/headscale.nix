@@ -15,14 +15,14 @@ let
   );
 in
 {
-  name = "tower";
+  name = "headscale";
   meta.maintainers = with lib.maintainers; [
     kradalby
     misterio77
   ];
 
   nodes = {
-    tower = {
+    headscale = {
       imports = [ self.nixosModules.testkit ];
       services.headscale.settings.dns = {
         extra_records = [
@@ -56,11 +56,11 @@ in
     from datetime import timedelta
 
     start_all()
-    key = tower.succeed("hs-authkey test").strip()
+    key = headscale.succeed("hs-authkey test").strip()
     for peer in [peer1, peer2]:
         peer.succeed(f"hs-join {key}")
 
-    peer1.wait_until_succeeds("tailscale ping --until-direct=false -c 1 peer2 | grep -F 'via DERP(tower)'")
+    peer1.wait_until_succeeds("tailscale ping --until-direct=false -c 1 peer2 | grep -F 'via DERP(headscale)'")
     peer2.wait_until_succeeds("tailscale ping --until-direct=false -c 1 peer1.tailnet")
     res = peer1.wait_until_succeeds("${lib.getExe pkgs.dig} +short foo.bar").strip()
     assert res == "100.64.0.2", res
@@ -68,12 +68,12 @@ in
         "tailscale status --json | ${lib.getExe pkgs.jq} -e '.CertDomains == [\"peer1.tailnet\"]'"
     )
 
-    tower.succeed("tower policy set -f ${policy}")
+    headscale.succeed("headscale policy set -f ${policy}")
 
     # Clients reconnect after a control restart, peer1 over the TLS listener.
-    tower.systemctl("restart tower.service")
-    tower.wait_until_succeeds(
-        "tower nodes list -o json | ${lib.getExe pkgs.jq} -e 'length == 2 and all(.[]; .online)'",
+    headscale.systemctl("restart tower.service")
+    headscale.wait_until_succeeds(
+        "headscale nodes list -o json | ${lib.getExe pkgs.jq} -e 'length == 2 and all(.[]; .online)'",
         timeout=timedelta(minutes=2),
     )
     peer1.wait_until_succeeds("tailscale ping --until-direct=false -c 1 peer2")

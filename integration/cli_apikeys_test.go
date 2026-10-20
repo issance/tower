@@ -30,13 +30,13 @@ func TestApiKeyCommand(t *testing.T) {
 	err = scenario.CreateHeadscaleEnv([]tsic.Option{}, hsic.WithTestName("cli-apikey"))
 	require.NoError(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	require.NoError(t, err)
 
 	keys := make([]string, count)
 
 	for idx := range count {
-		apiResult, err := tower.Execute(
+		apiResult, err := headscale.Execute(
 			[]string{
 				"tower",
 				"apikeys",
@@ -58,7 +58,7 @@ func TestApiKeyCommand(t *testing.T) {
 	var listedAPIKeys []clientv1.ApiKey
 
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		err = executeAndUnmarshal(tower,
+		err = executeAndUnmarshal(headscale,
 			[]string{
 				"tower",
 				"apikeys",
@@ -122,7 +122,7 @@ func TestApiKeyCommand(t *testing.T) {
 
 	// Expire three keys
 	for idx := range 3 {
-		_, err := tower.Execute(
+		_, err := headscale.Execute(
 			[]string{
 				"tower",
 				"apikeys",
@@ -139,7 +139,7 @@ func TestApiKeyCommand(t *testing.T) {
 	var listedAfterExpireAPIKeys []clientv1.ApiKey
 
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		err = executeAndUnmarshal(tower,
+		err = executeAndUnmarshal(headscale,
 			[]string{
 				"tower",
 				"apikeys",
@@ -168,7 +168,7 @@ func TestApiKeyCommand(t *testing.T) {
 		}
 	}
 
-	_, err = tower.Execute(
+	_, err = headscale.Execute(
 		[]string{
 			"tower",
 			"apikeys",
@@ -181,7 +181,7 @@ func TestApiKeyCommand(t *testing.T) {
 	var listedAPIKeysAfterDelete []clientv1.ApiKey
 
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		err = executeAndUnmarshal(tower,
+		err = executeAndUnmarshal(headscale,
 			[]string{
 				"tower",
 				"apikeys",
@@ -197,7 +197,7 @@ func TestApiKeyCommand(t *testing.T) {
 	assert.Len(t, listedAPIKeysAfterDelete, 4)
 
 	// Test expire by ID (using key at index 0)
-	_, err = tower.Execute(
+	_, err = headscale.Execute(
 		[]string{
 			"tower",
 			"apikeys",
@@ -210,7 +210,7 @@ func TestApiKeyCommand(t *testing.T) {
 	var listedAPIKeysAfterExpireByID []clientv1.ApiKey
 
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		err = executeAndUnmarshal(tower,
+		err = executeAndUnmarshal(headscale,
 			[]string{
 				"tower",
 				"apikeys",
@@ -233,7 +233,7 @@ func TestApiKeyCommand(t *testing.T) {
 
 	// Test delete by ID (using key at index 1)
 	deletedKeyID := listedAPIKeysAfterExpireByID[1].Id
-	_, err = tower.Execute(
+	_, err = headscale.Execute(
 		[]string{
 			"tower",
 			"apikeys",
@@ -246,7 +246,7 @@ func TestApiKeyCommand(t *testing.T) {
 	var listedAPIKeysAfterDeleteByID []clientv1.ApiKey
 
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		err = executeAndUnmarshal(tower,
+		err = executeAndUnmarshal(headscale,
 			[]string{
 				"tower",
 				"apikeys",
@@ -275,18 +275,18 @@ func TestApiKeyCommand(t *testing.T) {
 func TestApiKeyCommandValidation(t *testing.T) {
 	IntegrationSkip(t)
 
-	scenario, tower := setupCLIScenario(t, "cli-apikeyval", []string{"user1"}, 0)
+	scenario, headscale := setupCLIScenario(t, "cli-apikeyval", []string{"user1"}, 0)
 	defer scenario.ShutdownAssertNoPanics(t)
 
 	// Create a real key so a valid prefix exists. `apikeys create` prints the
 	// raw secret, not JSON of the key, so list to discover the prefix.
-	_, err := tower.Execute([]string{"tower", "apikeys", "create", "--output", "json"})
+	_, err := headscale.Execute([]string{"tower", "apikeys", "create", "--output", "json"})
 	require.NoError(t, err)
 
 	var listed []clientv1.ApiKey
 
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		err := executeAndUnmarshal(tower,
+		err := executeAndUnmarshal(headscale,
 			[]string{"tower", "apikeys", "list", "--output", "json"},
 			&listed,
 		)
@@ -313,7 +313,7 @@ func TestApiKeyCommandValidation(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := tower.Execute(append([]string{"tower"}, tt.args...))
+			_, err := headscale.Execute(append([]string{"tower"}, tt.args...))
 			if tt.wantErr != "" {
 				require.ErrorContains(t, err, tt.wantErr)
 

@@ -12,7 +12,7 @@ import (
 )
 
 // WindowsConfigMessage shows a simple message in the browser for how to configure the Windows Tailscale client.
-func (h *Tower) WindowsConfigMessage(
+func (h *Headscale) WindowsConfigMessage(
 	writer http.ResponseWriter,
 	req *http.Request,
 ) {
@@ -22,7 +22,7 @@ func (h *Tower) WindowsConfigMessage(
 }
 
 // AppleConfigMessage shows a simple message in the browser to point the user to the iOS/MacOS profile and instructions for how to install it.
-func (h *Tower) AppleConfigMessage(
+func (h *Headscale) AppleConfigMessage(
 	writer http.ResponseWriter,
 	req *http.Request,
 ) {
@@ -31,7 +31,7 @@ func (h *Tower) AppleConfigMessage(
 	_, _ = writer.Write([]byte(templates.Apple(h.cfg.ServerURL).Render()))
 }
 
-func (h *Tower) ApplePlatformConfig(
+func (h *Headscale) ApplePlatformConfig(
 	writer http.ResponseWriter,
 	req *http.Request,
 ) {

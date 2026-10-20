@@ -19,7 +19,7 @@ let
   };
 
   settingsFormat = pkgs.formats.yaml { };
-  cliConfigFile = settingsFormat.generate "tower.yaml" cliConfig;
+  cliConfigFile = settingsFormat.generate "headscale.yaml" cliConfig;
 
   assertRemovedOption = option: message: {
     assertion = !lib.hasAttrByPath option cfg;
@@ -33,44 +33,44 @@ in
 
   options = {
     services.headscale = {
-      enable = lib.mkEnableOption "tower, Open Source coordination server for Tailscale";
+      enable = lib.mkEnableOption "headscale, Open Source coordination server for Tailscale";
 
-      package = lib.mkPackageOption pkgs "tower" { };
+      package = lib.mkPackageOption pkgs "headscale" { };
 
       configFile = lib.mkOption {
         type = lib.types.path;
         readOnly = true;
-        default = settingsFormat.generate "tower.yaml" cfg.settings;
-        defaultText = lib.literalExpression ''(pkgs.formats.yaml { }).generate "tower.yaml" config.services.headscale.settings'';
+        default = settingsFormat.generate "headscale.yaml" cfg.settings;
+        defaultText = lib.literalExpression ''(pkgs.formats.yaml { }).generate "headscale.yaml" config.services.headscale.settings'';
         description = ''
-          Path to the configuration file of tower.
+          Path to the configuration file of headscale.
         '';
       };
 
       user = lib.mkOption {
-        default = "tower";
+        default = "headscale";
         type = lib.types.str;
         description = ''
-          User account under which tower runs.
+          User account under which headscale runs.
 
           ::: {.note}
           If left as the default value this user will automatically be created
           on system activation, otherwise you are responsible for
-          ensuring the user exists before the tower service starts.
+          ensuring the user exists before the headscale service starts.
           :::
         '';
       };
 
       group = lib.mkOption {
-        default = "tower";
+        default = "headscale";
         type = lib.types.str;
         description = ''
-          Group under which tower runs.
+          Group under which headscale runs.
 
           ::: {.note}
           If left as the default value this group will automatically be created
           on system activation, otherwise you are responsible for
-          ensuring the user exists before the tower service starts.
+          ensuring the user exists before the headscale service starts.
           :::
         '';
       };
@@ -79,7 +79,7 @@ in
         type = lib.types.str;
         default = "127.0.0.1";
         description = ''
-          Listening address of tower.
+          Listening address of headscale.
         '';
         example = "0.0.0.0";
       };
@@ -88,7 +88,7 @@ in
         type = lib.types.port;
         default = 8080;
         description = ''
-          Listening port of tower.
+          Listening port of headscale.
         '';
         example = 443;
       };
@@ -280,14 +280,14 @@ in
                 name = lib.mkOption {
                   type = lib.types.nullOr lib.types.str;
                   default = null;
-                  example = "tower";
+                  example = "headscale";
                   description = "Database name.";
                 };
 
                 user = lib.mkOption {
                   type = lib.types.nullOr lib.types.str;
                   default = null;
-                  example = "tower";
+                  example = "headscale";
                   description = "Database user.";
                 };
 
@@ -308,7 +308,7 @@ in
                 type = lib.types.str;
                 default = "info";
                 description = ''
-                  tower log level.
+                  headscale log level.
                 '';
                 example = "debug";
               };
@@ -317,7 +317,7 @@ in
                 type = lib.types.str;
                 default = "text";
                 description = ''
-                  tower log format.
+                  headscale log format.
                 '';
                 example = "json";
               };
@@ -597,7 +597,7 @@ in
                   '';
                 };
 
-                # Defaults are null so tower falls back to the flat
+                # Defaults are null so headscale falls back to the flat
                 # tls_letsencrypt_* keys still set in older configurations.
                 challenge_type = lib.mkOption {
                   type = lib.types.nullOr (
@@ -657,72 +657,72 @@ in
 
   imports = with lib; [
     (mkRenamedOptionModule
-      [ "services" "tower" "derp" "autoUpdate" ]
-      [ "services" "tower" "settings" "derp" "auto_update_enabled" ]
+      [ "services" "headscale" "derp" "autoUpdate" ]
+      [ "services" "headscale" "settings" "derp" "auto_update_enabled" ]
     )
     (mkRenamedOptionModule
-      [ "services" "tower" "derp" "auto_update_enable" ]
-      [ "services" "tower" "settings" "derp" "auto_update_enabled" ]
+      [ "services" "headscale" "derp" "auto_update_enable" ]
+      [ "services" "headscale" "settings" "derp" "auto_update_enabled" ]
     )
     (mkRenamedOptionModule
-      [ "services" "tower" "derp" "paths" ]
-      [ "services" "tower" "settings" "derp" "paths" ]
+      [ "services" "headscale" "derp" "paths" ]
+      [ "services" "headscale" "settings" "derp" "paths" ]
     )
     (mkRenamedOptionModule
-      [ "services" "tower" "derp" "updateFrequency" ]
-      [ "services" "tower" "settings" "derp" "update_frequency" ]
+      [ "services" "headscale" "derp" "updateFrequency" ]
+      [ "services" "headscale" "settings" "derp" "update_frequency" ]
     )
     (mkRenamedOptionModule
-      [ "services" "tower" "derp" "urls" ]
-      [ "services" "tower" "settings" "derp" "urls" ]
+      [ "services" "headscale" "derp" "urls" ]
+      [ "services" "headscale" "settings" "derp" "urls" ]
     )
     (mkRenamedOptionModule
-      [ "services" "tower" "ephemeralNodeInactivityTimeout" ]
-      [ "services" "tower" "settings" "node" "ephemeral" "inactivity_timeout" ]
+      [ "services" "headscale" "ephemeralNodeInactivityTimeout" ]
+      [ "services" "headscale" "settings" "node" "ephemeral" "inactivity_timeout" ]
     )
     (mkRenamedOptionModule
-      [ "services" "tower" "logLevel" ]
-      [ "services" "tower" "settings" "log" "level" ]
+      [ "services" "headscale" "logLevel" ]
+      [ "services" "headscale" "settings" "log" "level" ]
     )
     (mkRenamedOptionModule
-      [ "services" "tower" "openIdConnect" "clientId" ]
-      [ "services" "tower" "settings" "oidc" "client_id" ]
+      [ "services" "headscale" "openIdConnect" "clientId" ]
+      [ "services" "headscale" "settings" "oidc" "client_id" ]
     )
     (mkRenamedOptionModule
-      [ "services" "tower" "openIdConnect" "clientSecretFile" ]
-      [ "services" "tower" "settings" "oidc" "client_secret_path" ]
+      [ "services" "headscale" "openIdConnect" "clientSecretFile" ]
+      [ "services" "headscale" "settings" "oidc" "client_secret_path" ]
     )
     (mkRenamedOptionModule
-      [ "services" "tower" "openIdConnect" "issuer" ]
-      [ "services" "tower" "settings" "oidc" "issuer" ]
+      [ "services" "headscale" "openIdConnect" "issuer" ]
+      [ "services" "headscale" "settings" "oidc" "issuer" ]
     )
     (mkRenamedOptionModule
-      [ "services" "tower" "serverUrl" ]
-      [ "services" "tower" "settings" "server_url" ]
+      [ "services" "headscale" "serverUrl" ]
+      [ "services" "headscale" "settings" "server_url" ]
     )
     (mkRenamedOptionModule
-      [ "services" "tower" "tls" "certFile" ]
-      [ "services" "tower" "settings" "tls" "cert_path" ]
+      [ "services" "headscale" "tls" "certFile" ]
+      [ "services" "headscale" "settings" "tls" "cert_path" ]
     )
     (mkRenamedOptionModule
-      [ "services" "tower" "tls" "keyFile" ]
-      [ "services" "tower" "settings" "tls" "key_path" ]
+      [ "services" "headscale" "tls" "keyFile" ]
+      [ "services" "headscale" "settings" "tls" "key_path" ]
     )
     (mkRenamedOptionModule
-      [ "services" "tower" "tls" "letsencrypt" "challengeType" ]
-      [ "services" "tower" "settings" "tls" "acme" "challenge_type" ]
+      [ "services" "headscale" "tls" "letsencrypt" "challengeType" ]
+      [ "services" "headscale" "settings" "tls" "acme" "challenge_type" ]
     )
     (mkRenamedOptionModule
-      [ "services" "tower" "tls" "letsencrypt" "hostname" ]
-      [ "services" "tower" "settings" "tls" "acme" "hostname" ]
+      [ "services" "headscale" "tls" "letsencrypt" "hostname" ]
+      [ "services" "headscale" "settings" "tls" "acme" "hostname" ]
     )
     (mkRenamedOptionModule
-      [ "services" "tower" "tls" "letsencrypt" "httpListen" ]
-      [ "services" "tower" "settings" "tls" "acme" "http_listen" ]
+      [ "services" "headscale" "tls" "letsencrypt" "httpListen" ]
+      [ "services" "headscale" "settings" "tls" "acme" "http_listen" ]
     )
 
-    (mkRemovedOptionModule [ "services" "tower" "openIdConnect" "domainMap" ] ''
-      Tower no longer uses domain_map. If you're using an old version of tower you can still set this option via services.headscale.settings.oidc.domain_map.
+    (mkRemovedOptionModule [ "services" "headscale" "openIdConnect" "domainMap" ] ''
+      Headscale no longer uses domain_map. If you're using an old version of headscale you can still set this option via services.headscale.settings.oidc.domain_map.
     '')
   ];
 
@@ -787,24 +787,24 @@ in
     ];
 
     environment = {
-      # Tower CLI needs a minimal config to be able to locate the unix socket
+      # Headscale CLI needs a minimal config to be able to locate the unix socket
       # to talk to the server instance.
       etc."headscale/config.yaml".source = cliConfigFile;
 
       systemPackages = [ cfg.package ];
     };
 
-    users.groups.headscale = lib.mkIf (cfg.group == "tower") { };
+    users.groups.headscale = lib.mkIf (cfg.group == "headscale") { };
 
-    users.users.headscale = lib.mkIf (cfg.user == "tower") {
-      description = "tower user";
+    users.users.headscale = lib.mkIf (cfg.user == "headscale") {
+      description = "headscale user";
       home = dataDir;
       group = cfg.group;
       isSystemUser = true;
     };
 
     systemd.services.headscale = {
-      description = "tower coordination server for Tailscale";
+      description = "headscale coordination server for Tailscale";
       wants = [ "network-online.target" ];
       after = [ "network-online.target" ];
       wantedBy = [ "multi-user.target" ];
@@ -829,11 +829,11 @@ in
           Group = cfg.group;
 
           # Hardening options
-          RuntimeDirectory = "tower";
-          # Allow tower group access so users can be added and use the CLI.
+          RuntimeDirectory = "headscale";
+          # Allow headscale group access so users can be added and use the CLI.
           RuntimeDirectoryMode = "0750";
 
-          StateDirectory = "tower";
+          StateDirectory = "headscale";
           StateDirectoryMode = "0750";
 
           ProtectSystem = "strict";

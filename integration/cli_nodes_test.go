@@ -32,7 +32,7 @@ func TestNodeCommand(t *testing.T) {
 	err = scenario.CreateHeadscaleEnv([]tsic.Option{}, hsic.WithTestName("cli-node"))
 	require.NoError(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	require.NoError(t, err)
 
 	regIDs := []string{
@@ -47,7 +47,7 @@ func TestNodeCommand(t *testing.T) {
 	require.NoError(t, err)
 
 	for index, regID := range regIDs {
-		_, err := tower.Execute(
+		_, err := headscale.Execute(
 			[]string{
 				"tower",
 				"debug",
@@ -68,7 +68,7 @@ func TestNodeCommand(t *testing.T) {
 
 		assert.EventuallyWithT(t, func(c *assert.CollectT) {
 			err = executeAndUnmarshal(
-				tower,
+				headscale,
 				[]string{
 					"tower",
 					"auth",
@@ -97,7 +97,7 @@ func TestNodeCommand(t *testing.T) {
 
 	assert.EventuallyWithT(t, func(ct *assert.CollectT) {
 		err := executeAndUnmarshal(
-			tower,
+			headscale,
 			[]string{
 				"tower",
 				"nodes",
@@ -132,7 +132,7 @@ func TestNodeCommand(t *testing.T) {
 	require.NoError(t, err)
 
 	for index, regID := range otherUserRegIDs {
-		_, err := tower.Execute(
+		_, err := headscale.Execute(
 			[]string{
 				"tower",
 				"debug",
@@ -153,7 +153,7 @@ func TestNodeCommand(t *testing.T) {
 
 		assert.EventuallyWithT(t, func(c *assert.CollectT) {
 			err = executeAndUnmarshal(
-				tower,
+				headscale,
 				[]string{
 					"tower",
 					"auth",
@@ -182,7 +182,7 @@ func TestNodeCommand(t *testing.T) {
 
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
 		err = executeAndUnmarshal(
-			tower,
+			headscale,
 			[]string{
 				"tower",
 				"nodes",
@@ -209,7 +209,7 @@ func TestNodeCommand(t *testing.T) {
 
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
 		err = executeAndUnmarshal(
-			tower,
+			headscale,
 			[]string{
 				"tower",
 				"nodes",
@@ -241,7 +241,7 @@ func TestNodeCommand(t *testing.T) {
 	)
 
 	// Delete a nodes
-	_, err = tower.Execute(
+	_, err = headscale.Execute(
 		[]string{
 			"tower",
 			"nodes",
@@ -261,7 +261,7 @@ func TestNodeCommand(t *testing.T) {
 
 	assert.EventuallyWithT(t, func(ct *assert.CollectT) {
 		err := executeAndUnmarshal(
-			tower,
+			headscale,
 			[]string{
 				"tower",
 				"nodes",
@@ -293,7 +293,7 @@ func TestNodeExpireCommand(t *testing.T) {
 	err = scenario.CreateHeadscaleEnv([]tsic.Option{}, hsic.WithTestName("cli-nodeexpire"))
 	require.NoError(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	require.NoError(t, err)
 
 	regIDs := []string{
@@ -306,7 +306,7 @@ func TestNodeExpireCommand(t *testing.T) {
 	nodes := make([]*clientv1.Node, len(regIDs))
 
 	for index, regID := range regIDs {
-		_, err := tower.Execute(
+		_, err := headscale.Execute(
 			[]string{
 				"tower",
 				"debug",
@@ -327,7 +327,7 @@ func TestNodeExpireCommand(t *testing.T) {
 
 		assert.EventuallyWithT(t, func(c *assert.CollectT) {
 			err = executeAndUnmarshal(
-				tower,
+				headscale,
 				[]string{
 					"tower",
 					"auth",
@@ -353,7 +353,7 @@ func TestNodeExpireCommand(t *testing.T) {
 
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
 		err = executeAndUnmarshal(
-			tower,
+			headscale,
 			[]string{
 				"tower",
 				"nodes",
@@ -376,7 +376,7 @@ func TestNodeExpireCommand(t *testing.T) {
 	}
 
 	for idx := range 3 {
-		_, err := tower.Execute(
+		_, err := headscale.Execute(
 			[]string{
 				"tower",
 				"nodes",
@@ -392,7 +392,7 @@ func TestNodeExpireCommand(t *testing.T) {
 
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
 		err = executeAndUnmarshal(
-			tower,
+			headscale,
 			[]string{
 				"tower",
 				"nodes",
@@ -432,7 +432,7 @@ func TestNodeRenameCommand(t *testing.T) {
 	err = scenario.CreateHeadscaleEnv([]tsic.Option{}, hsic.WithTestName("cli-noderename"))
 	require.NoError(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	require.NoError(t, err)
 
 	regIDs := []string{
@@ -447,7 +447,7 @@ func TestNodeRenameCommand(t *testing.T) {
 	require.NoError(t, err)
 
 	for index, regID := range regIDs {
-		_, err := tower.Execute(
+		_, err := headscale.Execute(
 			[]string{
 				"tower",
 				"debug",
@@ -468,7 +468,7 @@ func TestNodeRenameCommand(t *testing.T) {
 
 		assert.EventuallyWithT(t, func(c *assert.CollectT) {
 			err = executeAndUnmarshal(
-				tower,
+				headscale,
 				[]string{
 					"tower",
 					"auth",
@@ -494,7 +494,7 @@ func TestNodeRenameCommand(t *testing.T) {
 
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
 		err = executeAndUnmarshal(
-			tower,
+			headscale,
 			[]string{
 				"tower",
 				"nodes",
@@ -516,7 +516,7 @@ func TestNodeRenameCommand(t *testing.T) {
 	assert.Contains(t, listAll[4].GivenName, "node-5")
 
 	for idx := range 3 {
-		res, err := tower.Execute(
+		res, err := headscale.Execute(
 			[]string{
 				"tower",
 				"nodes",
@@ -535,7 +535,7 @@ func TestNodeRenameCommand(t *testing.T) {
 
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
 		err = executeAndUnmarshal(
-			tower,
+			headscale,
 			[]string{
 				"tower",
 				"nodes",
@@ -557,7 +557,7 @@ func TestNodeRenameCommand(t *testing.T) {
 	assert.Contains(t, listAllAfterRename[4].GivenName, "node-5")
 
 	// Test failure for too long names
-	_, err = tower.Execute(
+	_, err = headscale.Execute(
 		[]string{
 			"tower",
 			"nodes",
@@ -573,7 +573,7 @@ func TestNodeRenameCommand(t *testing.T) {
 
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
 		err = executeAndUnmarshal(
-			tower,
+			headscale,
 			[]string{
 				"tower",
 				"nodes",
@@ -619,17 +619,17 @@ func TestPreAuthKeyCorrectUserLoggedInCommand(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	require.NoError(t, err)
 
-	u2, err := tower.CreateUser(user2)
+	u2, err := headscale.CreateUser(user2)
 	require.NoError(t, err)
 
 	var user2Key clientv1.PreAuthKey
 
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
 		err = executeAndUnmarshal(
-			tower,
+			headscale,
 			[]string{
 				"tower",
 				"preauthkeys",
@@ -654,7 +654,7 @@ func TestPreAuthKeyCorrectUserLoggedInCommand(t *testing.T) {
 	assert.EventuallyWithT(t, func(ct *assert.CollectT) {
 		var err error
 
-		listNodes, err = tower.ListNodes()
+		listNodes, err = headscale.ListNodes()
 		assert.NoError(ct, err)
 		assert.Len(ct, listNodes, 1, "Should have exactly 1 node for user1")
 		assert.Equal(ct, user1, listNodes[0].User.Name, "Node should belong to user1")
@@ -681,7 +681,7 @@ func TestPreAuthKeyCorrectUserLoggedInCommand(t *testing.T) {
 			"Expected node to be logged out, backend state: %s", status.BackendState)
 	}, integrationutil.StatusReadyTimeout, 2*time.Second)
 
-	err = client.Login(tower.GetEndpoint(), user2Key.Key)
+	err = client.Login(headscale.GetEndpoint(), user2Key.Key)
 	require.NoError(t, err)
 
 	assert.EventuallyWithT(t, func(ct *assert.CollectT) {
@@ -696,7 +696,7 @@ func TestPreAuthKeyCorrectUserLoggedInCommand(t *testing.T) {
 	assert.EventuallyWithT(t, func(ct *assert.CollectT) {
 		var err error
 
-		listNodes, err = tower.ListNodes()
+		listNodes, err = headscale.ListNodes()
 		assert.NoError(ct, err)
 		assert.Len(ct, listNodes, 2, "Should have 2 nodes after re-login")
 		assert.Equal(ct, user1, listNodes[0].User.Name, "First node should belong to user1")
@@ -727,10 +727,10 @@ func TestTaggedNodesCLIOutput(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	require.NoError(t, err)
 
-	u2, err := tower.CreateUser(user2)
+	u2, err := headscale.CreateUser(user2)
 	require.NoError(t, err)
 
 	var user2Key clientv1.PreAuthKey
@@ -738,7 +738,7 @@ func TestTaggedNodesCLIOutput(t *testing.T) {
 	// Create a tagged PreAuthKey for user2
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
 		err = executeAndUnmarshal(
-			tower,
+			headscale,
 			[]string{
 				"tower",
 				"preauthkeys",
@@ -780,7 +780,7 @@ func TestTaggedNodesCLIOutput(t *testing.T) {
 	}, integrationutil.StatusReadyTimeout, 2*time.Second)
 
 	// Log in with the tagged PreAuthKey (from user2, with tags)
-	err = client.Login(tower.GetEndpoint(), user2Key.Key)
+	err = client.Login(headscale.GetEndpoint(), user2Key.Key)
 	require.NoError(t, err)
 
 	assert.EventuallyWithT(t, func(ct *assert.CollectT) {
@@ -797,7 +797,7 @@ func TestTaggedNodesCLIOutput(t *testing.T) {
 	assert.EventuallyWithT(t, func(ct *assert.CollectT) {
 		var err error
 
-		listNodes, err = tower.ListNodes()
+		listNodes, err = headscale.ListNodes()
 		assert.NoError(ct, err)
 		assert.Len(ct, listNodes, 2, "Should have 2 nodes after re-login with tagged key")
 		assert.Equal(ct, user1, listNodes[0].User.Name, "First node should belong to user1")
@@ -826,12 +826,12 @@ func TestTaggedNodesCLIOutput(t *testing.T) {
 func TestNodeExpireFlagsCommand(t *testing.T) {
 	IntegrationSkip(t)
 
-	scenario, tower := setupCLIScenario(t, "cli-nodeexpireflags", []string{"expire-flags-user"}, 0)
+	scenario, headscale := setupCLIScenario(t, "cli-nodeexpireflags", []string{"expire-flags-user"}, 0)
 	defer scenario.ShutdownAssertNoPanics(t)
 
 	regID := types.MustAuthID().String()
 
-	_, err := tower.Execute([]string{
+	_, err := headscale.Execute([]string{
 		"tower", "debug", "create-node",
 		"--name", "flagnode",
 		"--user", "expire-flags-user",
@@ -843,7 +843,7 @@ func TestNodeExpireFlagsCommand(t *testing.T) {
 	var node clientv1.Node
 
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		err := executeAndUnmarshal(tower,
+		err := executeAndUnmarshal(headscale,
 			[]string{
 				"tower", "auth", "register",
 				"--user", "expire-flags-user",
@@ -864,7 +864,7 @@ func TestNodeExpireFlagsCommand(t *testing.T) {
 	listNodeByID := func(ct *assert.CollectT) *clientv1.Node {
 		var nodes []clientv1.Node
 
-		err := executeAndUnmarshal(tower,
+		err := executeAndUnmarshal(headscale,
 			[]string{"tower", "nodes", "list", "--output", "json"},
 			&nodes,
 		)
@@ -884,7 +884,7 @@ func TestNodeExpireFlagsCommand(t *testing.T) {
 	// Set a future expiry, then confirm the node reports it.
 	future := time.Now().Add(2 * time.Hour).UTC()
 
-	_, err = tower.Execute([]string{
+	_, err = headscale.Execute([]string{
 		"tower", "nodes", "expire",
 		"--identifier", nodeID,
 		"--expiry", future.Format(time.RFC3339),
@@ -903,7 +903,7 @@ func TestNodeExpireFlagsCommand(t *testing.T) {
 	}, integrationutil.ScaledTimeout(15*time.Second), 1*time.Second, "Waiting for future expiry to apply")
 
 	// Disable expiry entirely; the node should then report no expiry.
-	_, err = tower.Execute([]string{
+	_, err = headscale.Execute([]string{
 		"tower", "nodes", "expire",
 		"--identifier", nodeID,
 		"--disable",
@@ -934,12 +934,12 @@ func TestNodeExpireFlagsCommand(t *testing.T) {
 func TestNodeCommandValidation(t *testing.T) {
 	IntegrationSkip(t)
 
-	scenario, tower := setupCLIScenario(t, "cli-nodeval", []string{"user1"}, 0)
+	scenario, headscale := setupCLIScenario(t, "cli-nodeval", []string{"user1"}, 0)
 	defer scenario.ShutdownAssertNoPanics(t)
 
 	regID := types.MustAuthID().String()
 
-	_, err := tower.Execute([]string{
+	_, err := headscale.Execute([]string{
 		"tower", "debug", "create-node",
 		"--name", "valnode", "--user", "user1", "--key", regID, "--output", "json",
 	})
@@ -948,7 +948,7 @@ func TestNodeCommandValidation(t *testing.T) {
 	var node clientv1.Node
 
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		err := executeAndUnmarshal(tower,
+		err := executeAndUnmarshal(headscale,
 			[]string{"tower", "auth", "register", "--user", "user1", "--auth-id", regID, "--output", "json"},
 			&node,
 		)
@@ -987,7 +987,7 @@ func TestNodeCommandValidation(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := tower.Execute(append([]string{"tower"}, tt.args...))
+			_, err := headscale.Execute(append([]string{"tower"}, tt.args...))
 			if tt.wantErr == "" {
 				require.Error(t, err)
 
@@ -1042,7 +1042,7 @@ func TestNodeTagCommand(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	require.NoError(t, err)
 
 	require.NoError(t, scenario.WaitForTailscaleSync())
@@ -1050,7 +1050,7 @@ func TestNodeTagCommand(t *testing.T) {
 	var nodeID string
 
 	assert.EventuallyWithT(t, func(ct *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(ct, err)
 		assert.Len(ct, nodes, 1)
 
@@ -1065,7 +1065,7 @@ func TestNodeTagCommand(t *testing.T) {
 	// Set two tags. The command response is round-tripped (transport check);
 	// the resulting tag state is asserted via the authoritative list read-back
 	// below rather than the immediate mutation response.
-	tagged := assertJSONRoundtrip[*clientv1.Node](t, tower, []string{
+	tagged := assertJSONRoundtrip[*clientv1.Node](t, headscale, []string{
 		"tower", "nodes", "tag",
 		"--identifier", idStr,
 		"--tags", "tag:test1,tag:test2",
@@ -1075,7 +1075,7 @@ func TestNodeTagCommand(t *testing.T) {
 
 	// The node is now a tagged node, presented as the tagged-devices user.
 	assert.EventuallyWithT(t, func(ct *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(ct, err)
 		assert.Len(ct, nodes, 1)
 
@@ -1087,14 +1087,14 @@ func TestNodeTagCommand(t *testing.T) {
 
 	// Error: tagged nodes must keep at least one tag, so an empty tag set is
 	// rejected.
-	_, err = tower.Execute([]string{
+	_, err = headscale.Execute([]string{
 		"tower", "nodes", "tag",
 		"--identifier", idStr,
 	})
 	require.ErrorContains(t, err, "cannot remove all tags")
 
 	// Error: malformed tag (missing the "tag:" prefix).
-	_, err = tower.Execute([]string{
+	_, err = headscale.Execute([]string{
 		"tower", "nodes", "tag",
 		"--identifier", idStr,
 		"--tags", "not-a-valid-tag",
@@ -1123,7 +1123,7 @@ func TestNodeRouteCommands(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	require.NoError(t, err)
 
 	allClients, err := scenario.ListTailscaleClients()
@@ -1146,7 +1146,7 @@ func TestNodeRouteCommands(t *testing.T) {
 	assert.EventuallyWithT(t, func(ct *assert.CollectT) {
 		var nodes []clientv1.Node
 
-		err := executeAndUnmarshal(tower,
+		err := executeAndUnmarshal(headscale,
 			[]string{"tower", "nodes", "list-routes", "--output", "json"},
 			&nodes,
 		)
@@ -1163,7 +1163,7 @@ func TestNodeRouteCommands(t *testing.T) {
 	idStr := nodeID
 
 	// Approve the route via the CLI.
-	approved := assertJSONRoundtrip[*clientv1.Node](t, tower, []string{
+	approved := assertJSONRoundtrip[*clientv1.Node](t, headscale, []string{
 		"tower", "nodes", "approve-routes",
 		"--identifier", idStr,
 		"--routes=" + route,
@@ -1176,7 +1176,7 @@ func TestNodeRouteCommands(t *testing.T) {
 	assert.EventuallyWithT(t, func(ct *assert.CollectT) {
 		var nodes []clientv1.Node
 
-		err := executeAndUnmarshal(tower,
+		err := executeAndUnmarshal(headscale,
 			[]string{"tower", "nodes", "list-routes", "--identifier", idStr, "--output", "json"},
 			&nodes,
 		)
@@ -1190,7 +1190,7 @@ func TestNodeRouteCommands(t *testing.T) {
 	}, integrationutil.ScaledTimeout(20*time.Second), 1*time.Second)
 
 	// Remove all approved routes by passing an empty --routes value.
-	cleared := assertJSONRoundtrip[*clientv1.Node](t, tower, []string{
+	cleared := assertJSONRoundtrip[*clientv1.Node](t, headscale, []string{
 		"tower", "nodes", "approve-routes",
 		"--identifier", idStr,
 		"--routes=",
@@ -1206,7 +1206,7 @@ func TestNodeRouteCommands(t *testing.T) {
 func TestNodeBackfillIPsCommand(t *testing.T) {
 	IntegrationSkip(t)
 
-	scenario, tower := setupCLIScenario(t, "cli-backfillips", []string{"user1"}, 2)
+	scenario, headscale := setupCLIScenario(t, "cli-backfillips", []string{"user1"}, 2)
 	defer scenario.ShutdownAssertNoPanics(t)
 
 	require.NoError(t, scenario.WaitForTailscaleSync())
@@ -1216,7 +1216,7 @@ func TestNodeBackfillIPsCommand(t *testing.T) {
 	assert.EventuallyWithT(t, func(ct *assert.CollectT) {
 		var err error
 
-		before, err = tower.ListNodes()
+		before, err = headscale.ListNodes()
 		assert.NoError(ct, err)
 		assert.Len(ct, before, 2)
 
@@ -1225,13 +1225,13 @@ func TestNodeBackfillIPsCommand(t *testing.T) {
 		}
 	}, integrationutil.ScaledTimeout(20*time.Second), 1*time.Second)
 
-	out, err := tower.Execute([]string{"tower", "nodes", "backfillips", "--force"})
+	out, err := headscale.Execute([]string{"tower", "nodes", "backfillips", "--force"})
 	require.NoError(t, err)
 	assert.Contains(t, out, "backfilled")
 
 	// Nodes must still have their IP addresses afterwards.
 	assert.EventuallyWithT(t, func(ct *assert.CollectT) {
-		after, err := tower.ListNodes()
+		after, err := headscale.ListNodes()
 		assert.NoError(ct, err)
 		assert.Len(ct, after, 2)
 

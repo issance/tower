@@ -1,4 +1,4 @@
-# Makes a NixOS test node a tower control server that any Tailscale client
+# Makes a NixOS test node a headscale control server that any Tailscale client
 # joins without trust setup: plain-HTTP control, plus the same router on a
 # self-signed TLS :443 whose DERP region is InsecureForTests. That is the one
 # shape tailscaled, tsnet, webpki-only tailscale-rs and the Android app all
@@ -18,13 +18,13 @@ let
       pkgs.jq
     ];
     text = ''
-      user=''${1:?usage: hs-authkey USER [tower preauthkeys create flags]}
+      user=''${1:?usage: hs-authkey USER [headscale preauthkeys create flags]}
       shift
       # Safe straight after start_all(): the CLI retries the socket until this.
-      HEADSCALE_CLI_TIMEOUT=''${HEADSCALE_CLI_TIMEOUT:-60s} tower health >/dev/null
-      tower users list --name "$user" -o json | jq -e 'length > 0' >/dev/null ||
-        tower users create "$user" >/dev/null
-      tower preauthkeys create --user "$user" --reusable --expiration 24h "$@"
+      HEADSCALE_CLI_TIMEOUT=''${HEADSCALE_CLI_TIMEOUT:-60s} headscale health >/dev/null
+      headscale users list --name "$user" -o json | jq -e 'length > 0' >/dev/null ||
+        headscale users create "$user" >/dev/null
+      headscale preauthkeys create --user "$user" --reusable --expiration 24h "$@"
     '';
   };
 in
@@ -42,15 +42,15 @@ in
       server_url = "http://${config.networking.hostName}";
       dns.base_domain = lib.mkDefault "tailnet";
       dns.override_local_dns = lib.mkDefault false;
-      # Nothing stored allows all, and `tower policy set` works live.
+      # Nothing stored allows all, and `headscale policy set` works live.
       policy.mode = lib.mkDefault "database";
       derp = {
         urls = [ ];
         server = {
           enabled = true;
           region_id = 999;
-          region_code = "tower";
-          region_name = "tower test kit";
+          region_code = "headscale";
+          region_name = "headscale test kit";
           stun_listen_addr = "[::]:3478";
         };
       };

@@ -74,15 +74,15 @@ type NodeSystemStatus struct {
 	NodeStore        bool
 }
 
-// requireNoErrHeadscaleEnv validates that tower environment creation succeeded.
-// Provides specific error context for tower environment setup failures.
+// requireNoErrHeadscaleEnv validates that headscale environment creation succeeded.
+// Provides specific error context for headscale environment setup failures.
 func requireNoErrHeadscaleEnv(t *testing.T, err error) {
 	t.Helper()
 	require.NoError(t, err, "failed to create tower environment")
 }
 
-// requireNoErrGetHeadscale validates that tower server retrieval succeeded.
-// Provides specific error context for tower server access failures.
+// requireNoErrGetHeadscale validates that headscale server retrieval succeeded.
+// Provides specific error context for headscale server access failures.
 func requireNoErrGetHeadscale(t *testing.T, err error) {
 	t.Helper()
 	require.NoError(t, err, "failed to get tower")
@@ -142,35 +142,35 @@ func collectExpectedNodeIDs(t *testing.T, clients []TailscaleClient) []types.Nod
 // validateInitialConnection performs comprehensive validation after initial client login.
 // Validates that all nodes are online and have proper [tailcfg.NetInfo]/DERP configuration,
 // essential for ensuring successful initial connection state in relogin tests.
-func validateInitialConnection(t *testing.T, tower ControlServer, expectedNodes []types.NodeID) {
+func validateInitialConnection(t *testing.T, headscale ControlServer, expectedNodes []types.NodeID) {
 	t.Helper()
 
-	requireAllClientsOnline(t, tower, expectedNodes, true, "all clients should be connected after initial login", 120*time.Second)
-	requireAllClientsNetInfoAndDERP(t, tower, expectedNodes, "all clients should have NetInfo and DERP after initial login", 3*time.Minute)
+	requireAllClientsOnline(t, headscale, expectedNodes, true, "all clients should be connected after initial login", 120*time.Second)
+	requireAllClientsNetInfoAndDERP(t, headscale, expectedNodes, "all clients should have NetInfo and DERP after initial login", 3*time.Minute)
 }
 
 // validateLogoutComplete performs comprehensive validation after client logout.
-// Ensures all nodes are properly offline across all tower systems,
+// Ensures all nodes are properly offline across all headscale systems,
 // critical for validating clean logout state in relogin tests.
-func validateLogoutComplete(t *testing.T, tower ControlServer, expectedNodes []types.NodeID) {
+func validateLogoutComplete(t *testing.T, headscale ControlServer, expectedNodes []types.NodeID) {
 	t.Helper()
 
-	requireAllClientsOnline(t, tower, expectedNodes, false, "all nodes should be offline after logout", 120*time.Second)
+	requireAllClientsOnline(t, headscale, expectedNodes, false, "all nodes should be offline after logout", 120*time.Second)
 }
 
 // validateReloginComplete performs comprehensive validation after client relogin.
 // Validates that all nodes are back online with proper [tailcfg.NetInfo]/DERP configuration,
 // ensuring successful relogin state restoration in integration tests.
-func validateReloginComplete(t *testing.T, tower ControlServer, expectedNodes []types.NodeID) {
+func validateReloginComplete(t *testing.T, headscale ControlServer, expectedNodes []types.NodeID) {
 	t.Helper()
 
-	requireAllClientsOnline(t, tower, expectedNodes, true, "all clients should be connected after relogin", integrationutil.ScaledTimeout(120*time.Second))
-	requireAllClientsNetInfoAndDERP(t, tower, expectedNodes, "all clients should have NetInfo and DERP after relogin", integrationutil.ScaledTimeout(3*time.Minute))
+	requireAllClientsOnline(t, headscale, expectedNodes, true, "all clients should be connected after relogin", integrationutil.ScaledTimeout(120*time.Second))
+	requireAllClientsNetInfoAndDERP(t, headscale, expectedNodes, "all clients should have NetInfo and DERP after relogin", integrationutil.ScaledTimeout(3*time.Minute))
 }
 
-// requireAllClientsOnline validates that all nodes are online/offline across all tower systems
+// requireAllClientsOnline validates that all nodes are online/offline across all headscale systems
 // requireAllClientsOnline verifies all expected nodes are in the specified online state across all systems.
-func requireAllClientsOnline(t *testing.T, tower ControlServer, expectedNodes []types.NodeID, expectedOnline bool, message string, timeout time.Duration) {
+func requireAllClientsOnline(t *testing.T, headscale ControlServer, expectedNodes []types.NodeID, expectedOnline bool, message string, timeout time.Duration) {
 	t.Helper()
 
 	startTime := time.Now()
@@ -181,10 +181,10 @@ func requireAllClientsOnline(t *testing.T, tower ControlServer, expectedNodes []
 
 	if expectedOnline {
 		// For online validation, use the existing logic with full timeout
-		requireAllClientsOnlineWithSingleTimeout(t, tower, expectedNodes, expectedOnline, message, timeout)
+		requireAllClientsOnlineWithSingleTimeout(t, headscale, expectedNodes, expectedOnline, message, timeout)
 	} else {
 		// For offline validation, use staged approach with component-specific timeouts
-		requireAllClientsOfflineStaged(t, tower, expectedNodes)
+		requireAllClientsOfflineStaged(t, headscale, expectedNodes)
 	}
 
 	endTime := time.Now()
@@ -194,7 +194,7 @@ func requireAllClientsOnline(t *testing.T, tower ControlServer, expectedNodes []
 // requireAllClientsOnlineWithSingleTimeout is the original validation logic for online state.
 //
 //nolint:gocyclo // complex validation with multiple node states
-func requireAllClientsOnlineWithSingleTimeout(t *testing.T, tower ControlServer, expectedNodes []types.NodeID, expectedOnline bool, message string, timeout time.Duration) {
+func requireAllClientsOnlineWithSingleTimeout(t *testing.T, headscale ControlServer, expectedNodes []types.NodeID, expectedOnline bool, message string, timeout time.Duration) {
 	t.Helper()
 
 	var prevReport string
@@ -203,7 +203,7 @@ func requireAllClientsOnlineWithSingleTimeout(t *testing.T, tower ControlServer,
 
 	require.EventuallyWithT(t, func(c *assert.CollectT) {
 		// Get batcher state
-		debugInfo, err := tower.DebugBatcher()
+		debugInfo, err := headscale.DebugBatcher()
 		assert.NoError(c, err, "Failed to get batcher debug info")
 
 		if err != nil {
@@ -211,7 +211,7 @@ func requireAllClientsOnlineWithSingleTimeout(t *testing.T, tower ControlServer,
 		}
 
 		// Get map responses
-		mapResponses, err := tower.GetAllMapReponses()
+		mapResponses, err := headscale.GetAllMapReponses()
 		assert.NoError(c, err, "Failed to get map responses")
 
 		if err != nil {
@@ -219,7 +219,7 @@ func requireAllClientsOnlineWithSingleTimeout(t *testing.T, tower ControlServer,
 		}
 
 		// Get nodestore state
-		nodeStore, err := tower.DebugNodeStore()
+		nodeStore, err := headscale.DebugNodeStore()
 		assert.NoError(c, err, "Failed to get nodestore debug info")
 
 		if err != nil {
@@ -374,13 +374,13 @@ func requireAllClientsOnlineWithSingleTimeout(t *testing.T, tower ControlServer,
 }
 
 // requireAllClientsOfflineStaged validates offline state with staged timeouts for different components.
-func requireAllClientsOfflineStaged(t *testing.T, tower ControlServer, expectedNodes []types.NodeID) {
+func requireAllClientsOfflineStaged(t *testing.T, headscale ControlServer, expectedNodes []types.NodeID) {
 	t.Helper()
 
 	// Stage 1: Verify batcher disconnection (should be immediate)
 	t.Logf("Stage 1: Verifying batcher disconnection for %d nodes", len(expectedNodes))
 	require.EventuallyWithT(t, func(c *assert.CollectT) {
-		debugInfo, err := tower.DebugBatcher()
+		debugInfo, err := headscale.DebugBatcher()
 		assert.NoError(c, err, "Failed to get batcher debug info")
 
 		if err != nil {
@@ -404,7 +404,7 @@ func requireAllClientsOfflineStaged(t *testing.T, tower ControlServer, expectedN
 	// Stage 2: Verify nodestore offline status (up to 15 seconds due to disconnect detection delay)
 	t.Logf("Stage 2: Verifying nodestore offline status for %d nodes (allowing for 10s disconnect detection delay)", len(expectedNodes))
 	require.EventuallyWithT(t, func(c *assert.CollectT) {
-		nodeStore, err := tower.DebugNodeStore()
+		nodeStore, err := headscale.DebugNodeStore()
 		assert.NoError(c, err, "Failed to get nodestore debug info")
 
 		if err != nil {
@@ -429,7 +429,7 @@ func requireAllClientsOfflineStaged(t *testing.T, tower ControlServer, expectedN
 	// Stage 3: Verify map response propagation (longest delay due to peer update timing)
 	t.Logf("Stage 3: Verifying map response propagation for %d nodes (allowing for peer map update delays)", len(expectedNodes))
 	require.EventuallyWithT(t, func(c *assert.CollectT) {
-		mapResponses, err := tower.GetAllMapReponses()
+		mapResponses, err := headscale.GetAllMapReponses()
 		assert.NoError(c, err, "Failed to get map responses")
 
 		if err != nil {
@@ -476,7 +476,7 @@ func requireAllClientsOfflineStaged(t *testing.T, tower ControlServer, expectedN
 // [requireAllClientsOnline] by using [hsic.HeadscaleInContainer.DebugNodeStore] to get the database state.
 //
 //nolint:unparam // timeout is configurable for flexibility even though callers currently use same value
-func requireAllClientsNetInfoAndDERP(t *testing.T, tower ControlServer, expectedNodes []types.NodeID, message string, timeout time.Duration) {
+func requireAllClientsNetInfoAndDERP(t *testing.T, headscale ControlServer, expectedNodes []types.NodeID, message string, timeout time.Duration) {
 	t.Helper()
 
 	startTime := time.Now()
@@ -484,7 +484,7 @@ func requireAllClientsNetInfoAndDERP(t *testing.T, tower ControlServer, expected
 
 	require.EventuallyWithT(t, func(c *assert.CollectT) {
 		// Get nodestore state
-		nodeStore, err := tower.DebugNodeStore()
+		nodeStore, err := headscale.DebugNodeStore()
 		assert.NoError(c, err, "Failed to get nodestore debug info")
 
 		if err != nil {
@@ -1052,7 +1052,7 @@ func tagApprover(name string) policyv2.AutoApprover {
 
 // oidcMockUser creates a [mockoidc.MockUser] for OIDC authentication testing.
 // Generates consistent test user data with configurable email verification status
-// for validating OIDC integration flows in tower authentication tests.
+// for validating OIDC integration flows in headscale authentication tests.
 func oidcMockUser(username string, emailVerified bool) mockoidc.MockUser {
 	return mockoidc.MockUser{
 		Subject:           username,
@@ -1062,10 +1062,10 @@ func oidcMockUser(username string, emailVerified bool) mockoidc.MockUser {
 	}
 }
 
-// GetUserByName retrieves a user by name from the tower server.
+// GetUserByName retrieves a user by name from the headscale server.
 // This is a common pattern used when creating preauth keys or managing users.
-func GetUserByName(tower ControlServer, username string) (*clientv1.User, error) {
-	users, err := tower.ListUsers()
+func GetUserByName(headscale ControlServer, username string) (*clientv1.User, error) {
+	users, err := headscale.ListUsers()
 	if err != nil {
 		return nil, fmt.Errorf("listing users: %w", err)
 	}
@@ -1136,7 +1136,7 @@ func (s *Scenario) AddAndLoginClient(
 	t *testing.T,
 	username string,
 	version string,
-	tower ControlServer,
+	headscale ControlServer,
 	tsOpts ...tsic.Option,
 ) (TailscaleClient, error) {
 	t.Helper()
@@ -1178,7 +1178,7 @@ func (s *Scenario) AddAndLoginClient(
 	}
 
 	// Get the user and create preauth key
-	user, err := GetUserByName(tower, username)
+	user, err := GetUserByName(headscale, username)
 	if err != nil {
 		return nil, fmt.Errorf("getting user: %w", err)
 	}
@@ -1189,7 +1189,7 @@ func (s *Scenario) AddAndLoginClient(
 	}
 
 	// Login the new client
-	err = newClient.Login(tower.GetEndpoint(), authKey.Key)
+	err = newClient.Login(headscale.GetEndpoint(), authKey.Key)
 	if err != nil {
 		return nil, fmt.Errorf("logging in new client: %w", err)
 	}
@@ -1202,12 +1202,12 @@ func (s *Scenario) MustAddAndLoginClient(
 	t *testing.T,
 	username string,
 	version string,
-	tower ControlServer,
+	headscale ControlServer,
 	tsOpts ...tsic.Option,
 ) TailscaleClient {
 	t.Helper()
 
-	client, err := s.AddAndLoginClient(t, username, version, tower, tsOpts...)
+	client, err := s.AddAndLoginClient(t, username, version, headscale, tsOpts...)
 	require.NoError(t, err)
 
 	return client

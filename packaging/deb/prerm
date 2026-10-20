@@ -1,5 +1,5 @@
 #!/bin/sh
-# prerm script for tower.
+# prerm script for headscale.
 
 set -e
 

@@ -43,14 +43,14 @@ func TestAPIAuthenticationBypass(t *testing.T) {
 	err = scenario.CreateHeadscaleEnv([]tsic.Option{}, hsic.WithTestName("apiauthbypass"))
 	require.NoError(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	require.NoError(t, err)
 
 	// Create an API key using the CLI
 	var validAPIKey string
 
 	assert.EventuallyWithT(t, func(ct *assert.CollectT) {
-		apiKeyOutput, err := tower.Execute(
+		apiKeyOutput, err := headscale.Execute(
 			[]string{
 				"tower",
 				"apikeys",
@@ -65,7 +65,7 @@ func TestAPIAuthenticationBypass(t *testing.T) {
 	}, integrationutil.ScaledTimeout(20*time.Second), 1*time.Second)
 
 	// Get the API endpoint
-	endpoint := tower.GetEndpoint()
+	endpoint := headscale.GetEndpoint()
 	apiURL := endpoint + "/api/v1/user"
 
 	// Create HTTP client
@@ -252,11 +252,11 @@ func TestAPIAuthenticationBypassCurl(t *testing.T) {
 	err = scenario.CreateHeadscaleEnv([]tsic.Option{}, hsic.WithTestName("apiauthcurl"))
 	require.NoError(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	require.NoError(t, err)
 
 	// Create a valid API key
-	apiKeyOutput, err := tower.Execute(
+	apiKeyOutput, err := headscale.Execute(
 		[]string{
 			"tower",
 			"apikeys",
@@ -269,12 +269,12 @@ func TestAPIAuthenticationBypassCurl(t *testing.T) {
 
 	validAPIKey := strings.TrimSpace(apiKeyOutput)
 
-	endpoint := tower.GetEndpoint()
+	endpoint := headscale.GetEndpoint()
 	apiURL := endpoint + "/api/v1/user"
 
 	t.Run("Curl_NoAuth", func(t *testing.T) {
-		// Execute curl from inside the tower container without auth
-		curlOutput, err := tower.Execute(
+		// Execute curl from inside the headscale container without auth
+		curlOutput, err := headscale.Execute(
 			[]string{
 				"curl",
 				"-s",
@@ -326,7 +326,7 @@ func TestAPIAuthenticationBypassCurl(t *testing.T) {
 
 	t.Run("Curl_InvalidAuth", func(t *testing.T) {
 		// Execute curl with invalid auth header
-		curlOutput, err := tower.Execute(
+		curlOutput, err := headscale.Execute(
 			[]string{
 				"curl",
 				"-s",
@@ -368,7 +368,7 @@ func TestAPIAuthenticationBypassCurl(t *testing.T) {
 
 	t.Run("Curl_ValidAuth", func(t *testing.T) {
 		// Execute curl with valid API key
-		curlOutput, err := tower.Execute(
+		curlOutput, err := headscale.Execute(
 			[]string{
 				"curl",
 				"-s",
@@ -437,11 +437,11 @@ func TestRemoteCLIAuthenticationBypass(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	require.NoError(t, err)
 
 	// Create a valid API key
-	apiKeyOutput, err := tower.Execute(
+	apiKeyOutput, err := headscale.Execute(
 		[]string{
 			"tower",
 			"apikeys",
@@ -456,13 +456,13 @@ func TestRemoteCLIAuthenticationBypass(t *testing.T) {
 
 	// Get the remote HTTP API endpoint as host:port; the CLI dials it over TLS
 	// with --insecure to skip verification of the test certificate.
-	remoteAddr := strings.TrimPrefix(strings.TrimPrefix(tower.GetEndpoint(), "https://"), "http://")
+	remoteAddr := strings.TrimPrefix(strings.TrimPrefix(headscale.GetEndpoint(), "https://"), "http://")
 
 	t.Run("Remote_NoAPIKey", func(t *testing.T) {
 		// Test 1: Try to use CLI without API key (should fail)
 		// When HEADSCALE_CLI_ADDRESS is set but HEADSCALE_CLI_API_KEY is not set,
 		// the CLI should fail immediately
-		_, err := tower.Execute(
+		_, err := headscale.Execute(
 			[]string{
 				"sh", "-c",
 				fmt.Sprintf("HEADSCALE_CLI_ADDRESS=%s HEADSCALE_CLI_INSECURE=true tower users list --output json 2>&1", remoteAddr),
@@ -476,7 +476,7 @@ func TestRemoteCLIAuthenticationBypass(t *testing.T) {
 
 	t.Run("Remote_InvalidAPIKey", func(t *testing.T) {
 		// Test 2: Try to use CLI with invalid API key (should fail with auth error)
-		output, err := tower.Execute(
+		output, err := headscale.Execute(
 			[]string{
 				"sh", "-c",
 				fmt.Sprintf("HEADSCALE_CLI_ADDRESS=%s HEADSCALE_CLI_API_KEY=invalid-key-12345 HEADSCALE_CLI_INSECURE=true tower users list --output json 2>&1", remoteAddr),
@@ -506,7 +506,7 @@ func TestRemoteCLIAuthenticationBypass(t *testing.T) {
 
 	t.Run("Remote_ValidAPIKey", func(t *testing.T) {
 		// Test 3: Use CLI with valid API key (should succeed)
-		output, err := tower.Execute(
+		output, err := headscale.Execute(
 			[]string{
 				"sh", "-c",
 				fmt.Sprintf("HEADSCALE_CLI_ADDRESS=%s HEADSCALE_CLI_API_KEY=%s HEADSCALE_CLI_INSECURE=true tower users list --output json", remoteAddr, validAPIKey),
@@ -535,7 +535,7 @@ func TestRemoteCLIAuthenticationBypass(t *testing.T) {
 	})
 }
 
-// TestCLIWithConfigAuthenticationBypass tests that the tower CLI
+// TestCLIWithConfigAuthenticationBypass tests that the headscale CLI
 // with --config flag does not have authentication bypass issues when
 // connecting to a remote server.
 // Note: When using --config with local unix socket, no auth is needed.
@@ -558,11 +558,11 @@ func TestCLIWithConfigAuthenticationBypass(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	require.NoError(t, err)
 
 	// Create a valid API key
-	apiKeyOutput, err := tower.Execute(
+	apiKeyOutput, err := headscale.Execute(
 		[]string{
 			"tower",
 			"apikeys",
@@ -577,7 +577,7 @@ func TestCLIWithConfigAuthenticationBypass(t *testing.T) {
 
 	// Remote HTTP API endpoint as host:port; the CLI dials it over TLS with
 	// insecure verification skipped for the test certificate.
-	remoteAddr := strings.TrimPrefix(strings.TrimPrefix(tower.GetEndpoint(), "https://"), "http://")
+	remoteAddr := strings.TrimPrefix(strings.TrimPrefix(headscale.GetEndpoint(), "https://"), "http://")
 
 	// Create a config file for testing
 	configWithoutKey := fmt.Sprintf(`
@@ -605,11 +605,11 @@ cli:
 
 	t.Run("CLI_Config_NoAPIKey", func(t *testing.T) {
 		// Create config file without API key
-		err := tower.WriteFile("/tmp/config_no_key.yaml", []byte(configWithoutKey))
+		err := headscale.WriteFile("/tmp/config_no_key.yaml", []byte(configWithoutKey))
 		require.NoError(t, err)
 
 		// Try to use CLI with config that has no API key
-		_, err = tower.Execute(
+		_, err = headscale.Execute(
 			[]string{
 				"tower",
 				"--config", "/tmp/config_no_key.yaml",
@@ -625,11 +625,11 @@ cli:
 
 	t.Run("CLI_Config_InvalidAPIKey", func(t *testing.T) {
 		// Create config file with invalid API key
-		err := tower.WriteFile("/tmp/config_invalid_key.yaml", []byte(configWithInvalidKey))
+		err := headscale.WriteFile("/tmp/config_invalid_key.yaml", []byte(configWithInvalidKey))
 		require.NoError(t, err)
 
 		// Try to use CLI with invalid API key
-		output, err := tower.Execute(
+		output, err := headscale.Execute(
 			[]string{
 				"sh", "-c",
 				"tower --config /tmp/config_invalid_key.yaml users list --output json 2>&1",
@@ -659,11 +659,11 @@ cli:
 
 	t.Run("CLI_Config_ValidAPIKey", func(t *testing.T) {
 		// Create config file with valid API key
-		err := tower.WriteFile("/tmp/config_valid_key.yaml", []byte(configWithValidKey))
+		err := headscale.WriteFile("/tmp/config_valid_key.yaml", []byte(configWithValidKey))
 		require.NoError(t, err)
 
 		// Use CLI with valid API key
-		output, err := tower.Execute(
+		output, err := headscale.Execute(
 			[]string{
 				"tower",
 				"--config", "/tmp/config_valid_key.yaml",

@@ -162,7 +162,7 @@ The `tower` binary can control a Tower instance from a remote machine over the H
 
 ### Setup remote control
 
-1. Download the [`tower` binary from GitHub's release page](https://github.com/juanfont/headscale/releases). Make
+1. Download the [`tower` binary from GitHub's release page](https://github.com/juanfont/tower/releases). Make
    sure to use the same version as on the server.
 
 1. Put the binary somewhere in your `PATH`, e.g. `/usr/local/bin/tower`

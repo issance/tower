@@ -14,7 +14,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// oauthTailnet is the single Tower tailnet the v2 API addresses as "-".
+// oauthTailnet is the single Headscale tailnet the v2 API addresses as "-".
 const oauthTailnet = "-"
 
 func init() {

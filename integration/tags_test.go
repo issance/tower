@@ -143,10 +143,10 @@ func TestTagsAuthKeyWithTagRequestDifferentTag(t *testing.T) {
 	)
 	requireNoErrHeadscaleEnv(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	requireNoErrGetHeadscale(t, err)
 
-	userMap, err := tower.MapUsers()
+	userMap, err := headscale.MapUsers()
 	require.NoError(t, err)
 
 	userID := mustParseID(userMap[tagTestUser].Id)
@@ -165,7 +165,7 @@ func TestTagsAuthKeyWithTagRequestDifferentTag(t *testing.T) {
 	require.NoError(t, err)
 
 	// Login should fail because the advertised tags don't match the auth key's tags
-	err = client.Login(tower.GetEndpoint(), authKey.Key)
+	err = client.Login(headscale.GetEndpoint(), authKey.Key)
 
 	// Document actual behavior - we expect this to fail
 	if err != nil {
@@ -177,7 +177,7 @@ func TestTagsAuthKeyWithTagRequestDifferentTag(t *testing.T) {
 
 		// Check what tags the node actually has
 		assert.EventuallyWithT(t, func(c *assert.CollectT) {
-			nodes, err := tower.ListNodes()
+			nodes, err := headscale.ListNodes()
 			assert.NoError(c, err)
 
 			if len(nodes) == 1 {
@@ -217,10 +217,10 @@ func TestTagsAuthKeyWithTagNoAdvertiseFlag(t *testing.T) {
 	)
 	requireNoErrHeadscaleEnv(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	requireNoErrGetHeadscale(t, err)
 
-	userMap, err := tower.MapUsers()
+	userMap, err := headscale.MapUsers()
 	require.NoError(t, err)
 
 	userID := mustParseID(userMap[tagTestUser].Id)
@@ -239,12 +239,12 @@ func TestTagsAuthKeyWithTagNoAdvertiseFlag(t *testing.T) {
 	require.NoError(t, err)
 
 	// Login with the tagged PreAuthKey
-	err = client.Login(tower.GetEndpoint(), authKey.Key)
+	err = client.Login(headscale.GetEndpoint(), authKey.Key)
 	require.NoError(t, err)
 
 	// Wait for node to be registered and verify it has the key's tags
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(c, err)
 		assert.Len(c, nodes, 1, "Should have exactly 1 node")
 
@@ -289,10 +289,10 @@ func TestTagsAuthKeyWithTagCannotAddViaCLI(t *testing.T) {
 	)
 	requireNoErrHeadscaleEnv(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	requireNoErrGetHeadscale(t, err)
 
-	userMap, err := tower.MapUsers()
+	userMap, err := headscale.MapUsers()
 	require.NoError(t, err)
 
 	userID := mustParseID(userMap[tagTestUser].Id)
@@ -309,12 +309,12 @@ func TestTagsAuthKeyWithTagCannotAddViaCLI(t *testing.T) {
 	require.NoError(t, err)
 
 	// Initial login
-	err = client.Login(tower.GetEndpoint(), authKey.Key)
+	err = client.Login(headscale.GetEndpoint(), authKey.Key)
 	require.NoError(t, err)
 
 	// Wait for initial registration
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(c, err)
 		assert.Len(c, nodes, 1)
 
@@ -328,7 +328,7 @@ func TestTagsAuthKeyWithTagCannotAddViaCLI(t *testing.T) {
 	// Attempt to add additional tags via tailscale up
 	command := []string{
 		"tailscale", "up",
-		"--login-server=" + tower.GetEndpoint(),
+		"--login-server=" + headscale.GetEndpoint(),
 		"--authkey=" + authKey.Key,
 		"--advertise-tags=tag:valid-owned,tag:second",
 	}
@@ -342,7 +342,7 @@ func TestTagsAuthKeyWithTagCannotAddViaCLI(t *testing.T) {
 
 		// Check if tags actually changed
 		assert.EventuallyWithT(t, func(c *assert.CollectT) {
-			nodes, err := tower.ListNodes()
+			nodes, err := headscale.ListNodes()
 			assert.NoError(c, err)
 
 			if len(nodes) == 1 {
@@ -389,10 +389,10 @@ func TestTagsAuthKeyWithTagCannotChangeViaCLI(t *testing.T) {
 	)
 	requireNoErrHeadscaleEnv(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	requireNoErrGetHeadscale(t, err)
 
-	userMap, err := tower.MapUsers()
+	userMap, err := headscale.MapUsers()
 	require.NoError(t, err)
 
 	userID := mustParseID(userMap[tagTestUser].Id)
@@ -409,12 +409,12 @@ func TestTagsAuthKeyWithTagCannotChangeViaCLI(t *testing.T) {
 	require.NoError(t, err)
 
 	// Initial login
-	err = client.Login(tower.GetEndpoint(), authKey.Key)
+	err = client.Login(headscale.GetEndpoint(), authKey.Key)
 	require.NoError(t, err)
 
 	// Wait for initial registration
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(c, err)
 		assert.Len(c, nodes, 1)
 	}, integrationutil.StatusReadyTimeout, integrationutil.SlowPoll, "waiting for initial registration")
@@ -424,7 +424,7 @@ func TestTagsAuthKeyWithTagCannotChangeViaCLI(t *testing.T) {
 	// Attempt to change to a different tag via tailscale up
 	command := []string{
 		"tailscale", "up",
-		"--login-server=" + tower.GetEndpoint(),
+		"--login-server=" + headscale.GetEndpoint(),
 		"--authkey=" + authKey.Key,
 		"--advertise-tags=tag:second",
 	}
@@ -438,7 +438,7 @@ func TestTagsAuthKeyWithTagCannotChangeViaCLI(t *testing.T) {
 
 		// Check if tags remain unchanged
 		assert.EventuallyWithT(t, func(c *assert.CollectT) {
-			nodes, err := tower.ListNodes()
+			nodes, err := headscale.ListNodes()
 			assert.NoError(c, err)
 
 			if len(nodes) == 1 {
@@ -459,7 +459,7 @@ func TestTagsAuthKeyWithTagCannotChangeViaCLI(t *testing.T) {
 // Test 2.5: Admin assignment is preserved through reauth
 // Setup:
 //  1. Register with --auth-key AUTH_KEY_WITH_TAG
-//  2. Assign ["tag:second"] via tower CLI
+//  2. Assign ["tag:second"] via headscale CLI
 //  3. Run `tailscale up --auth-key AUTH_KEY_WITH_TAG --force-reauth`
 //
 // Expected: After step 2 tags are ["tag:second"], after step 3 tags remain ["tag:second"].
@@ -485,10 +485,10 @@ func TestTagsAuthKeyWithTagAdminOverrideReauthPreserves(t *testing.T) {
 	)
 	requireNoErrHeadscaleEnv(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	requireNoErrGetHeadscale(t, err)
 
-	userMap, err := tower.MapUsers()
+	userMap, err := headscale.MapUsers()
 	require.NoError(t, err)
 
 	userID := mustParseID(userMap[tagTestUser].Id)
@@ -505,14 +505,14 @@ func TestTagsAuthKeyWithTagAdminOverrideReauthPreserves(t *testing.T) {
 	require.NoError(t, err)
 
 	// Initial login
-	err = client.Login(tower.GetEndpoint(), authKey.Key)
+	err = client.Login(headscale.GetEndpoint(), authKey.Key)
 	require.NoError(t, err)
 
 	// Wait for initial registration and get node ID
 	var nodeID uint64
 
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(c, err)
 		assert.Len(c, nodes, 1)
 
@@ -524,13 +524,13 @@ func TestTagsAuthKeyWithTagAdminOverrideReauthPreserves(t *testing.T) {
 
 	t.Logf("Step 1 complete: Node %d registered with tag:valid-owned", nodeID)
 
-	// Step 2: Admin assigns different tags via tower CLI
-	err = tower.SetNodeTags(nodeID, []string{"tag:second"})
+	// Step 2: Admin assigns different tags via headscale CLI
+	err = headscale.SetNodeTags(nodeID, []string{"tag:second"})
 	require.NoError(t, err)
 
 	// Verify admin assignment took effect (server-side)
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(c, err)
 
 		if len(nodes) == 1 {
@@ -549,7 +549,7 @@ func TestTagsAuthKeyWithTagAdminOverrideReauthPreserves(t *testing.T) {
 	// Step 3: Force reauthentication
 	command := []string{
 		"tailscale", "up",
-		"--login-server=" + tower.GetEndpoint(),
+		"--login-server=" + headscale.GetEndpoint(),
 		"--authkey=" + authKey.Key,
 		"--force-reauth",
 	}
@@ -558,7 +558,7 @@ func TestTagsAuthKeyWithTagAdminOverrideReauthPreserves(t *testing.T) {
 
 	// Verify admin tags are preserved even after reauth - admin decisions are authoritative (server-side)
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(c, err)
 		assert.GreaterOrEqual(c, len(nodes), 1, "Should have at least 1 node")
 
@@ -585,7 +585,7 @@ func TestTagsAuthKeyWithTagAdminOverrideReauthPreserves(t *testing.T) {
 // key is re-authenticated via `tailscale up --force-reauth` with a *fresh*
 // single-use tag:second key. Tailscale's documented behaviour (KB 1068) is that
 // re-keying replaces the device's tags, verified by the reporter against SaaS on
-// the same node/IP. Before the fix tower consumes the new key but keeps the
+// the same node/IP. Before the fix headscale consumes the new key but keeps the
 // old tag; after the fix the node retags in place.
 //
 // Unlike Test 2.5 (same reusable key + admin override -> tags preserved), this
@@ -615,10 +615,10 @@ func TestTagsReauthDifferentKeyRetagsNode(t *testing.T) {
 	)
 	requireNoErrHeadscaleEnv(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	requireNoErrGetHeadscale(t, err)
 
-	userMap, err := tower.MapUsers()
+	userMap, err := headscale.MapUsers()
 	require.NoError(t, err)
 
 	userID := mustParseID(userMap[tagTestUser].Id)
@@ -633,7 +633,7 @@ func TestTagsReauthDifferentKeyRetagsNode(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	err = client.Login(tower.GetEndpoint(), key1.Key)
+	err = client.Login(headscale.GetEndpoint(), key1.Key)
 	require.NoError(t, err)
 
 	var (
@@ -642,7 +642,7 @@ func TestTagsReauthDifferentKeyRetagsNode(t *testing.T) {
 	)
 
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(c, err)
 		assert.Len(c, nodes, 1)
 
@@ -662,7 +662,7 @@ func TestTagsReauthDifferentKeyRetagsNode(t *testing.T) {
 	//nolint:errcheck // result is verified via EventuallyWithT below
 	client.Execute([]string{
 		"tailscale", "up",
-		"--login-server=" + tower.GetEndpoint(),
+		"--login-server=" + headscale.GetEndpoint(),
 		"--hostname=" + client.Hostname(),
 		"--authkey=" + key2.Key,
 		"--force-reauth",
@@ -670,7 +670,7 @@ func TestTagsReauthDifferentKeyRetagsNode(t *testing.T) {
 
 	// Server-side: node retagged in place, same node ID and IPs, no duplicate.
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(c, err)
 		assert.Len(c, nodes, 1, "must not duplicate the node")
 
@@ -721,10 +721,10 @@ func TestTagsReauthDifferentKeyRemovesTag(t *testing.T) {
 	)
 	requireNoErrHeadscaleEnv(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	requireNoErrGetHeadscale(t, err)
 
-	userMap, err := tower.MapUsers()
+	userMap, err := headscale.MapUsers()
 	require.NoError(t, err)
 
 	userID := mustParseID(userMap[tagTestUser].Id)
@@ -739,13 +739,13 @@ func TestTagsReauthDifferentKeyRemovesTag(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	err = client.Login(tower.GetEndpoint(), key1.Key)
+	err = client.Login(headscale.GetEndpoint(), key1.Key)
 	require.NoError(t, err)
 
 	var initialNodeID uint64
 
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(c, err)
 		assert.Len(c, nodes, 1)
 
@@ -762,7 +762,7 @@ func TestTagsReauthDifferentKeyRemovesTag(t *testing.T) {
 	//nolint:errcheck // result is verified via EventuallyWithT below
 	client.Execute([]string{
 		"tailscale", "up",
-		"--login-server=" + tower.GetEndpoint(),
+		"--login-server=" + headscale.GetEndpoint(),
 		"--hostname=" + client.Hostname(),
 		"--authkey=" + key2.Key,
 		"--force-reauth",
@@ -770,7 +770,7 @@ func TestTagsReauthDifferentKeyRemovesTag(t *testing.T) {
 
 	// tag:second must be gone on every surface.
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(c, err)
 		assert.Len(c, nodes, 1)
 
@@ -793,7 +793,7 @@ func TestTagsReauthDifferentKeyRemovesTag(t *testing.T) {
 // Test 2.6: Client CLI cannot modify admin-assigned tags
 // Setup:
 //  1. Register with --auth-key AUTH_KEY_WITH_TAG
-//  2. Assign ["tag:valid-owned", "tag:second"] via tower CLI
+//  2. Assign ["tag:valid-owned", "tag:second"] via headscale CLI
 //  3. Run `tailscale up --advertise-tags="tag:valid-owned" --auth-key AUTH_KEY_WITH_TAG`
 //
 // Expected: Command either fails or is no-op, tags remain ["tag:valid-owned", "tag:second"].
@@ -819,10 +819,10 @@ func TestTagsAuthKeyWithTagCLICannotModifyAdminTags(t *testing.T) {
 	)
 	requireNoErrHeadscaleEnv(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	requireNoErrGetHeadscale(t, err)
 
-	userMap, err := tower.MapUsers()
+	userMap, err := headscale.MapUsers()
 	require.NoError(t, err)
 
 	userID := mustParseID(userMap[tagTestUser].Id)
@@ -839,14 +839,14 @@ func TestTagsAuthKeyWithTagCLICannotModifyAdminTags(t *testing.T) {
 	require.NoError(t, err)
 
 	// Initial login
-	err = client.Login(tower.GetEndpoint(), authKey.Key)
+	err = client.Login(headscale.GetEndpoint(), authKey.Key)
 	require.NoError(t, err)
 
 	// Wait for initial registration and get node ID
 	var nodeID uint64
 
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(c, err)
 		assert.Len(c, nodes, 1)
 
@@ -855,13 +855,13 @@ func TestTagsAuthKeyWithTagCLICannotModifyAdminTags(t *testing.T) {
 		}
 	}, integrationutil.StatusReadyTimeout, integrationutil.SlowPoll, "waiting for initial registration")
 
-	// Step 2: Admin assigns multiple tags via tower CLI
-	err = tower.SetNodeTags(nodeID, []string{"tag:valid-owned", "tag:second"})
+	// Step 2: Admin assigns multiple tags via headscale CLI
+	err = headscale.SetNodeTags(nodeID, []string{"tag:valid-owned", "tag:second"})
 	require.NoError(t, err)
 
 	// Verify admin assignment (server-side)
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(c, err)
 
 		if len(nodes) == 1 {
@@ -879,7 +879,7 @@ func TestTagsAuthKeyWithTagCLICannotModifyAdminTags(t *testing.T) {
 	// Step 3: Attempt to reduce tags via CLI
 	command := []string{
 		"tailscale", "up",
-		"--login-server=" + tower.GetEndpoint(),
+		"--login-server=" + headscale.GetEndpoint(),
 		"--authkey=" + authKey.Key,
 		"--advertise-tags=tag:valid-owned",
 	}
@@ -889,7 +889,7 @@ func TestTagsAuthKeyWithTagCLICannotModifyAdminTags(t *testing.T) {
 
 	// Verify admin tags are preserved - CLI should not be able to reduce them (server-side)
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(c, err)
 		assert.Len(c, nodes, 1, "Should have exactly 1 node")
 
@@ -941,10 +941,10 @@ func TestTagsAuthKeyWithoutTagCannotRequestTags(t *testing.T) {
 	)
 	requireNoErrHeadscaleEnv(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	requireNoErrGetHeadscale(t, err)
 
-	userMap, err := tower.MapUsers()
+	userMap, err := headscale.MapUsers()
 	require.NoError(t, err)
 
 	userID := mustParseID(userMap[tagTestUser].Id)
@@ -963,7 +963,7 @@ func TestTagsAuthKeyWithoutTagCannotRequestTags(t *testing.T) {
 	require.NoError(t, err)
 
 	// Login should fail because the auth key has no tags
-	err = client.Login(tower.GetEndpoint(), authKey.Key)
+	err = client.Login(headscale.GetEndpoint(), authKey.Key)
 	if err != nil {
 		t.Logf("Test 3.1 PASS: Registration correctly rejected: %v", err)
 		assert.ErrorContains(t, err, "requested tags")
@@ -972,7 +972,7 @@ func TestTagsAuthKeyWithoutTagCannotRequestTags(t *testing.T) {
 		t.Logf("Test 3.1 UNEXPECTED: Registration succeeded when it should have failed")
 
 		assert.EventuallyWithT(t, func(c *assert.CollectT) {
-			nodes, err := tower.ListNodes()
+			nodes, err := headscale.ListNodes()
 			assert.NoError(c, err)
 
 			if len(nodes) == 1 {
@@ -1012,10 +1012,10 @@ func TestTagsAuthKeyWithoutTagRegisterNoTags(t *testing.T) {
 	)
 	requireNoErrHeadscaleEnv(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	requireNoErrGetHeadscale(t, err)
 
-	userMap, err := tower.MapUsers()
+	userMap, err := headscale.MapUsers()
 	require.NoError(t, err)
 
 	userID := mustParseID(userMap[tagTestUser].Id)
@@ -1032,12 +1032,12 @@ func TestTagsAuthKeyWithoutTagRegisterNoTags(t *testing.T) {
 	require.NoError(t, err)
 
 	// Login should succeed
-	err = client.Login(tower.GetEndpoint(), authKey.Key)
+	err = client.Login(headscale.GetEndpoint(), authKey.Key)
 	require.NoError(t, err)
 
 	// Verify node has no tags
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(c, err)
 		assert.Len(c, nodes, 1)
 
@@ -1081,10 +1081,10 @@ func TestTagsAuthKeyWithoutTagCannotAddViaCLI(t *testing.T) {
 	)
 	requireNoErrHeadscaleEnv(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	requireNoErrGetHeadscale(t, err)
 
-	userMap, err := tower.MapUsers()
+	userMap, err := headscale.MapUsers()
 	require.NoError(t, err)
 
 	userID := mustParseID(userMap[tagTestUser].Id)
@@ -1101,12 +1101,12 @@ func TestTagsAuthKeyWithoutTagCannotAddViaCLI(t *testing.T) {
 	require.NoError(t, err)
 
 	// Initial login
-	err = client.Login(tower.GetEndpoint(), authKey.Key)
+	err = client.Login(headscale.GetEndpoint(), authKey.Key)
 	require.NoError(t, err)
 
 	// Wait for initial registration
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(c, err)
 		assert.Len(c, nodes, 1)
 
@@ -1120,7 +1120,7 @@ func TestTagsAuthKeyWithoutTagCannotAddViaCLI(t *testing.T) {
 	// Attempt to add tags via tailscale up
 	command := []string{
 		"tailscale", "up",
-		"--login-server=" + tower.GetEndpoint(),
+		"--login-server=" + headscale.GetEndpoint(),
 		"--authkey=" + authKey.Key,
 		"--advertise-tags=tag:valid-owned",
 	}
@@ -1133,7 +1133,7 @@ func TestTagsAuthKeyWithoutTagCannotAddViaCLI(t *testing.T) {
 		t.Logf("Test 3.3: CLI command succeeded, checking if tags actually changed")
 
 		assert.EventuallyWithT(t, func(c *assert.CollectT) {
-			nodes, err := tower.ListNodes()
+			nodes, err := headscale.ListNodes()
 			assert.NoError(c, err)
 
 			if len(nodes) == 1 {
@@ -1154,7 +1154,7 @@ func TestTagsAuthKeyWithoutTagCannotAddViaCLI(t *testing.T) {
 // Test 3.4: CLI no-op after admin tag assignment (with --reset)
 // Setup:
 //  1. Register with --auth-key AUTH_KEY_WITHOUT_TAG
-//  2. Assign ["tag:valid-owned"] via tower CLI
+//  2. Assign ["tag:valid-owned"] via headscale CLI
 //  3. Run `tailscale up --auth-key AUTH_KEY_WITHOUT_TAG --reset`
 //
 // Expected: Command is no-op, tags remain ["tag:valid-owned"].
@@ -1180,10 +1180,10 @@ func TestTagsAuthKeyWithoutTagCLINoOpAfterAdminWithReset(t *testing.T) {
 	)
 	requireNoErrHeadscaleEnv(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	requireNoErrGetHeadscale(t, err)
 
-	userMap, err := tower.MapUsers()
+	userMap, err := headscale.MapUsers()
 	require.NoError(t, err)
 
 	userID := mustParseID(userMap[tagTestUser].Id)
@@ -1200,14 +1200,14 @@ func TestTagsAuthKeyWithoutTagCLINoOpAfterAdminWithReset(t *testing.T) {
 	require.NoError(t, err)
 
 	// Initial login
-	err = client.Login(tower.GetEndpoint(), authKey.Key)
+	err = client.Login(headscale.GetEndpoint(), authKey.Key)
 	require.NoError(t, err)
 
 	// Wait for initial registration and get node ID
 	var nodeID uint64
 
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(c, err)
 		assert.Len(c, nodes, 1)
 
@@ -1218,12 +1218,12 @@ func TestTagsAuthKeyWithoutTagCLINoOpAfterAdminWithReset(t *testing.T) {
 	}, integrationutil.StatusReadyTimeout, integrationutil.SlowPoll, "waiting for initial registration")
 
 	// Step 2: Admin assigns tags
-	err = tower.SetNodeTags(nodeID, []string{"tag:valid-owned"})
+	err = headscale.SetNodeTags(nodeID, []string{"tag:valid-owned"})
 	require.NoError(t, err)
 
 	// Verify admin assignment (server-side)
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(c, err)
 
 		if len(nodes) == 1 {
@@ -1241,7 +1241,7 @@ func TestTagsAuthKeyWithoutTagCLINoOpAfterAdminWithReset(t *testing.T) {
 	// Step 3: Run tailscale up with --reset
 	command := []string{
 		"tailscale", "up",
-		"--login-server=" + tower.GetEndpoint(),
+		"--login-server=" + headscale.GetEndpoint(),
 		"--authkey=" + authKey.Key,
 		"--reset",
 	}
@@ -1250,7 +1250,7 @@ func TestTagsAuthKeyWithoutTagCLINoOpAfterAdminWithReset(t *testing.T) {
 
 	// Verify admin tags are preserved - --reset should not remove them (server-side)
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(c, err)
 		assert.Len(c, nodes, 1, "Should have exactly 1 node")
 
@@ -1274,7 +1274,7 @@ func TestTagsAuthKeyWithoutTagCLINoOpAfterAdminWithReset(t *testing.T) {
 // Test 3.5: CLI no-op after admin tag assignment (with empty advertise-tags)
 // Setup:
 //  1. Register with --auth-key AUTH_KEY_WITHOUT_TAG
-//  2. Assign ["tag:valid-owned"] via tower CLI
+//  2. Assign ["tag:valid-owned"] via headscale CLI
 //  3. Run `tailscale up --auth-key AUTH_KEY_WITHOUT_TAG --advertise-tags=""`
 //
 // Expected: Command is no-op, tags remain ["tag:valid-owned"].
@@ -1300,10 +1300,10 @@ func TestTagsAuthKeyWithoutTagCLINoOpAfterAdminWithEmptyAdvertise(t *testing.T) 
 	)
 	requireNoErrHeadscaleEnv(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	requireNoErrGetHeadscale(t, err)
 
-	userMap, err := tower.MapUsers()
+	userMap, err := headscale.MapUsers()
 	require.NoError(t, err)
 
 	userID := mustParseID(userMap[tagTestUser].Id)
@@ -1320,14 +1320,14 @@ func TestTagsAuthKeyWithoutTagCLINoOpAfterAdminWithEmptyAdvertise(t *testing.T) 
 	require.NoError(t, err)
 
 	// Initial login
-	err = client.Login(tower.GetEndpoint(), authKey.Key)
+	err = client.Login(headscale.GetEndpoint(), authKey.Key)
 	require.NoError(t, err)
 
 	// Wait for initial registration and get node ID
 	var nodeID uint64
 
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(c, err)
 		assert.Len(c, nodes, 1)
 
@@ -1337,12 +1337,12 @@ func TestTagsAuthKeyWithoutTagCLINoOpAfterAdminWithEmptyAdvertise(t *testing.T) 
 	}, integrationutil.StatusReadyTimeout, integrationutil.SlowPoll, "waiting for initial registration")
 
 	// Step 2: Admin assigns tags
-	err = tower.SetNodeTags(nodeID, []string{"tag:valid-owned"})
+	err = headscale.SetNodeTags(nodeID, []string{"tag:valid-owned"})
 	require.NoError(t, err)
 
 	// Verify admin assignment (server-side)
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(c, err)
 
 		if len(nodes) == 1 {
@@ -1360,7 +1360,7 @@ func TestTagsAuthKeyWithoutTagCLINoOpAfterAdminWithEmptyAdvertise(t *testing.T) 
 	// Step 3: Run tailscale up with empty --advertise-tags
 	command := []string{
 		"tailscale", "up",
-		"--login-server=" + tower.GetEndpoint(),
+		"--login-server=" + headscale.GetEndpoint(),
 		"--authkey=" + authKey.Key,
 		"--advertise-tags=",
 	}
@@ -1369,7 +1369,7 @@ func TestTagsAuthKeyWithoutTagCLINoOpAfterAdminWithEmptyAdvertise(t *testing.T) 
 
 	// Verify admin tags are preserved - empty --advertise-tags should not remove them (server-side)
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(c, err)
 		assert.Len(c, nodes, 1, "Should have exactly 1 node")
 
@@ -1393,7 +1393,7 @@ func TestTagsAuthKeyWithoutTagCLINoOpAfterAdminWithEmptyAdvertise(t *testing.T) 
 // Test 3.6: Client CLI cannot reduce admin-assigned multi-tag set
 // Setup:
 //  1. Register with --auth-key AUTH_KEY_WITHOUT_TAG
-//  2. Assign ["tag:valid-owned", "tag:second"] via tower CLI
+//  2. Assign ["tag:valid-owned", "tag:second"] via headscale CLI
 //  3. Run `tailscale up --advertise-tags="tag:valid-owned" --auth-key AUTH_KEY_WITHOUT_TAG`
 //
 // Expected: Command is no-op (or fails), tags remain ["tag:valid-owned", "tag:second"].
@@ -1419,10 +1419,10 @@ func TestTagsAuthKeyWithoutTagCLICannotReduceAdminMultiTag(t *testing.T) {
 	)
 	requireNoErrHeadscaleEnv(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	requireNoErrGetHeadscale(t, err)
 
-	userMap, err := tower.MapUsers()
+	userMap, err := headscale.MapUsers()
 	require.NoError(t, err)
 
 	userID := mustParseID(userMap[tagTestUser].Id)
@@ -1439,14 +1439,14 @@ func TestTagsAuthKeyWithoutTagCLICannotReduceAdminMultiTag(t *testing.T) {
 	require.NoError(t, err)
 
 	// Initial login
-	err = client.Login(tower.GetEndpoint(), authKey.Key)
+	err = client.Login(headscale.GetEndpoint(), authKey.Key)
 	require.NoError(t, err)
 
 	// Wait for initial registration and get node ID
 	var nodeID uint64
 
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(c, err)
 		assert.Len(c, nodes, 1)
 
@@ -1456,12 +1456,12 @@ func TestTagsAuthKeyWithoutTagCLICannotReduceAdminMultiTag(t *testing.T) {
 	}, integrationutil.StatusReadyTimeout, integrationutil.SlowPoll, "waiting for initial registration")
 
 	// Step 2: Admin assigns multiple tags
-	err = tower.SetNodeTags(nodeID, []string{"tag:valid-owned", "tag:second"})
+	err = headscale.SetNodeTags(nodeID, []string{"tag:valid-owned", "tag:second"})
 	require.NoError(t, err)
 
 	// Verify admin assignment (server-side)
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(c, err)
 
 		if len(nodes) == 1 {
@@ -1479,7 +1479,7 @@ func TestTagsAuthKeyWithoutTagCLICannotReduceAdminMultiTag(t *testing.T) {
 	// Step 3: Attempt to reduce tags via CLI
 	command := []string{
 		"tailscale", "up",
-		"--login-server=" + tower.GetEndpoint(),
+		"--login-server=" + headscale.GetEndpoint(),
 		"--authkey=" + authKey.Key,
 		"--advertise-tags=tag:valid-owned",
 	}
@@ -1488,7 +1488,7 @@ func TestTagsAuthKeyWithoutTagCLICannotReduceAdminMultiTag(t *testing.T) {
 
 	// Verify admin tags are preserved - CLI should not be able to reduce them (server-side)
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(c, err)
 		assert.Len(c, nodes, 1, "Should have exactly 1 node")
 
@@ -1540,7 +1540,7 @@ func TestTagsUserLoginOwnedTagAtRegistration(t *testing.T) {
 	)
 	requireNoErrHeadscaleEnv(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	requireNoErrGetHeadscale(t, err)
 
 	// Create a tailscale client with --advertise-tags
@@ -1552,14 +1552,14 @@ func TestTagsUserLoginOwnedTagAtRegistration(t *testing.T) {
 	require.NoError(t, err)
 
 	// Login via web auth flow
-	loginURL, err := client.LoginWithURL(tower.GetEndpoint())
+	loginURL, err := client.LoginWithURL(headscale.GetEndpoint())
 	require.NoError(t, err)
 
 	// Complete the web auth by visiting the login URL
 	body, err := doLoginURL(client.Hostname(), loginURL)
 	require.NoError(t, err)
 
-	// Register the node via tower CLI
+	// Register the node via headscale CLI
 	err = scenario.runHeadscaleRegister(tagTestUser, body)
 	require.NoError(t, err)
 
@@ -1569,7 +1569,7 @@ func TestTagsUserLoginOwnedTagAtRegistration(t *testing.T) {
 
 	// Verify node has the advertised tag
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(c, err)
 		assert.Len(c, nodes, 1, "Should have exactly 1 node")
 
@@ -1610,7 +1610,7 @@ func TestTagsUserLoginNonExistentTagAtRegistration(t *testing.T) {
 	)
 	requireNoErrHeadscaleEnv(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	requireNoErrGetHeadscale(t, err)
 
 	// Create a tailscale client with non-existent tag
@@ -1622,14 +1622,14 @@ func TestTagsUserLoginNonExistentTagAtRegistration(t *testing.T) {
 	require.NoError(t, err)
 
 	// Login via web auth flow
-	loginURL, err := client.LoginWithURL(tower.GetEndpoint())
+	loginURL, err := client.LoginWithURL(headscale.GetEndpoint())
 	require.NoError(t, err)
 
 	// Complete the web auth by visiting the login URL
 	body, err := doLoginURL(client.Hostname(), loginURL)
 	require.NoError(t, err)
 
-	// Register the node via tower CLI - this should fail due to non-existent tag
+	// Register the node via headscale CLI - this should fail due to non-existent tag
 	err = scenario.runHeadscaleRegister(tagTestUser, body)
 
 	// We expect registration to fail with an error about invalid/unauthorized tags
@@ -1639,7 +1639,7 @@ func TestTagsUserLoginNonExistentTagAtRegistration(t *testing.T) {
 	} else {
 		// Check the result - if registration succeeded, the node should not have the invalid tag
 		assert.EventuallyWithT(t, func(c *assert.CollectT) {
-			nodes, err := tower.ListNodes()
+			nodes, err := headscale.ListNodes()
 			assert.NoError(c, err, "Should be able to list nodes")
 
 			if len(nodes) == 0 {
@@ -1682,7 +1682,7 @@ func TestTagsUserLoginUnownedTagAtRegistration(t *testing.T) {
 	)
 	requireNoErrHeadscaleEnv(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	requireNoErrGetHeadscale(t, err)
 
 	// Create a tailscale client with unowned tag (tag:valid-unowned is owned by "other-user", not "taguser")
@@ -1694,7 +1694,7 @@ func TestTagsUserLoginUnownedTagAtRegistration(t *testing.T) {
 	require.NoError(t, err)
 
 	// Login via web auth flow
-	loginURL, err := client.LoginWithURL(tower.GetEndpoint())
+	loginURL, err := client.LoginWithURL(headscale.GetEndpoint())
 	require.NoError(t, err)
 
 	// Complete the web auth
@@ -1706,7 +1706,7 @@ func TestTagsUserLoginUnownedTagAtRegistration(t *testing.T) {
 
 	// Check the result - user should NOT be able to claim an unowned tag
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(c, err, "Should be able to list nodes")
 
 		// Either: no nodes registered (ideal), or node registered without the unowned tag
@@ -1751,7 +1751,7 @@ func TestTagsUserLoginAddTagViaCLIReauth(t *testing.T) {
 	)
 	requireNoErrHeadscaleEnv(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	requireNoErrGetHeadscale(t, err)
 
 	// Step 1: Create and register with one tag
@@ -1762,7 +1762,7 @@ func TestTagsUserLoginAddTagViaCLIReauth(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	loginURL, err := client.LoginWithURL(tower.GetEndpoint())
+	loginURL, err := client.LoginWithURL(headscale.GetEndpoint())
 	require.NoError(t, err)
 
 	body, err := doLoginURL(client.Hostname(), loginURL)
@@ -1776,7 +1776,7 @@ func TestTagsUserLoginAddTagViaCLIReauth(t *testing.T) {
 
 	// Verify initial tag
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(c, err)
 
 		if len(nodes) == 1 {
@@ -1789,7 +1789,7 @@ func TestTagsUserLoginAddTagViaCLIReauth(t *testing.T) {
 
 	command := []string{
 		"tailscale", "up",
-		"--login-server=" + tower.GetEndpoint(),
+		"--login-server=" + headscale.GetEndpoint(),
 		"--advertise-tags=tag:valid-owned,tag:second",
 	}
 	_, stderr, err := client.Execute(command)
@@ -1797,7 +1797,7 @@ func TestTagsUserLoginAddTagViaCLIReauth(t *testing.T) {
 
 	// Check final state - [assert.EventuallyWithT] handles waiting for propagation
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(c, err)
 
 		if len(nodes) >= 1 {
@@ -1842,7 +1842,7 @@ func TestTagsUserLoginRemoveTagViaCLIReauth(t *testing.T) {
 	)
 	requireNoErrHeadscaleEnv(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	requireNoErrGetHeadscale(t, err)
 
 	// Step 1: Create and register with two tags
@@ -1853,7 +1853,7 @@ func TestTagsUserLoginRemoveTagViaCLIReauth(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	loginURL, err := client.LoginWithURL(tower.GetEndpoint())
+	loginURL, err := client.LoginWithURL(headscale.GetEndpoint())
 	require.NoError(t, err)
 
 	body, err := doLoginURL(client.Hostname(), loginURL)
@@ -1867,7 +1867,7 @@ func TestTagsUserLoginRemoveTagViaCLIReauth(t *testing.T) {
 
 	// Verify initial tags
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(c, err)
 
 		if len(nodes) == 1 {
@@ -1880,7 +1880,7 @@ func TestTagsUserLoginRemoveTagViaCLIReauth(t *testing.T) {
 
 	command := []string{
 		"tailscale", "up",
-		"--login-server=" + tower.GetEndpoint(),
+		"--login-server=" + headscale.GetEndpoint(),
 		"--advertise-tags=tag:valid-owned",
 	}
 	_, stderr, err := client.Execute(command)
@@ -1888,7 +1888,7 @@ func TestTagsUserLoginRemoveTagViaCLIReauth(t *testing.T) {
 
 	// Check final state - [assert.EventuallyWithT] handles waiting for propagation
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(c, err)
 
 		if len(nodes) >= 1 {
@@ -1907,7 +1907,7 @@ func TestTagsUserLoginRemoveTagViaCLIReauth(t *testing.T) {
 // Test 1.6: CLI advertise-tags becomes no-op after admin tag assignment
 // Setup:
 //  1. Register with --advertise-tags="tag:valid-owned"
-//  2. Assign ["tag:second"] via tower CLI
+//  2. Assign ["tag:second"] via headscale CLI
 //  3. Run tailscale up --advertise-tags="tag:valid-owned"
 //
 // Expected: Step 3 does NOT trigger reauthentication, tags remain ["tag:second"].
@@ -1933,7 +1933,7 @@ func TestTagsUserLoginCLINoOpAfterAdminAssignment(t *testing.T) {
 	)
 	requireNoErrHeadscaleEnv(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	requireNoErrGetHeadscale(t, err)
 
 	// Step 1: Register with one tag
@@ -1944,7 +1944,7 @@ func TestTagsUserLoginCLINoOpAfterAdminAssignment(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	loginURL, err := client.LoginWithURL(tower.GetEndpoint())
+	loginURL, err := client.LoginWithURL(headscale.GetEndpoint())
 	require.NoError(t, err)
 
 	body, err := doLoginURL(client.Hostname(), loginURL)
@@ -1960,7 +1960,7 @@ func TestTagsUserLoginCLINoOpAfterAdminAssignment(t *testing.T) {
 	var nodeID uint64
 
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(c, err)
 		assert.Len(c, nodes, 1)
 
@@ -1971,12 +1971,12 @@ func TestTagsUserLoginCLINoOpAfterAdminAssignment(t *testing.T) {
 	}, integrationutil.StatusReadyTimeout, integrationutil.SlowPoll, "waiting for initial registration")
 
 	// Step 2: Admin assigns different tag
-	err = tower.SetNodeTags(nodeID, []string{"tag:second"})
+	err = headscale.SetNodeTags(nodeID, []string{"tag:second"})
 	require.NoError(t, err)
 
 	// Verify admin assignment (server-side)
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(c, err)
 
 		if len(nodes) == 1 {
@@ -1993,7 +1993,7 @@ func TestTagsUserLoginCLINoOpAfterAdminAssignment(t *testing.T) {
 	// Step 3: Try to change tags via CLI
 	command := []string{
 		"tailscale", "up",
-		"--login-server=" + tower.GetEndpoint(),
+		"--login-server=" + headscale.GetEndpoint(),
 		"--advertise-tags=tag:valid-owned",
 	}
 	_, stderr, err := client.Execute(command)
@@ -2001,7 +2001,7 @@ func TestTagsUserLoginCLINoOpAfterAdminAssignment(t *testing.T) {
 
 	// Verify admin tags are preserved - CLI advertise-tags should be a no-op after admin assignment (server-side)
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(c, err)
 		assert.Len(c, nodes, 1, "Should have exactly 1 node")
 
@@ -2024,7 +2024,7 @@ func TestTagsUserLoginCLINoOpAfterAdminAssignment(t *testing.T) {
 // Test 1.7: CLI cannot remove admin-assigned tags
 // Setup:
 //  1. Register with --advertise-tags="tag:valid-owned"
-//  2. Assign ["tag:valid-owned", "tag:second"] via tower CLI
+//  2. Assign ["tag:valid-owned", "tag:second"] via headscale CLI
 //  3. Run tailscale up --advertise-tags="tag:valid-owned"
 //
 // Expected: Command is no-op, tags remain ["tag:valid-owned", "tag:second"].
@@ -2050,7 +2050,7 @@ func TestTagsUserLoginCLICannotRemoveAdminTags(t *testing.T) {
 	)
 	requireNoErrHeadscaleEnv(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	requireNoErrGetHeadscale(t, err)
 
 	// Step 1: Register with one tag
@@ -2061,7 +2061,7 @@ func TestTagsUserLoginCLICannotRemoveAdminTags(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	loginURL, err := client.LoginWithURL(tower.GetEndpoint())
+	loginURL, err := client.LoginWithURL(headscale.GetEndpoint())
 	require.NoError(t, err)
 
 	body, err := doLoginURL(client.Hostname(), loginURL)
@@ -2077,7 +2077,7 @@ func TestTagsUserLoginCLICannotRemoveAdminTags(t *testing.T) {
 	var nodeID uint64
 
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(c, err)
 		assert.Len(c, nodes, 1)
 
@@ -2087,12 +2087,12 @@ func TestTagsUserLoginCLICannotRemoveAdminTags(t *testing.T) {
 	}, integrationutil.StatusReadyTimeout, integrationutil.SlowPoll, "waiting for initial registration")
 
 	// Step 2: Admin assigns both tags
-	err = tower.SetNodeTags(nodeID, []string{"tag:valid-owned", "tag:second"})
+	err = headscale.SetNodeTags(nodeID, []string{"tag:valid-owned", "tag:second"})
 	require.NoError(t, err)
 
 	// Verify admin assignment (server-side)
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(c, err)
 
 		if len(nodes) == 1 {
@@ -2109,7 +2109,7 @@ func TestTagsUserLoginCLICannotRemoveAdminTags(t *testing.T) {
 	// Step 3: Try to reduce tags via CLI
 	command := []string{
 		"tailscale", "up",
-		"--login-server=" + tower.GetEndpoint(),
+		"--login-server=" + headscale.GetEndpoint(),
 		"--advertise-tags=tag:valid-owned",
 	}
 	_, stderr, err := client.Execute(command)
@@ -2117,7 +2117,7 @@ func TestTagsUserLoginCLICannotRemoveAdminTags(t *testing.T) {
 
 	// Verify admin tags are preserved - CLI should not be able to remove admin-assigned tags (server-side)
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(c, err)
 		assert.Len(c, nodes, 1, "Should have exactly 1 node")
 
@@ -2167,10 +2167,10 @@ func TestTagsAuthKeyWithTagRequestNonExistentTag(t *testing.T) {
 	)
 	requireNoErrHeadscaleEnv(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	requireNoErrGetHeadscale(t, err)
 
-	userMap, err := tower.MapUsers()
+	userMap, err := headscale.MapUsers()
 	require.NoError(t, err)
 
 	userID := mustParseID(userMap[tagTestUser].Id)
@@ -2189,7 +2189,7 @@ func TestTagsAuthKeyWithTagRequestNonExistentTag(t *testing.T) {
 	require.NoError(t, err)
 
 	// Login should fail because ANY advertise-tags is rejected for PreAuthKey registrations
-	err = client.Login(tower.GetEndpoint(), authKey.Key)
+	err = client.Login(headscale.GetEndpoint(), authKey.Key)
 	if err != nil {
 		t.Logf("Test 2.7 PASS: Registration correctly rejected with error: %v", err)
 		assert.ErrorContains(t, err, "requested tags")
@@ -2197,7 +2197,7 @@ func TestTagsAuthKeyWithTagRequestNonExistentTag(t *testing.T) {
 		t.Logf("Test 2.7 UNEXPECTED: Registration succeeded when it should have failed")
 
 		assert.EventuallyWithT(t, func(c *assert.CollectT) {
-			nodes, err := tower.ListNodes()
+			nodes, err := headscale.ListNodes()
 			assert.NoError(c, err)
 
 			if len(nodes) == 1 {
@@ -2237,10 +2237,10 @@ func TestTagsAuthKeyWithTagRequestUnownedTag(t *testing.T) {
 	)
 	requireNoErrHeadscaleEnv(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	requireNoErrGetHeadscale(t, err)
 
-	userMap, err := tower.MapUsers()
+	userMap, err := headscale.MapUsers()
 	require.NoError(t, err)
 
 	userID := mustParseID(userMap[tagTestUser].Id)
@@ -2259,7 +2259,7 @@ func TestTagsAuthKeyWithTagRequestUnownedTag(t *testing.T) {
 	require.NoError(t, err)
 
 	// Login should fail because ANY advertise-tags is rejected for PreAuthKey registrations
-	err = client.Login(tower.GetEndpoint(), authKey.Key)
+	err = client.Login(headscale.GetEndpoint(), authKey.Key)
 	if err != nil {
 		t.Logf("Test 2.8 PASS: Registration correctly rejected with error: %v", err)
 		assert.ErrorContains(t, err, "requested tags")
@@ -2267,7 +2267,7 @@ func TestTagsAuthKeyWithTagRequestUnownedTag(t *testing.T) {
 		t.Logf("Test 2.8 UNEXPECTED: Registration succeeded when it should have failed")
 
 		assert.EventuallyWithT(t, func(c *assert.CollectT) {
-			nodes, err := tower.ListNodes()
+			nodes, err := headscale.ListNodes()
 			assert.NoError(c, err)
 
 			if len(nodes) == 1 {
@@ -2311,10 +2311,10 @@ func TestTagsAuthKeyWithoutTagRequestNonExistentTag(t *testing.T) {
 	)
 	requireNoErrHeadscaleEnv(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	requireNoErrGetHeadscale(t, err)
 
-	userMap, err := tower.MapUsers()
+	userMap, err := headscale.MapUsers()
 	require.NoError(t, err)
 
 	userID := mustParseID(userMap[tagTestUser].Id)
@@ -2333,7 +2333,7 @@ func TestTagsAuthKeyWithoutTagRequestNonExistentTag(t *testing.T) {
 	require.NoError(t, err)
 
 	// Login should fail because ANY advertise-tags is rejected for PreAuthKey registrations
-	err = client.Login(tower.GetEndpoint(), authKey.Key)
+	err = client.Login(headscale.GetEndpoint(), authKey.Key)
 	if err != nil {
 		t.Logf("Test 3.7 PASS: Registration correctly rejected: %v", err)
 		assert.ErrorContains(t, err, "requested tags")
@@ -2341,7 +2341,7 @@ func TestTagsAuthKeyWithoutTagRequestNonExistentTag(t *testing.T) {
 		t.Logf("Test 3.7 UNEXPECTED: Registration succeeded when it should have failed")
 
 		assert.EventuallyWithT(t, func(c *assert.CollectT) {
-			nodes, err := tower.ListNodes()
+			nodes, err := headscale.ListNodes()
 			assert.NoError(c, err)
 
 			if len(nodes) == 1 {
@@ -2381,10 +2381,10 @@ func TestTagsAuthKeyWithoutTagRequestUnownedTag(t *testing.T) {
 	)
 	requireNoErrHeadscaleEnv(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	requireNoErrGetHeadscale(t, err)
 
-	userMap, err := tower.MapUsers()
+	userMap, err := headscale.MapUsers()
 	require.NoError(t, err)
 
 	userID := mustParseID(userMap[tagTestUser].Id)
@@ -2403,7 +2403,7 @@ func TestTagsAuthKeyWithoutTagRequestUnownedTag(t *testing.T) {
 	require.NoError(t, err)
 
 	// Login should fail because ANY advertise-tags is rejected for PreAuthKey registrations
-	err = client.Login(tower.GetEndpoint(), authKey.Key)
+	err = client.Login(headscale.GetEndpoint(), authKey.Key)
 	if err != nil {
 		t.Logf("Test 3.8 PASS: Registration correctly rejected: %v", err)
 		assert.ErrorContains(t, err, "requested tags")
@@ -2411,7 +2411,7 @@ func TestTagsAuthKeyWithoutTagRequestUnownedTag(t *testing.T) {
 		t.Logf("Test 3.8 UNEXPECTED: Registration succeeded when it should have failed")
 
 		assert.EventuallyWithT(t, func(c *assert.CollectT) {
-			nodes, err := tower.ListNodes()
+			nodes, err := headscale.ListNodes()
 			assert.NoError(c, err)
 
 			if len(nodes) == 1 {
@@ -2455,10 +2455,10 @@ func TestTagsAdminAPICannotSetNonExistentTag(t *testing.T) {
 	)
 	requireNoErrHeadscaleEnv(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	requireNoErrGetHeadscale(t, err)
 
-	userMap, err := tower.MapUsers()
+	userMap, err := headscale.MapUsers()
 	require.NoError(t, err)
 
 	userID := mustParseID(userMap[tagTestUser].Id)
@@ -2474,14 +2474,14 @@ func TestTagsAdminAPICannotSetNonExistentTag(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	err = client.Login(tower.GetEndpoint(), authKey.Key)
+	err = client.Login(headscale.GetEndpoint(), authKey.Key)
 	require.NoError(t, err)
 
 	// Wait for registration and get node ID
 	var nodeID uint64
 
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(c, err)
 		assert.Len(c, nodes, 1)
 
@@ -2492,7 +2492,7 @@ func TestTagsAdminAPICannotSetNonExistentTag(t *testing.T) {
 	}, integrationutil.StatusReadyTimeout, integrationutil.SlowPoll, "waiting for registration")
 
 	// Try to set a non-existent tag via admin API - should fail
-	err = tower.SetNodeTags(nodeID, []string{"tag:nonexistent"})
+	err = headscale.SetNodeTags(nodeID, []string{"tag:nonexistent"})
 
 	require.Error(t, err, "SetNodeTags should fail for non-existent tag")
 	t.Logf("Test 4.1 PASS: Admin API correctly rejected non-existent tag: %v", err)
@@ -2527,10 +2527,10 @@ func TestTagsAdminAPICanSetUnownedTag(t *testing.T) {
 	)
 	requireNoErrHeadscaleEnv(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	requireNoErrGetHeadscale(t, err)
 
-	userMap, err := tower.MapUsers()
+	userMap, err := headscale.MapUsers()
 	require.NoError(t, err)
 
 	userID := mustParseID(userMap[tagTestUser].Id)
@@ -2546,14 +2546,14 @@ func TestTagsAdminAPICanSetUnownedTag(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	err = client.Login(tower.GetEndpoint(), authKey.Key)
+	err = client.Login(headscale.GetEndpoint(), authKey.Key)
 	require.NoError(t, err)
 
 	// Wait for registration and get node ID
 	var nodeID uint64
 
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(c, err)
 		assert.Len(c, nodes, 1)
 
@@ -2565,12 +2565,12 @@ func TestTagsAdminAPICanSetUnownedTag(t *testing.T) {
 
 	// Admin sets an "unowned" tag - should SUCCEED because admin has full authority
 	// (tag:valid-unowned is owned by other-user, but admin can assign it)
-	err = tower.SetNodeTags(nodeID, []string{"tag:valid-unowned"})
+	err = headscale.SetNodeTags(nodeID, []string{"tag:valid-unowned"})
 	require.NoError(t, err, "SetNodeTags should succeed for admin setting any existing tag")
 
 	// Verify the tag was applied (server-side)
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(c, err)
 		assert.Len(c, nodes, 1)
 
@@ -2615,10 +2615,10 @@ func TestTagsAdminAPICannotRemoveAllTags(t *testing.T) {
 	)
 	requireNoErrHeadscaleEnv(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	requireNoErrGetHeadscale(t, err)
 
-	userMap, err := tower.MapUsers()
+	userMap, err := headscale.MapUsers()
 	require.NoError(t, err)
 
 	userID := mustParseID(userMap[tagTestUser].Id)
@@ -2634,14 +2634,14 @@ func TestTagsAdminAPICannotRemoveAllTags(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	err = client.Login(tower.GetEndpoint(), authKey.Key)
+	err = client.Login(headscale.GetEndpoint(), authKey.Key)
 	require.NoError(t, err)
 
 	// Wait for registration and get node ID
 	var nodeID uint64
 
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(c, err)
 		assert.Len(c, nodes, 1)
 
@@ -2652,14 +2652,14 @@ func TestTagsAdminAPICannotRemoveAllTags(t *testing.T) {
 	}, integrationutil.StatusReadyTimeout, integrationutil.SlowPoll, "waiting for registration")
 
 	// Try to remove all tags - should fail
-	err = tower.SetNodeTags(nodeID, []string{})
+	err = headscale.SetNodeTags(nodeID, []string{})
 
 	require.Error(t, err, "SetNodeTags should fail when trying to remove all tags")
 	t.Logf("Test 4.3 PASS: Admin API correctly rejected removing all tags: %v", err)
 
 	// Verify original tags are preserved
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(c, err)
 		assert.Len(c, nodes, 1)
 
@@ -2703,7 +2703,7 @@ func assertNetmapSelfHasTagsWithCollect(c *assert.CollectT, client TailscaleClie
 //
 // Issue scenario (from nblock's report):
 // 1. Node registers via CLI auth with --advertise-tags=tag:foo
-// 2. Admin changes tag to tag:bar via tower CLI/API
+// 2. Admin changes tag to tag:bar via headscale CLI/API
 // 3. Node's self view should show tag:bar (not tag:foo).
 //
 // This test uses web auth with --advertise-tags to match the reporter's flow.
@@ -2732,7 +2732,7 @@ func TestTagsIssue2978ReproTagReplacement(t *testing.T) {
 	)
 	requireNoErrHeadscaleEnv(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	requireNoErrGetHeadscale(t, err)
 
 	// Create a tailscale client with --advertise-tags (matching nblock's "cli auth with --advertise-tags=tag:foo")
@@ -2744,14 +2744,14 @@ func TestTagsIssue2978ReproTagReplacement(t *testing.T) {
 	require.NoError(t, err)
 
 	// Login via web auth flow (this is "cli auth" - tailscale up triggers web auth)
-	loginURL, err := client.LoginWithURL(tower.GetEndpoint())
+	loginURL, err := client.LoginWithURL(headscale.GetEndpoint())
 	require.NoError(t, err)
 
 	// Complete the web auth by visiting the login URL
 	body, err := doLoginURL(client.Hostname(), loginURL)
 	require.NoError(t, err)
 
-	// Register the node via tower CLI
+	// Register the node via headscale CLI
 	err = scenario.runHeadscaleRegister(tagTestUser, body)
 	require.NoError(t, err)
 
@@ -2763,7 +2763,7 @@ func TestTagsIssue2978ReproTagReplacement(t *testing.T) {
 	var nodeID uint64
 
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(c, err)
 		assert.Len(c, nodes, 1)
 
@@ -2785,12 +2785,12 @@ func TestTagsIssue2978ReproTagReplacement(t *testing.T) {
 	// the client's self view does NOT update until a SECOND call with the same tag.
 	t.Log("Step 2: Calling SetNodeTags FIRST time with tag:second")
 
-	err = tower.SetNodeTags(nodeID, []string{"tag:second"})
+	err = headscale.SetNodeTags(nodeID, []string{"tag:second"})
 	require.NoError(t, err)
 
 	// Verify server-side update happened
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(c, err)
 
 		if len(nodes) == 1 {
@@ -2839,7 +2839,7 @@ func TestTagsIssue2978ReproTagReplacement(t *testing.T) {
 	// According to nblock, this second call with the same tag triggers the update.
 	t.Log("Step 3: Calling SetNodeTags SECOND time with SAME tag:second")
 
-	err = tower.SetNodeTags(nodeID, []string{"tag:second"})
+	err = headscale.SetNodeTags(nodeID, []string{"tag:second"})
 	require.NoError(t, err)
 
 	// Now the client should see the update quickly (within a few seconds)
@@ -2857,12 +2857,12 @@ func TestTagsIssue2978ReproTagReplacement(t *testing.T) {
 	// Step 4: Do another tag change to verify the pattern repeats
 	t.Log("Step 4: Calling SetNodeTags FIRST time with tag:valid-unowned")
 
-	err = tower.SetNodeTags(nodeID, []string{"tag:valid-unowned"})
+	err = headscale.SetNodeTags(nodeID, []string{"tag:valid-unowned"})
 	require.NoError(t, err)
 
 	// Verify server-side update
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(c, err)
 
 		if len(nodes) == 1 {
@@ -2893,7 +2893,7 @@ func TestTagsIssue2978ReproTagReplacement(t *testing.T) {
 	// Step 5: Call SetNodeTags AGAIN with the SAME tag
 	t.Log("Step 5: Calling SetNodeTags SECOND time with SAME tag:valid-unowned")
 
-	err = tower.SetNodeTags(nodeID, []string{"tag:valid-unowned"})
+	err = headscale.SetNodeTags(nodeID, []string{"tag:valid-unowned"})
 	require.NoError(t, err)
 
 	// Now the client should see the update quickly
@@ -2937,10 +2937,10 @@ func TestTagsAdminAPICannotSetInvalidFormat(t *testing.T) {
 	)
 	requireNoErrHeadscaleEnv(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	requireNoErrGetHeadscale(t, err)
 
-	userMap, err := tower.MapUsers()
+	userMap, err := headscale.MapUsers()
 	require.NoError(t, err)
 
 	userID := mustParseID(userMap[tagTestUser].Id)
@@ -2956,14 +2956,14 @@ func TestTagsAdminAPICannotSetInvalidFormat(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	err = client.Login(tower.GetEndpoint(), authKey.Key)
+	err = client.Login(headscale.GetEndpoint(), authKey.Key)
 	require.NoError(t, err)
 
 	// Wait for registration and get node ID
 	var nodeID uint64
 
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(c, err)
 		assert.Len(c, nodes, 1)
 
@@ -2974,14 +2974,14 @@ func TestTagsAdminAPICannotSetInvalidFormat(t *testing.T) {
 	}, integrationutil.StatusReadyTimeout, integrationutil.SlowPoll, "waiting for registration")
 
 	// Try to set a tag without the "tag:" prefix - should fail
-	err = tower.SetNodeTags(nodeID, []string{"invalid-no-prefix"})
+	err = headscale.SetNodeTags(nodeID, []string{"invalid-no-prefix"})
 
 	require.Error(t, err, "SetNodeTags should fail for invalid tag format")
 	t.Logf("Test 4.4 PASS: Admin API correctly rejected invalid tag format: %v", err)
 
 	// Verify original tags are preserved
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(c, err)
 		assert.Len(c, nodes, 1)
 
@@ -3037,7 +3037,7 @@ func TestTagsUserLoginReauthWithEmptyTagsRemovesAllTags(t *testing.T) {
 		)
 		requireNoErrHeadscaleEnv(t, err)
 
-		tower, err := scenario.Tower()
+		headscale, err := scenario.Headscale()
 		requireNoErrGetHeadscale(t, err)
 
 		// Step 1: Create and register a node with tags
@@ -3050,7 +3050,7 @@ func TestTagsUserLoginReauthWithEmptyTagsRemovesAllTags(t *testing.T) {
 		)
 		require.NoError(t, err)
 
-		loginURL, err := client.LoginWithURL(tower.GetEndpoint())
+		loginURL, err := client.LoginWithURL(headscale.GetEndpoint())
 		require.NoError(t, err)
 
 		body, err := doLoginURL(client.Hostname(), loginURL)
@@ -3066,7 +3066,7 @@ func TestTagsUserLoginReauthWithEmptyTagsRemovesAllTags(t *testing.T) {
 		var initialNodeID string
 
 		assert.EventuallyWithT(t, func(c *assert.CollectT) {
-			nodes, err := tower.ListNodes()
+			nodes, err := headscale.ListNodes()
 			assert.NoError(c, err)
 			assert.Len(c, nodes, 1, "Expected exactly one node")
 
@@ -3090,7 +3090,7 @@ func TestTagsUserLoginReauthWithEmptyTagsRemovesAllTags(t *testing.T) {
 			// Include --hostname to match the initial login command
 			command := []string{
 				"tailscale", "up",
-				"--login-server=" + tower.GetEndpoint(),
+				"--login-server=" + headscale.GetEndpoint(),
 				"--hostname=" + client.Hostname(),
 				"--advertise-tags=",
 				"--force-reauth",
@@ -3118,7 +3118,7 @@ func TestTagsUserLoginReauthWithEmptyTagsRemovesAllTags(t *testing.T) {
 			// Include --hostname to match the initial login command
 			command := []string{
 				"tailscale", "up",
-				"--login-server=" + tower.GetEndpoint(),
+				"--login-server=" + headscale.GetEndpoint(),
 				"--hostname=" + client.Hostname(),
 				"--advertise-tags=",
 			}
@@ -3129,7 +3129,7 @@ func TestTagsUserLoginReauthWithEmptyTagsRemovesAllTags(t *testing.T) {
 		// Step 3: Verify tags are removed and ownership is returned to user
 		// This is the key assertion for bug #2979
 		assert.EventuallyWithT(t, func(c *assert.CollectT) {
-			nodes, err := tower.ListNodes()
+			nodes, err := headscale.ListNodes()
 			assert.NoError(c, err)
 
 			if len(nodes) >= 1 {
@@ -3191,7 +3191,7 @@ func TestTagsAuthKeyWithoutUserInheritsTags(t *testing.T) {
 	)
 	requireNoErrHeadscaleEnv(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	requireNoErrGetHeadscale(t, err)
 
 	// Create an auth key with tags but WITHOUT a user
@@ -3213,13 +3213,13 @@ func TestTagsAuthKeyWithoutUserInheritsTags(t *testing.T) {
 	require.NoError(t, err)
 
 	// Login with the tags-only auth key
-	err = client.Login(tower.GetEndpoint(), authKey.Key)
+	err = client.Login(headscale.GetEndpoint(), authKey.Key)
 	require.NoError(t, err)
 
 	// Wait for node to be registered and verify it has the key's tags
 	// Note: Tags-only nodes don't have a user, so we list all nodes
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(c, err)
 		assert.Len(c, nodes, 1, "Should have exactly 1 node")
 
@@ -3262,7 +3262,7 @@ func TestTagsAuthKeyWithoutUserRejectsAdvertisedTags(t *testing.T) {
 	)
 	requireNoErrHeadscaleEnv(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	requireNoErrGetHeadscale(t, err)
 
 	// Create an auth key with tags but WITHOUT a user
@@ -3284,7 +3284,7 @@ func TestTagsAuthKeyWithoutUserRejectsAdvertisedTags(t *testing.T) {
 	require.NoError(t, err)
 
 	// Login should fail because ANY advertise-tags is rejected for PreAuthKey registrations
-	err = client.Login(tower.GetEndpoint(), authKey.Key)
+	err = client.Login(headscale.GetEndpoint(), authKey.Key)
 	if err != nil {
 		t.Logf("Test 5.2 PASS: Registration correctly rejected with error: %v", err)
 		assert.ErrorContains(t, err, "requested tags")
@@ -3328,7 +3328,7 @@ func TestTagsAuthKeyConvertToUserViaCLIRegister(t *testing.T) {
 	)
 	requireNoErrHeadscaleEnv(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	requireNoErrGetHeadscale(t, err)
 
 	// Step 1: Create a tags-only preauthkey WITHOUT a user.
@@ -3350,7 +3350,7 @@ func TestTagsAuthKeyConvertToUserViaCLIRegister(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	err = client.Login(tower.GetEndpoint(), authKey.Key)
+	err = client.Login(headscale.GetEndpoint(), authKey.Key)
 	require.NoError(t, err)
 
 	err = client.WaitForRunning(integrationutil.PeerSyncTimeout())
@@ -3358,7 +3358,7 @@ func TestTagsAuthKeyConvertToUserViaCLIRegister(t *testing.T) {
 
 	// Verify initial state: node is tagged
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(c, err)
 		assert.Len(c, nodes, 1)
 
@@ -3371,7 +3371,7 @@ func TestTagsAuthKeyConvertToUserViaCLIRegister(t *testing.T) {
 	// Step 2: Force reauth with empty tags (triggers web auth flow)
 	command := []string{
 		"tailscale", "up",
-		"--login-server=" + tower.GetEndpoint(),
+		"--login-server=" + headscale.GetEndpoint(),
 		"--hostname=" + client.Hostname(),
 		"--advertise-tags=",
 		"--force-reauth",
@@ -3396,9 +3396,9 @@ func TestTagsAuthKeyConvertToUserViaCLIRegister(t *testing.T) {
 	// Step 4: Verify node is now user-owned and the mapper didn't panic.
 	// The panic would occur when the mapper builds the [tailcfg.MapResponse] and calls
 	// [types.Node.Owner].Model().ID with a nil User pointer.
-	// ShutdownAssertNoPanics in the defer catches any panics in tower logs.
+	// ShutdownAssertNoPanics in the defer catches any panics in headscale logs.
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(c, err)
 		assert.Len(c, nodes, 1)
 
@@ -3444,10 +3444,10 @@ func TestTaggedNodeLogoutReloginSingleUseKeyOnline(t *testing.T) {
 	)
 	requireNoErrHeadscaleEnv(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	requireNoErrGetHeadscale(t, err)
 
-	userMap, err := tower.MapUsers()
+	userMap, err := headscale.MapUsers()
 	require.NoError(t, err)
 
 	userID := mustParseID(userMap[tagTestUser].Id)
@@ -3462,13 +3462,13 @@ func TestTaggedNodeLogoutReloginSingleUseKeyOnline(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	err = client.Login(tower.GetEndpoint(), key1.Key)
+	err = client.Login(headscale.GetEndpoint(), key1.Key)
 	require.NoError(t, err)
 
 	var initialNodeID uint64
 
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(c, err)
 		assert.Len(c, nodes, 1)
 
@@ -3489,7 +3489,7 @@ func TestTaggedNodeLogoutReloginSingleUseKeyOnline(t *testing.T) {
 	// The node must remain in the DB, tagged, and crucially NOT carry a
 	// stale expiry. This is the #3371 root cause (a) surface.
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(c, err)
 		assert.Len(c, nodes, 1, "node must persist through logout")
 
@@ -3503,13 +3503,13 @@ func TestTaggedNodeLogoutReloginSingleUseKeyOnline(t *testing.T) {
 	key2, err := scenario.CreatePreAuthKeyWithTags(userID, false, false, []string{"tag:valid-owned"})
 	require.NoError(t, err)
 
-	err = client.Login(tower.GetEndpoint(), key2.Key)
+	err = client.Login(headscale.GetEndpoint(), key2.Key)
 	require.NoError(t, err,
 		"#3371: a fresh key must re-authenticate the tagged node after logout")
 
 	// Back online, same node, still tagged, still no expiry.
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(c, err)
 		assert.Len(c, nodes, 1, "must not duplicate the node")
 
@@ -3551,10 +3551,10 @@ func TestTaggedNodeLogoutReloginReusableKeyOnline(t *testing.T) {
 	)
 	requireNoErrHeadscaleEnv(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	requireNoErrGetHeadscale(t, err)
 
-	userMap, err := tower.MapUsers()
+	userMap, err := headscale.MapUsers()
 	require.NoError(t, err)
 
 	userID := mustParseID(userMap[tagTestUser].Id)
@@ -3569,13 +3569,13 @@ func TestTaggedNodeLogoutReloginReusableKeyOnline(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	err = client.Login(tower.GetEndpoint(), key.Key)
+	err = client.Login(headscale.GetEndpoint(), key.Key)
 	require.NoError(t, err)
 
 	var initialNodeID uint64
 
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(c, err)
 		assert.Len(c, nodes, 1)
 
@@ -3592,11 +3592,11 @@ func TestTaggedNodeLogoutReloginReusableKeyOnline(t *testing.T) {
 	require.NoError(t, err)
 
 	// Relogin with the SAME reusable key.
-	err = client.Login(tower.GetEndpoint(), key.Key)
+	err = client.Login(headscale.GetEndpoint(), key.Key)
 	require.NoError(t, err)
 
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(c, err)
 		assert.Len(c, nodes, 1, "must not duplicate the node")
 
@@ -3683,7 +3683,7 @@ func TestTagsOIDCReauthAddOwnedTag(t *testing.T) {
 	)
 	requireNoErrHeadscaleEnv(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	requireNoErrGetHeadscale(t, err)
 
 	client, err := scenario.CreateTailscaleNode(
@@ -3694,7 +3694,7 @@ func TestTagsOIDCReauthAddOwnedTag(t *testing.T) {
 	require.NoError(t, err)
 
 	// Initial OIDC login advertising tag:valid-owned.
-	u, err := client.LoginWithURL(tower.GetEndpoint())
+	u, err := client.LoginWithURL(headscale.GetEndpoint())
 	require.NoError(t, err)
 
 	_, err = doLoginURL(client.Hostname(), u)
@@ -3703,7 +3703,7 @@ func TestTagsOIDCReauthAddOwnedTag(t *testing.T) {
 	var initialNodeID uint64
 
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(c, err)
 		assert.Len(c, nodes, 1)
 
@@ -3719,7 +3719,7 @@ func TestTagsOIDCReauthAddOwnedTag(t *testing.T) {
 	// `tailscale up` while a reauth is pending errors server-side.
 	command := []string{
 		"tailscale", "up",
-		"--login-server=" + tower.GetEndpoint(),
+		"--login-server=" + headscale.GetEndpoint(),
 		"--hostname=" + client.Hostname(),
 		"--advertise-tags=tag:valid-owned,tag:second",
 		"--force-reauth",
@@ -3736,7 +3736,7 @@ func TestTagsOIDCReauthAddOwnedTag(t *testing.T) {
 
 	// Both tags must be present — not rejected, not silently dropped.
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(c, err)
 		assert.Len(c, nodes, 1, "must not duplicate the node")
 
@@ -3778,10 +3778,10 @@ func TestTagsReauthEmptyTagsReturnsToUserSurvives(t *testing.T) {
 	)
 	requireNoErrHeadscaleEnv(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	requireNoErrGetHeadscale(t, err)
 
-	userMap, err := tower.MapUsers()
+	userMap, err := headscale.MapUsers()
 	require.NoError(t, err)
 
 	userID := mustParseID(userMap[tagTestUser].Id)
@@ -3796,7 +3796,7 @@ func TestTagsReauthEmptyTagsReturnsToUserSurvives(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	err = client.Login(tower.GetEndpoint(), key.Key)
+	err = client.Login(headscale.GetEndpoint(), key.Key)
 	require.NoError(t, err)
 
 	err = client.WaitForRunning(integrationutil.PeerSyncTimeout())
@@ -3805,7 +3805,7 @@ func TestTagsReauthEmptyTagsReturnsToUserSurvives(t *testing.T) {
 	var initialNodeID uint64
 
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(c, err)
 		assert.Len(c, nodes, 1)
 
@@ -3821,7 +3821,7 @@ func TestTagsReauthEmptyTagsReturnsToUserSurvives(t *testing.T) {
 	// second `tailscale up` (which would error with "no URL found").
 	command := []string{
 		"tailscale", "up",
-		"--login-server=" + tower.GetEndpoint(),
+		"--login-server=" + headscale.GetEndpoint(),
 		"--hostname=" + client.Hostname(),
 		"--advertise-tags=",
 		"--force-reauth",
@@ -3842,7 +3842,7 @@ func TestTagsReauthEmptyTagsReturnsToUserSurvives(t *testing.T) {
 
 	// Node returns to the user, keeps its ID, and does NOT vanish.
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(c, err)
 		assert.Len(c, nodes, 1, "#3374: untagged node must survive, not be GC'd as ephemeral")
 

@@ -63,7 +63,7 @@ var (
 
 // SSH check period constants per Tailscale docs:
 // https://tailscale.com/docs/features/tailscale-ssh#checkperiod
-// SaaS imposes no minimum (0s is accepted) so tower matches.
+// SaaS imposes no minimum (0s is accepted) so headscale matches.
 const (
 	SSHCheckPeriodDefault = 12 * time.Hour
 	SSHCheckPeriodMax     = 7 * 24 * time.Hour
@@ -96,9 +96,9 @@ var (
 	ErrNodeAttrTargetUnsupported    = errors.New("nodeAttrs target alias type is not supported")
 )
 
-// nodeAttrUnsupportedCaps lists caps that tower parses but cannot act on
+// nodeAttrUnsupportedCaps lists caps that headscale parses but cannot act on
 // today. Each entry maps to the tracking issue an operator can follow. The
-// caps are accepted by Tailscale SaaS, but delivering them via tower
+// caps are accepted by Tailscale SaaS, but delivering them via headscale
 // without the matching server-side machinery would be misleading — nodes
 // would advertise a feature that does not work. Reject at policy load and
 // point operators at the issue.
@@ -707,7 +707,7 @@ func (p *Prefix) UnmarshalJSON(b []byte) error {
 }
 
 // Resolve resolves the [Prefix] to an [netipx.IPSet]. The [netipx.IPSet] will
-// contain all the IP addresses that the [Prefix] represents within Tower.
+// contain all the IP addresses that the [Prefix] represents within Headscale.
 // It is the product of the [Prefix] and the [Policy], [types.Users], and [types.Nodes].
 //
 // See [Policy], [types.Users], and [types.Nodes] for more details.
@@ -831,7 +831,7 @@ func (ag *AutoGroup) resolve(p *Policy, users types.Users, nodes views.Slice[typ
 
 	case AutoGroupNonRoot:
 		// autogroup:nonroot represents non-root users on multi-user devices.
-		// This is not supported in tower and requires OS-level user detection.
+		// This is not supported in headscale and requires OS-level user detection.
 		return nil, fmt.Errorf("%w: %q", ErrUnknownAutogroup, *ag)
 
 	default:
@@ -858,7 +858,7 @@ type Alias interface {
 	String() string
 
 	// Resolve resolves the [Alias] to a [netipx.IPSet]. The [netipx.IPSet] will
-	// contain all the IP addresses that the [Alias] represents within Tower.
+	// contain all the IP addresses that the [Alias] represents within Headscale.
 	// It is the product of the [Alias] and the [Policy], [types.Users] and
 	// [types.Nodes]. This is an interface definition and the implementation is
 	// independent of the [Alias] type.
@@ -2640,7 +2640,7 @@ func (p *Policy) validate() error {
 
 	for _, na := range p.NodeAttrs {
 		// SaaS accepts entries with neither attr nor ipPool (they
-		// compile to a no-op); tower follows suit so policies
+		// compile to a no-op); headscale follows suit so policies
 		// captured against SaaS round-trip cleanly.
 		for _, target := range na.Targets {
 			switch t := target.(type) {

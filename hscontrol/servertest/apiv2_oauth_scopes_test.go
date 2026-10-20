@@ -399,10 +399,10 @@ func (tf *tofu) runExpectError(t *testing.T, mustContain ...string) {
 
 // TestAPIv2OAuthTailscaleClientAuthKey drives the tailscale client's own
 // feature/oauthkey resolver (via tsnet, as `tailscale up --authkey` does) with a
-// tskey-client- secret against tower: the client parses the ?attributes,
+// tskey-client- secret against headscale: the client parses the ?attributes,
 // exchanges the secret at baseURL, mints a tagged key via CreateKey, and
 // registers re-advertising the key's tags. Each row pins what the client sends
-// and what tower must do with it.
+// and what headscale must do with it.
 func TestAPIv2OAuthTailscaleClientAuthKey(t *testing.T) {
 	srv := servertest.NewServer(t, servertest.WithRealListener())
 	owner := srv.CreateUser(t, "apiv2-oauth")
@@ -461,7 +461,7 @@ func TestAPIv2OAuthTailscaleClientAuthKey(t *testing.T) {
 			wantEphemeral: true,
 		},
 		{
-			// Tower always authorizes pre-auth-key nodes; preauthorized=false
+			// Headscale always authorizes pre-auth-key nodes; preauthorized=false
 			// does not hold the node for approval.
 			name:          "preauthorized_false",
 			authKey:       tsSecret + base + "&preauthorized=false",
@@ -489,7 +489,7 @@ func TestAPIv2OAuthTailscaleClientAuthKey(t *testing.T) {
 		},
 		{
 			// The client appends "/api/v2/..." verbatim, so a trailing slash
-			// yields "//api/v2/oauth/token", which tower does not route.
+			// yields "//api/v2/oauth/token", which headscale does not route.
 			name:    "baseurl_trailing_slash",
 			authKey: tsSecret + base + "/",
 			tags:    []string{"tag:ci"},
@@ -536,7 +536,7 @@ func TestAPIv2OAuthTailscaleClientAuthKey(t *testing.T) {
 		},
 		{
 			// Only ephemeral, preauthorized and baseURL are understood; the
-			// client rejects anything else before contacting tower.
+			// client rejects anything else before contacting headscale.
 			name:    "unknown_attribute",
 			authKey: tsSecret + base + "&reusable=true",
 			tags:    []string{"tag:ci"},

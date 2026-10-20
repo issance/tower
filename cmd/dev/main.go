@@ -1,4 +1,4 @@
-// cmd/dev starts a local tower development server with a pre-created
+// cmd/dev starts a local headscale development server with a pre-created
 // user and pre-auth key, ready for connecting tailscale nodes via mts.
 package main
 
@@ -121,7 +121,7 @@ func run() error {
 		return fmt.Errorf("writing config: %w", err)
 	}
 
-	// Build tower.
+	// Build headscale.
 	fmt.Println("Building tower...")
 
 	hsBin := filepath.Join(tmpDir, "tower")
@@ -138,7 +138,7 @@ func run() error {
 		return fmt.Errorf("building tower: %w", err)
 	}
 
-	// Start tower serve.
+	// Start headscale serve.
 	fmt.Println("Starting tower server...")
 
 	serve := exec.CommandContext(ctx, hsBin, "serve", "-c", configPath)
@@ -221,7 +221,7 @@ Press Ctrl+C to stop.
 		hsBin, configPath,
 	)
 
-	// Wait for tower to exit.
+	// Wait for headscale to exit.
 	err = serve.Wait()
 	if err != nil {
 		// Context cancellation is expected on Ctrl+C.
@@ -268,7 +268,7 @@ func waitForHealth(ctx context.Context, url string, timeout time.Duration) error
 	return errHealthTimeout
 }
 
-// runHS executes a tower CLI command and returns its stdout.
+// runHS executes a headscale CLI command and returns its stdout.
 func runHS(ctx context.Context, bin, config string, args ...string) ([]byte, error) {
 	fullArgs := append([]string{"-c", config}, args...)
 	cmd := exec.CommandContext(ctx, bin, fullArgs...)

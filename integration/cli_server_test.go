@@ -16,18 +16,18 @@ import (
 func TestServerInfoCommands(t *testing.T) {
 	IntegrationSkip(t)
 
-	scenario, tower := setupCLIScenario(t, "cli-serverinfo", []string{"user1"}, 1)
+	scenario, headscale := setupCLIScenario(t, "cli-serverinfo", []string{"user1"}, 1)
 	defer scenario.ShutdownAssertNoPanics(t)
 
 	t.Run("health", func(t *testing.T) {
-		health := assertJSONRoundtrip[*clientv1.HealthResponseBody](t, tower, []string{
+		health := assertJSONRoundtrip[*clientv1.HealthResponseBody](t, headscale, []string{
 			"tower", "health", "--output", "json",
 		})
 		assert.True(t, health.DatabaseConnectivity, "database should be reachable")
 	})
 
 	t.Run("version", func(t *testing.T) {
-		info := assertJSONRoundtrip[types.VersionInfo](t, tower, []string{
+		info := assertJSONRoundtrip[types.VersionInfo](t, headscale, []string{
 			"tower", "version", "--output", "json",
 		})
 		assert.NotEmpty(t, info.Version, "version string should be populated")
@@ -35,7 +35,7 @@ func TestServerInfoCommands(t *testing.T) {
 	})
 
 	t.Run("generate-private-key", func(t *testing.T) {
-		key := assertJSONRoundtrip[map[string]string](t, tower, []string{
+		key := assertJSONRoundtrip[map[string]string](t, headscale, []string{
 			"tower", "generate", "private-key", "--output", "json",
 		})
 

@@ -10,7 +10,7 @@ import (
 )
 
 // This file is intended to "test the test framework", by proxy it will also test
-// some Tower/Tailscale stuff, but mostly in very simple ways.
+// some Headscale/Tailscale stuff, but mostly in very simple ways.
 
 func IntegrationSkip(t *testing.T) {
 	t.Helper()
@@ -41,12 +41,12 @@ func TestHeadscale(t *testing.T) {
 	defer scenario.ShutdownAssertNoPanics(t)
 
 	t.Run("start-headscale", func(t *testing.T) {
-		tower, err := scenario.Tower(hsic.WithTestName("scenariohs"))
+		headscale, err := scenario.Headscale(hsic.WithTestName("scenariohs"))
 		if err != nil {
 			t.Fatalf("failed to create start headcale: %s", err)
 		}
 
-		err = tower.WaitForRunning()
+		err = headscale.WaitForRunning()
 		if err != nil {
 			t.Fatalf("tower failed to become ready: %s", err)
 		}
@@ -90,12 +90,12 @@ func TestTailscaleNodesJoiningHeadcale(t *testing.T) {
 	defer scenario.ShutdownAssertNoPanics(t)
 
 	t.Run("start-headscale", func(t *testing.T) {
-		tower, err := scenario.Tower(hsic.WithTestName("scenariojoin"))
+		headscale, err := scenario.Headscale(hsic.WithTestName("scenariojoin"))
 		if err != nil {
 			t.Fatalf("failed to create start headcale: %s", err)
 		}
 
-		err = tower.WaitForRunning()
+		err = headscale.WaitForRunning()
 		if err != nil {
 			t.Fatalf("tower failed to become ready: %s", err)
 		}
@@ -129,14 +129,14 @@ func TestTailscaleNodesJoiningHeadcale(t *testing.T) {
 			t.Fatalf("failed to create preauthkey: %s", err)
 		}
 
-		tower, err := scenario.Tower()
+		headscale, err := scenario.Headscale()
 		if err != nil {
 			t.Fatalf("failed to create start headcale: %s", err)
 		}
 
 		err = scenario.RunTailscaleUp(
 			user,
-			tower.GetEndpoint(),
+			headscale.GetEndpoint(),
 			key.Key,
 		)
 		if err != nil {

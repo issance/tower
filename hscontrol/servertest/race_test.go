@@ -399,7 +399,7 @@ func TestRaceBatcherContention(t *testing.T) {
 	t.Parallel()
 
 	// Many nodes connecting at the same time generates many
-	// concurrent [hscontrol.Tower.Change] calls. The [mapper.Batcher] must handle this
+	// concurrent [hscontrol.Headscale.Change] calls. The [mapper.Batcher] must handle this
 	// without dropping updates or panicking.
 	t.Run("many_simultaneous_connects", func(t *testing.T) {
 		t.Parallel()

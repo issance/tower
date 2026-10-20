@@ -86,7 +86,7 @@ func mustMarkRequired(cmd *cobra.Command, names ...string) {
 	}
 }
 
-func newHeadscaleServerWithConfig() (*hscontrol.Tower, error) {
+func newHeadscaleServerWithConfig() (*hscontrol.Headscale, error) {
 	cfg, err := types.LoadServerConfig()
 	if err != nil {
 		return nil, fmt.Errorf(
@@ -134,7 +134,7 @@ func withClient(
 	return fn(ctx, client)
 }
 
-// newHeadscaleCLIWithConfig builds an HTTP client for the Tower v1 API.
+// newHeadscaleCLIWithConfig builds an HTTP client for the Headscale v1 API.
 //
 // When cfg.CLI.Address is unset the CLI is assumed to run on the server host
 // and talks to the unix socket over HTTP without authentication (local trust).
@@ -253,7 +253,7 @@ func clientBaseURL(address string) string {
 	return "https://" + address
 }
 
-// newRemoteClient builds an API client for a remote Tower over HTTPS,
+// newRemoteClient builds an API client for a remote Headscale over HTTPS,
 // honouring insecure (skip TLS verification) and injecting the API key as a
 // bearer token on every request.
 func newRemoteClient(address, apiKey string, insecure bool) (*clientv1.ClientWithResponses, error) {

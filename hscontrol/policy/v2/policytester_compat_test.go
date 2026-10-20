@@ -4,16 +4,16 @@
 // testdata directory, one t.Run per file. Each capture is one of:
 //
 //   - APIResponseCode != 200 — the policy was rejected by the SaaS, the
-//     captured Message is the byte-exact body the user saw, and tower
+//     captured Message is the byte-exact body the user saw, and headscale
 //     must reject the same input with an error string that contains the
 //     same body (substring match, allowing wrapping like "test(s)
 //     failed:\n…").
 //   - APIResponseCode == 200 — the SaaS accepted the policy (its `tests`
-//     block passed); tower's RunTests must also pass.
+//     block passed); headscale's RunTests must also pass.
 //
 // Captures live in testdata/policytest_results/*.hujson. Scenarios in
 // knownPolicyTesterDivergences are skipped with their tracking note —
-// these are real Tailscale ↔ tower divergences uncovered by the
+// these are real Tailscale ↔ headscale divergences uncovered by the
 // captures that need engine-level fixes in follow-up PRs.
 //
 // Source format: github.com/juanfont/headscale/hscontrol/types/testcapture
@@ -31,7 +31,7 @@ import (
 	"tailscale.com/tailcfg"
 )
 
-// knownPolicyTesterDivergences lists scenarios where tower's evaluator
+// knownPolicyTesterDivergences lists scenarios where headscale's evaluator
 // disagrees with Tailscale SaaS on whether the policy should be accepted.
 // Each entry is a real bug to fix in a follow-up; documenting them here
 // keeps the compat suite green and the divergence list visible.
@@ -130,7 +130,7 @@ func TestPolicyTesterCompat(t *testing.T) {
 			pm, parseErr := NewPolicyManager(policyJSON, users, nodes.ViewSlice())
 
 			// Tailscale validates and runs tests as one POST step:
-			// either failure mode produces the same 400. Tower
+			// either failure mode produces the same 400. Headscale
 			// splits structural validation (parse) from test
 			// evaluation (SetPolicy). For the compat assertion, the
 			// two are equivalent — whichever surfaces first carries

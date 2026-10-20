@@ -176,7 +176,7 @@ func New(
 	}
 
 	// Install the CA cert so the DERP server trusts its own certificate
-	// and any tower CA certs passed via [WithCACert].
+	// and any headscale CA certs passed via [WithCACert].
 	dsic.caCerts = append(dsic.caCerts, tlsCACert)
 
 	for _, opt := range opts {

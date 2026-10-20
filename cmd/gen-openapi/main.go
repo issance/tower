@@ -1,4 +1,4 @@
-// Command gen-openapi emits a Tower OpenAPI document from the authoritative
+// Command gen-openapi emits a Headscale OpenAPI document from the authoritative
 // Huma definitions in hscontrol/api/v1 and hscontrol/api/v2. The server also
 // serves each spec live (at /openapi.yaml and /api/v2/openapi); this tool emits
 // them on demand, and with -downgrade the 3.0.3 form used to generate the typed

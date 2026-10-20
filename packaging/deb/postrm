@@ -1,5 +1,5 @@
 #!/bin/sh
-# postrm script for tower.
+# postrm script for headscale.
 
 set -e
 
@@ -25,7 +25,7 @@ case "$1" in
     ;;
 
     purge)
-      userdel tower
+      userdel headscale
       rm -rf /var/lib/tower
       if [ -x "/usr/bin/deb-systemd-helper" ]; then
         deb-systemd-helper purge tower.service >/dev/null || true

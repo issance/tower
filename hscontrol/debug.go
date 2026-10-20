@@ -77,7 +77,7 @@ func writeDebug(w http.ResponseWriter, r *http.Request, jsonVal func() any, text
 	_, _ = w.Write([]byte(textVal()))
 }
 
-func (h *Tower) debugHTTPServer() *http.Server {
+func (h *Headscale) debugHTTPServer() *http.Server {
 	debugMux := http.NewServeMux()
 	debug := tsweb.Debugger(debugMux)
 
@@ -233,7 +233,7 @@ func (h *Tower) debugHTTPServer() *http.Server {
 }
 
 // debugBatcher returns debug information about the batcher's connected nodes.
-func (h *Tower) debugBatcher() string {
+func (h *Headscale) debugBatcher() string {
 	var sb strings.Builder
 	sb.WriteString("=== Batcher Connected Nodes ===\n\n")
 
@@ -300,7 +300,7 @@ type DebugBatcherNodeInfo struct {
 }
 
 // debugBatcherJSON returns structured debug information about the batcher's connected nodes.
-func (h *Tower) debugBatcherJSON() DebugBatcherInfo {
+func (h *Headscale) debugBatcherJSON() DebugBatcherInfo {
 	info := DebugBatcherInfo{
 		ConnectedNodes: make(map[string]DebugBatcherNodeInfo),
 		TotalNodes:     0,
@@ -319,7 +319,7 @@ func (h *Tower) debugBatcherJSON() DebugBatcherInfo {
 }
 
 // connectedNodesList returns a list of connected nodes for the ping page.
-func (h *Tower) connectedNodesList() []templates.ConnectedNode {
+func (h *Headscale) connectedNodesList() []templates.ConnectedNode {
 	debugInfo := h.mapBatcher.Debug()
 
 	var nodes []templates.ConnectedNode
@@ -352,7 +352,7 @@ func (h *Tower) connectedNodesList() []templates.ConnectedNode {
 const pingTimeout = 30 * time.Second
 
 // doPing sends a [tailcfg.PingRequest] to the node identified by query and waits for a response.
-func (h *Tower) doPing(ctx context.Context, query string) *templates.PingResult {
+func (h *Headscale) doPing(ctx context.Context, query string) *templates.PingResult {
 	if query == "" {
 		return &templates.PingResult{
 			Status:  "error",

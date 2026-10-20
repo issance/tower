@@ -30,7 +30,7 @@ func TestPreAuthKeyCommand(t *testing.T) {
 	err = scenario.CreateHeadscaleEnv([]tsic.Option{}, hsic.WithTestName("clipak"))
 	require.NoError(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	require.NoError(t, err)
 
 	keys := make([]*clientv1.PreAuthKey, count)
@@ -42,7 +42,7 @@ func TestPreAuthKeyCommand(t *testing.T) {
 
 		assert.EventuallyWithT(t, func(c *assert.CollectT) {
 			err := executeAndUnmarshal(
-				tower,
+				headscale,
 				[]string{
 					"tower",
 					"preauthkeys",
@@ -71,7 +71,7 @@ func TestPreAuthKeyCommand(t *testing.T) {
 
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
 		err = executeAndUnmarshal(
-			tower,
+			headscale,
 			[]string{
 				"tower",
 				"preauthkeys",
@@ -132,7 +132,7 @@ func TestPreAuthKeyCommand(t *testing.T) {
 	}
 
 	// Test key expiry
-	_, err = tower.Execute(
+	_, err = headscale.Execute(
 		[]string{
 			"tower",
 			"preauthkeys",
@@ -147,7 +147,7 @@ func TestPreAuthKeyCommand(t *testing.T) {
 
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
 		err = executeAndUnmarshal(
-			tower,
+			headscale,
 			[]string{
 				"tower",
 				"preauthkeys",
@@ -181,14 +181,14 @@ func TestPreAuthKeyCommandWithoutExpiry(t *testing.T) {
 	err = scenario.CreateHeadscaleEnv([]tsic.Option{}, hsic.WithTestName("clipaknaexp"))
 	require.NoError(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	require.NoError(t, err)
 
 	var preAuthKey clientv1.PreAuthKey
 
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
 		err = executeAndUnmarshal(
-			tower,
+			headscale,
 			[]string{
 				"tower",
 				"preauthkeys",
@@ -208,7 +208,7 @@ func TestPreAuthKeyCommandWithoutExpiry(t *testing.T) {
 
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
 		err = executeAndUnmarshal(
-			tower,
+			headscale,
 			[]string{
 				"tower",
 				"preauthkeys",
@@ -247,14 +247,14 @@ func TestPreAuthKeyCommandReusableEphemeral(t *testing.T) {
 	err = scenario.CreateHeadscaleEnv([]tsic.Option{}, hsic.WithTestName("clipakresueeph"))
 	require.NoError(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	require.NoError(t, err)
 
 	var preAuthReusableKey clientv1.PreAuthKey
 
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
 		err = executeAndUnmarshal(
-			tower,
+			headscale,
 			[]string{
 				"tower",
 				"preauthkeys",
@@ -274,7 +274,7 @@ func TestPreAuthKeyCommandReusableEphemeral(t *testing.T) {
 
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
 		err = executeAndUnmarshal(
-			tower,
+			headscale,
 			[]string{
 				"tower",
 				"preauthkeys",
@@ -297,7 +297,7 @@ func TestPreAuthKeyCommandReusableEphemeral(t *testing.T) {
 
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
 		err = executeAndUnmarshal(
-			tower,
+			headscale,
 			[]string{
 				"tower",
 				"preauthkeys",
@@ -320,11 +320,11 @@ func TestPreAuthKeyCommandReusableEphemeral(t *testing.T) {
 func TestPreAuthKeyDeleteCommand(t *testing.T) {
 	IntegrationSkip(t)
 
-	scenario, tower := setupCLIScenario(t, "cli-pakdelete", []string{"user1"}, 0)
+	scenario, headscale := setupCLIScenario(t, "cli-pakdelete", []string{"user1"}, 0)
 	defer scenario.ShutdownAssertNoPanics(t)
 
 	// Create a key to delete.
-	created := assertJSONRoundtrip[*clientv1.PreAuthKey](t, tower, []string{
+	created := assertJSONRoundtrip[*clientv1.PreAuthKey](t, headscale, []string{
 		"tower",
 		"preauthkeys",
 		"--user", "1",
@@ -335,11 +335,11 @@ func TestPreAuthKeyDeleteCommand(t *testing.T) {
 	require.NotEmpty(t, created.Id)
 
 	// delete with no --id must be rejected.
-	_, err := tower.Execute([]string{"tower", "preauthkeys", "delete"})
+	_, err := headscale.Execute([]string{"tower", "preauthkeys", "delete"})
 	require.ErrorContains(t, err, "missing --id parameter")
 
 	// delete the created key by id.
-	_, err = tower.Execute([]string{
+	_, err = headscale.Execute([]string{
 		"tower", "preauthkeys", "delete",
 		"--id", created.Id,
 	})
@@ -349,7 +349,7 @@ func TestPreAuthKeyDeleteCommand(t *testing.T) {
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
 		var listed []clientv1.PreAuthKey
 
-		err := executeAndUnmarshal(tower,
+		err := executeAndUnmarshal(headscale,
 			[]string{"tower", "preauthkeys", "list", "--output", "json"},
 			&listed,
 		)
@@ -367,7 +367,7 @@ func TestPreAuthKeyDeleteCommand(t *testing.T) {
 func TestPreAuthKeyCommandValidation(t *testing.T) {
 	IntegrationSkip(t)
 
-	scenario, tower := setupCLIScenario(t, "cli-pakval", []string{"user1"}, 0)
+	scenario, headscale := setupCLIScenario(t, "cli-pakval", []string{"user1"}, 0)
 	defer scenario.ShutdownAssertNoPanics(t)
 
 	tests := []struct {
@@ -383,7 +383,7 @@ func TestPreAuthKeyCommandValidation(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := tower.Execute(append([]string{"tower"}, tt.args...))
+			_, err := headscale.Execute(append([]string{"tower"}, tt.args...))
 			if tt.wantErr != "" {
 				require.ErrorContains(t, err, tt.wantErr)
 

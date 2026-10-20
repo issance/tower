@@ -30,7 +30,7 @@ func taggedCaps(tags ...string) *apiv2.KeyCapabilities {
 // newKeyTestAPI builds an app + v2 API with NO owner user in context. Without the
 // auth middleware ownerUser(ctx) is empty, so only the tagged-key path creates;
 // the user-owned path (which needs an owning API key) is covered by TestAPIv2.
-func newKeyTestAPI(t *testing.T) (*Tower, humatest.TestAPI) {
+func newKeyTestAPI(t *testing.T) (*Headscale, humatest.TestAPI) {
 	t.Helper()
 
 	app := createTestApp(t)
@@ -94,7 +94,7 @@ func containsKeyID(keys []apiv2.Key, id string) bool {
 
 // srvKey is the server-side ground truth: the stored PreAuthKey, found by its
 // stringified id through ListPreAuthKeys (User is preloaded).
-func srvKey(t *testing.T, app *Tower, id string) types.PreAuthKey {
+func srvKey(t *testing.T, app *Headscale, id string) types.PreAuthKey {
 	t.Helper()
 
 	want, err := strconv.ParseUint(id, 10, 64)
@@ -114,7 +114,7 @@ func srvKey(t *testing.T, app *Tower, id string) types.PreAuthKey {
 	return types.PreAuthKey{}
 }
 
-func keyCount(t *testing.T, app *Tower) int {
+func keyCount(t *testing.T, app *Headscale) int {
 	t.Helper()
 
 	keys, err := app.state.ListPreAuthKeys()

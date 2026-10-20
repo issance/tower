@@ -324,7 +324,7 @@ func TestSSHRulesRemovedDeniesAccess(t *testing.T) {
 	user1Clients, err := scenario.ListTailscaleClients("user1")
 	requireNoErrListClients(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	require.NoError(t, err)
 
 	for _, client := range user1Clients {
@@ -338,7 +338,7 @@ func TestSSHRulesRemovedDeniesAccess(t *testing.T) {
 	}
 
 	pol.SSHs = nil
-	err = tower.SetPolicy(pol)
+	err = headscale.SetPolicy(pol)
 	require.NoError(t, err)
 
 	assert.EventuallyWithT(t, func(ct *assert.CollectT) {
@@ -775,16 +775,16 @@ func doSSHCheckWithTimeout(
 	return ch
 }
 
-// findSSHCheckAuthID polls tower container logs for the SSH action auth-id.
+// findSSHCheckAuthID polls headscale container logs for the SSH action auth-id.
 // The SSH action handler logs "SSH action follow-up" with the auth_id on the
 // follow-up request (where auth_id is non-empty).
-func findSSHCheckAuthID(t *testing.T, tower ControlServer) string {
+func findSSHCheckAuthID(t *testing.T, headscale ControlServer) string {
 	t.Helper()
 
 	var authID string
 
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		_, stderr, err := tower.ReadLog()
+		_, stderr, err := headscale.ReadLog()
 		assert.NoError(c, err)
 
 		for line := range strings.SplitSeq(stderr, "\n") {
@@ -877,12 +877,12 @@ func sshCheckPolicyWithPeriod(period time.Duration) *policyv2.Policy {
 	}
 }
 
-// findNewSSHCheckAuthID polls tower logs for an SSH check auth-id
+// findNewSSHCheckAuthID polls headscale logs for an SSH check auth-id
 // that differs from excludeID. Used to verify re-authentication after
 // session expiry.
 func findNewSSHCheckAuthID(
 	t *testing.T,
-	tower ControlServer,
+	headscale ControlServer,
 	excludeID string,
 ) string {
 	t.Helper()
@@ -890,7 +890,7 @@ func findNewSSHCheckAuthID(
 	var authID string
 
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		_, stderr, err := tower.ReadLog()
+		_, stderr, err := headscale.ReadLog()
 		assert.NoError(c, err)
 
 		for line := range strings.SplitSeq(stderr, "\n") {
@@ -934,7 +934,7 @@ func TestSSHOneUserToOneCheckModeCLI(t *testing.T) {
 	user2Clients, err := scenario.ListTailscaleClients("user2")
 	requireNoErrListClients(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	require.NoError(t, err)
 
 	err = scenario.WaitForTailscaleSync()
@@ -953,11 +953,11 @@ func TestSSHOneUserToOneCheckModeCLI(t *testing.T) {
 			// Start SSH — will block waiting for check auth
 			sshResult := doSSHCheck(t, client, peer)
 
-			// Find the auth-id from tower logs
-			authID := findSSHCheckAuthID(t, tower)
+			// Find the auth-id from headscale logs
+			authID := findSSHCheckAuthID(t, headscale)
 
 			// Approve via CLI
-			_, err := tower.Execute(
+			_, err := headscale.Execute(
 				[]string{
 					"tower", "auth", "approve",
 					"--auth-id", authID,
@@ -1047,7 +1047,7 @@ func TestSSHOneUserToOneCheckModeOIDC(t *testing.T) {
 	user2Clients, err := scenario.ListTailscaleClients("user2")
 	requireNoErrListClients(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	require.NoError(t, err)
 
 	err = scenario.WaitForTailscaleSync()
@@ -1066,12 +1066,12 @@ func TestSSHOneUserToOneCheckModeOIDC(t *testing.T) {
 			// Start SSH — will block waiting for check auth
 			sshResult := doSSHCheck(t, client, peer)
 
-			// Find the auth-id from tower logs
-			authID := findSSHCheckAuthID(t, tower)
+			// Find the auth-id from headscale logs
+			authID := findSSHCheckAuthID(t, headscale)
 
 			// Build auth URL and visit it to trigger OIDC flow.
 			// The mock OIDC server auto-authenticates from the user queue.
-			authURL := tower.GetEndpoint() + "/auth/" + authID
+			authURL := headscale.GetEndpoint() + "/auth/" + authID
 			parsedURL, err := url.Parse(authURL)
 			require.NoError(t, err)
 
@@ -1146,7 +1146,7 @@ func TestSSHCheckModeUnapprovedTimeout(t *testing.T) {
 	user2Clients, err := scenario.ListTailscaleClients("user2")
 	requireNoErrListClients(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	require.NoError(t, err)
 
 	err = scenario.WaitForTailscaleSync()
@@ -1165,7 +1165,7 @@ func TestSSHCheckModeUnapprovedTimeout(t *testing.T) {
 			sshResult := doSSHCheck(t, client, peer)
 
 			// Confirm the check flow was entered
-			_ = findSSHCheckAuthID(t, tower)
+			_ = findSSHCheckAuthID(t, headscale)
 
 			// Do NOT approve — wait for cache expiry and SSH rejection
 			select {
@@ -1206,7 +1206,7 @@ func TestSSHCheckModeCheckPeriodCLI(t *testing.T) {
 	user1Clients, err := scenario.ListTailscaleClients("user1")
 	requireNoErrListClients(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	require.NoError(t, err)
 
 	err = scenario.WaitForTailscaleSync()
@@ -1223,9 +1223,9 @@ func TestSSHCheckModeCheckPeriodCLI(t *testing.T) {
 			}
 
 			sshResult := doSSHCheck(t, client, peer)
-			firstAuthID := findSSHCheckAuthID(t, tower)
+			firstAuthID := findSSHCheckAuthID(t, headscale)
 
-			_, err := tower.Execute(
+			_, err := headscale.Execute(
 				[]string{
 					"tower", "auth", "approve",
 					"--auth-id", firstAuthID,
@@ -1254,7 +1254,7 @@ func TestSSHCheckModeCheckPeriodCLI(t *testing.T) {
 
 			// === Phase 3: Second SSH — must re-authenticate ===
 			sshResult2 := doSSHCheck(t, client, peer)
-			secondAuthID := findNewSSHCheckAuthID(t, tower, firstAuthID)
+			secondAuthID := findNewSSHCheckAuthID(t, headscale, firstAuthID)
 
 			require.NotEqual(
 				t,
@@ -1263,7 +1263,7 @@ func TestSSHCheckModeCheckPeriodCLI(t *testing.T) {
 				"second SSH should trigger a new auth flow after checkPeriod expiry",
 			)
 
-			_, err = tower.Execute(
+			_, err = headscale.Execute(
 				[]string{
 					"tower", "auth", "approve",
 					"--auth-id", secondAuthID,
@@ -1301,7 +1301,7 @@ func TestSSHCheckModeAutoApprove(t *testing.T) {
 	user1Clients, err := scenario.ListTailscaleClients("user1")
 	requireNoErrListClients(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	require.NoError(t, err)
 
 	err = scenario.WaitForTailscaleSync()
@@ -1318,9 +1318,9 @@ func TestSSHCheckModeAutoApprove(t *testing.T) {
 			}
 
 			sshResult := doSSHCheck(t, client, peer)
-			firstAuthID := findSSHCheckAuthID(t, tower)
+			firstAuthID := findSSHCheckAuthID(t, headscale)
 
-			_, err := tower.Execute(
+			_, err := headscale.Execute(
 				[]string{
 					"tower", "auth", "approve",
 					"--auth-id", firstAuthID,
@@ -1371,7 +1371,7 @@ func TestSSHCheckModeSessionLossReDelegates(t *testing.T) {
 	user1Clients, err := scenario.ListTailscaleClients("user1")
 	requireNoErrListClients(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	require.NoError(t, err)
 
 	err = scenario.WaitForTailscaleSync()
@@ -1391,12 +1391,12 @@ func TestSSHCheckModeSessionLossReDelegates(t *testing.T) {
 			// generous window: the flow spans a full control-plane restart.
 			sshResult := doSSHCheckWithTimeout(t, client, peer, 120*time.Second)
 
-			firstAuthID := findSSHCheckAuthID(t, tower)
+			firstAuthID := findSSHCheckAuthID(t, headscale)
 
 			// Restart the control plane: the in-memory auth cache is dropped
 			// (the on-disk database and keys persist), so the auth_id the
 			// client is still polling for no longer exists.
-			err := tower.Restart()
+			err := headscale.Restart()
 			require.NoError(t, err, "restarting tower should succeed")
 
 			err = scenario.WaitForTailscaleSync()
@@ -1406,13 +1406,13 @@ func TestSSHCheckModeSessionLossReDelegates(t *testing.T) {
 			// server re-delegates a fresh session instead of returning an error
 			// the client cannot recover from. A new auth_id only appears if the
 			// re-delegation happened.
-			secondAuthID := findNewSSHCheckAuthID(t, tower, firstAuthID)
+			secondAuthID := findNewSSHCheckAuthID(t, headscale, firstAuthID)
 			require.NotEqual(t, firstAuthID, secondAuthID,
 				"a lost session under an active check must re-delegate with a new auth_id")
 
 			// Approve the re-delegated session; the SSH connection must now
 			// complete instead of hanging until it times out.
-			_, err = tower.Execute(
+			_, err = headscale.Execute(
 				[]string{
 					"tower", "auth", "approve",
 					"--auth-id", secondAuthID,
@@ -1450,7 +1450,7 @@ func TestSSHCheckModeNegativeCLI(t *testing.T) {
 	user1Clients, err := scenario.ListTailscaleClients("user1")
 	requireNoErrListClients(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	require.NoError(t, err)
 
 	err = scenario.WaitForTailscaleSync()
@@ -1466,10 +1466,10 @@ func TestSSHCheckModeNegativeCLI(t *testing.T) {
 			}
 
 			sshResult := doSSHCheck(t, client, peer)
-			authID := findSSHCheckAuthID(t, tower)
+			authID := findSSHCheckAuthID(t, headscale)
 
 			// Reject via CLI
-			_, err := tower.Execute(
+			_, err := headscale.Execute(
 				[]string{
 					"tower", "auth", "reject",
 					"--auth-id", authID,

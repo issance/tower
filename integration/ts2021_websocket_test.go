@@ -34,7 +34,7 @@ import (
 // that registers /ts2021 for POST only rejects that GET with 405 before the
 // Noise handshake starts, which breaks every WASM client (issue #3357).
 //
-// These two tests guard that path against real tower:
+// These two tests guard that path against real headscale:
 //
 //   - TestTS2021WebSocketGET dials the WebSocket GET directly from the test
 //     process using the same coder/websocket + controlbase primitives the WASM
@@ -42,7 +42,7 @@ import (
 //   - TestTS2021WASMClientUnderNode runs the *actual* tailscale.com js/wasm
 //     control dial (integration/wasmic/wasmclient, built for GOOS=js) inside a
 //     Node container, alongside normal Tailscale clients, and asserts it
-//     completes the Noise handshake with tower over the WebSocket.
+//     completes the Noise handshake with headscale over the WebSocket.
 //
 // The server cannot tell the two apart: both send GET /ts2021 with
 // Sec-WebSocket-Protocol: tailscale-control-protocol. Before the fix both fail
@@ -68,10 +68,10 @@ func TestTS2021WebSocketGET(t *testing.T) {
 	err = scenario.CreateHeadscaleEnv([]tsic.Option{}, hsic.WithTestName("ts2021ws"))
 	requireNoErrHeadscaleEnv(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	requireNoErrGetHeadscale(t, err)
 
-	conn, err := dialTS2021WebSocket(t, tower.GetEndpoint(), tower.GetCert())
+	conn, err := dialTS2021WebSocket(t, headscale.GetEndpoint(), headscale.GetCert())
 	require.NoError(t, err,
 		"WebSocket GET to /ts2021 must reach NoiseUpgradeHandler, not be rejected by the router with 405")
 	require.NotNil(t, conn)
@@ -81,7 +81,7 @@ func TestTS2021WebSocketGET(t *testing.T) {
 }
 
 // TestTS2021WASMClientUnderNode runs the real tailscale.com js/wasm control dial
-// inside a Node container against real tower, next to normal Tailscale
+// inside a Node container against real headscale, next to normal Tailscale
 // clients, and asserts the WASM client completes the /ts2021 handshake.
 func TestTS2021WASMClientUnderNode(t *testing.T) {
 	IntegrationSkip(t)
@@ -109,7 +109,7 @@ func TestTS2021WASMClientUnderNode(t *testing.T) {
 	// The Tailscale JS/WASM client dials the control server as a WebSocket.
 	// client_js.go only honours a custom port for ws:// (plain HTTP); over
 	// wss:// it always targets :443, so it cannot reach a TLS control server on
-	// :8080. Run tower without TLS, matching the http:// setup in the issue.
+	// :8080. Run headscale without TLS, matching the http:// setup in the issue.
 	err = scenario.CreateHeadscaleEnv(
 		[]tsic.Option{},
 		hsic.WithTestName("ts2021wasm"),
@@ -128,7 +128,7 @@ func TestTS2021WASMClientUnderNode(t *testing.T) {
 	err = scenario.WaitForTailscaleSync()
 	requireNoErrSync(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	requireNoErrGetHeadscale(t, err)
 
 	// Sanity-check the tailnet the WASM client is joining: the normal clients
@@ -141,7 +141,7 @@ func TestTS2021WASMClientUnderNode(t *testing.T) {
 	require.Len(t, services, 1, "expected the wasm client container")
 
 	wasm := services[0]
-	controlURL := tower.GetEndpoint()
+	controlURL := headscale.GetEndpoint()
 
 	// Fetch the server's Noise key here and pass it to the WASM client: Go's
 	// net/http DNS resolver is unavailable under GOOS=js, so the client can only
@@ -173,7 +173,7 @@ func TestTS2021WASMClientUnderNode(t *testing.T) {
 
 // wasmClientService builds and starts the Node + js/wasm control-client
 // container (Dockerfile.wasmclient) on the given network so it can reach
-// tower by hostname. It idles; the test execs the client on demand.
+// headscale by hostname. It idles; the test execs the client on demand.
 func wasmClientService(s *Scenario, networkName string) (*dockertest.Resource, error) {
 	hash := rands.HexString(hsicOIDCMockHashLength)
 	hostname := "hs-wasmclient-" + hash
@@ -278,7 +278,7 @@ func dialTS2021WebSocket(t *testing.T, endpoint string, caCert []byte) (*control
 	return cbConn, nil
 }
 
-// fetchServerNoiseKey retrieves tower's Noise public key from /key, the same
+// fetchServerNoiseKey retrieves headscale's Noise public key from /key, the same
 // endpoint a real client consults before dialing /ts2021.
 func fetchServerNoiseKey(
 	ctx context.Context,

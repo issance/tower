@@ -20,7 +20,7 @@ var (
 )
 
 const (
-	// ChallengeTTL is the TTL of every challenge record tower writes.
+	// ChallengeTTL is the TTL of every challenge record headscale writes.
 	ChallengeTTL = time.Minute
 	// challengeLifetime outlives both authorizations of a wildcard order
 	// and the CA's validation retries. A retry of the same order resends
@@ -28,7 +28,7 @@ const (
 	challengeLifetime = 10 * time.Minute
 	// maxChallengesPerNode covers a wildcard order (two values) racing a
 	// plain order. It also bounds how many records one node can make
-	// tower write. The limit is per node, not per name: a node renames
+	// headscale write. The limit is per node, not per name: a node renames
 	// itself by changing its hostname, and every new name would come with
 	// fresh slots.
 	maxChallengesPerNode = 4
@@ -137,7 +137,7 @@ func (c *Challenges) Present(ctx context.Context, owner uint64, name, value stri
 
 	// A failed wait keeps the value until its lifetime ends: deleting it
 	// at once would let a client that cancels requests in a loop make
-	// tower call the provider without bound. A success restarts the
+	// headscale call the provider without bound. A success restarts the
 	// lifetime, which is the CA's window to validate.
 	if v, ok := c.values[k]; ok && err == nil {
 		v.expires = time.Now().Add(c.lifetime)

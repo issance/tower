@@ -1,7 +1,7 @@
 // This file implements a data-driven test runner for nodeAttrs
 // compatibility tests. It loads HuJSON golden files from
 // testdata/nodeattrs_results/nodeattrs-*.hujson, captured from a
-// Tailscale-hosted control plane, and compares tower's
+// Tailscale-hosted control plane, and compares headscale's
 // `compileNodeAttrs` output against each captured netmap's SelfNode.CapMap.
 //
 // Each file is a testcapture.Capture containing:
@@ -9,7 +9,7 @@
 //   - The expected per-node netmap from SaaS, including the cap map
 //
 // Tests known to fail due to unimplemented features are skipped with a
-// TODO comment explaining the root cause. As tower's nodeAttrs
+// TODO comment explaining the root cause. As headscale's nodeAttrs
 // implementation grows, tests should be removed from the skip list.
 //
 // Test data source: testdata/nodeattrs_results/nodeattrs-*.hujson
@@ -119,7 +119,7 @@ func parsePrefixes(t *testing.T, name string, s []string) []netip.Prefix {
 }
 
 // nodeAttrsSkipReasons documents the captured scenarios SaaS accepts and
-// tower deliberately rejects at validate time. The rejection itself is
+// headscale deliberately rejects at validate time. The rejection itself is
 // covered by TestNodeAttrsValidate; this list keeps the compat diff focused
 // on shapes both control planes agree on.
 //
@@ -128,7 +128,7 @@ func parsePrefixes(t *testing.T, name string, s []string) []netip.Prefix {
 //	FUNNEL_NOT_SUPPORTED — `funnel` cap is rejected pending the DNS /
 //	    ACME machinery the feature requires.
 //	NO_USER_ROLES — `autogroup:admin` and `autogroup:owner` depend on
-//	    user-role and tailnet-ownership concepts tower does not
+//	    user-role and tailnet-ownership concepts headscale does not
 //	    model.
 var nodeAttrsSkipReasons = map[string]string{
 	"nodeattrs-ippool-g1-admin":            "IPPOOL_ALLOCATOR",
@@ -142,7 +142,7 @@ var nodeAttrsSkipReasons = map[string]string{
 }
 
 // TestNodeAttrsCompat is a data-driven test that loads every captured
-// nodeAttrs scenario and compares tower's compiled CapMap against
+// nodeAttrs scenario and compares headscale's compiled CapMap against
 // the corresponding SaaS-rendered netmap.
 func TestNodeAttrsCompat(t *testing.T) {
 	t.Parallel()
@@ -195,7 +195,7 @@ func testNodeAttrsError(t *testing.T, policyJSON []byte, tf *testcapture.Capture
 	// SaaS error wording is not stable enough to compare exactly — the
 	// e3-autogroup-self capture comes back as "internal server error",
 	// for instance. The contract this test enforces is the weaker but
-	// still-meaningful one: tower must also refuse the policy at
+	// still-meaningful one: headscale must also refuse the policy at
 	// parse or validate time.
 	pol, err := unmarshalPolicy(policyJSON)
 	if err != nil {
@@ -320,7 +320,7 @@ func testNodeAttrsSuccess(
 }
 
 // capMapFromView materialises a captured CapMap view into the
-// [tailcfg.NodeCapMap] shape tower renders, so both sides of the
+// [tailcfg.NodeCapMap] shape headscale renders, so both sides of the
 // diff have the same concrete type.
 func capMapFromView(view views.MapSlice[nodecap.Cap, tailcfg.RawMessage]) tailcfg.NodeCapMap {
 	if view.Len() == 0 {

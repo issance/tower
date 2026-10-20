@@ -142,7 +142,7 @@ func TestCompiledTestContainer(t *testing.T) {
 
 	request := <-requests
 	assert.Equal(t, "tower:ci-test", request.Image)
-	// A custom server image may already have a tower entrypoint.
+	// A custom server image may already have a headscale entrypoint.
 	assert.Equal(t, []string{"/integration.test"}, []string(request.Entrypoint))
 	assert.Equal(t, []string{
 		"-test.run", config.TestPattern,

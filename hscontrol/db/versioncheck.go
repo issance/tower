@@ -36,7 +36,7 @@ var errVersionFormat = errors.New(
 	"version does not follow semver major.minor.patch format",
 )
 
-// DatabaseVersion tracks the tower version that last
+// DatabaseVersion tracks the headscale version that last
 // successfully started against this database.
 // It is a single-row table (ID is always 1).
 type DatabaseVersion struct {
@@ -214,7 +214,7 @@ func checkMinimumMigration(db *gorm.DB) error {
 	if found == 0 {
 		return fmt.Errorf(
 			"upgrade to the latest v0.29.x release first, "+
-				"release page: https://github.com/juanfont/headscale/releases: %w",
+				"release page: https://github.com/issance/tower/releases: %w",
 			errDatabaseTooOld,
 		)
 	}
@@ -222,7 +222,7 @@ func checkMinimumMigration(db *gorm.DB) error {
 	return nil
 }
 
-// checkVersionUpgradePath verifies that the running tower version
+// checkVersionUpgradePath verifies that the running headscale version
 // is compatible with the version that last used this database.
 //
 // Rules:
@@ -308,7 +308,7 @@ func checkVersionUpgradePath(db *gorm.DB) error {
 			"tower version %s cannot be used with a database last used by %s, "+
 				"upgrading more than one minor version at a time is not supported, "+
 				"please upgrade to the latest v%d.%d.x release first, then to %s, "+
-				"release page: https://github.com/juanfont/headscale/releases: %w",
+				"release page: https://github.com/issance/tower/releases: %w",
 			currentVersion, storedVersion,
 			stored.Major, stored.Minor+1,
 			current.String(),
@@ -320,7 +320,7 @@ func checkVersionUpgradePath(db *gorm.DB) error {
 		return fmt.Errorf(
 			"tower version %s cannot be used with a database last used by %s, "+
 				"downgrading to a previous minor version is not supported, "+
-				"release page: https://github.com/juanfont/headscale/releases: %w",
+				"release page: https://github.com/issance/tower/releases: %w",
 			currentVersion, storedVersion,
 			errVersionDowngrade,
 		)

@@ -14,16 +14,16 @@ import (
 )
 
 // TestTailscaleRustAxum tests that the tailscale-rs axum example can join a
-// tower network and serve HTTP to other peers on the tailnet.
+// headscale network and serve HTTP to other peers on the tailnet.
 //
 // Architecture:
 //
-//	tower (control) <--- tsic (probe client) --curl--> tsric (axum server)
+//	headscale (control) <--- tsic (probe client) --curl--> tsric (axum server)
 //
 // The test:
-//  1. Creates a tower environment with one regular Tailscale client (tsic)
+//  1. Creates a headscale environment with one regular Tailscale client (tsic)
 //  2. Creates a tailscale-rs container running the axum example (tsric)
-//  3. Verifies the tsric node registers with tower
+//  3. Verifies the tsric node registers with headscale
 //  4. Uses the tsic client to curl the axum web server through the tailnet
 func TestTailscaleRustAxum(t *testing.T) {
 	IntegrationSkip(t)
@@ -49,14 +49,14 @@ func TestTailscaleRustAxum(t *testing.T) {
 		// we route DERP through Tailscale's public relays.
 		hsic.WithPublicDERP(),
 		// TODO: drop WithoutTLS once tailscale-rs lets us inject the
-		// tower CA into its trust chain; until then the control
+		// headscale CA into its trust chain; until then the control
 		// plane has to be plain HTTP for the Rust client to register.
 		hsic.WithoutTLS(),
 	)
 	requireNoErrHeadscaleEnv(t, err)
 
-	// Get the tower instance and probe client
-	tower, err := scenario.Tower()
+	// Get the headscale instance and probe client
+	headscale, err := scenario.Headscale()
 	require.NoError(t, err)
 
 	allClients, err := scenario.ListTailscaleClients()
@@ -66,7 +66,7 @@ func TestTailscaleRustAxum(t *testing.T) {
 	probeClient := allClients[0]
 
 	// Create auth key for the tailscale-rs node
-	users, err := tower.ListUsers()
+	users, err := headscale.ListUsers()
 	require.NoError(t, err)
 	require.NotEmpty(t, users, "expected at least one user")
 
@@ -82,17 +82,17 @@ func TestTailscaleRustAxum(t *testing.T) {
 
 	require.NotZero(t, userID, "user1 not found")
 
-	pak, err := tower.CreateAuthKey(userID, false, true)
+	pak, err := headscale.CreateAuthKey(userID, false, true)
 	require.NoError(t, err)
 
-	// Determine the network and tower connection details
+	// Determine the network and headscale connection details
 	networks := scenario.Networks()
 	require.NotEmpty(t, networks)
 
 	network := networks[0]
-	headscaleIP := tower.GetIPInNetwork(network)
-	headscaleHostname := tower.GetHostname()
-	headscaleEndpoint := tower.GetEndpoint()
+	headscaleIP := headscale.GetIPInNetwork(network)
+	headscaleHostname := headscale.GetHostname()
+	headscaleEndpoint := headscale.GetEndpoint()
 
 	t.Logf("Tower endpoint: %s (hostname: %s, IP: %s)",
 		headscaleEndpoint, headscaleHostname, headscaleIP)
@@ -105,7 +105,7 @@ func TestTailscaleRustAxum(t *testing.T) {
 		tsric.WithExtraHosts([]string{headscaleHostname + ":" + headscaleIP}),
 	}
 
-	cert := tower.GetCert()
+	cert := headscale.GetCert()
 	if len(cert) > 0 {
 		tsrsOpts = append(tsrsOpts, tsric.WithCACert(cert))
 	}
@@ -122,7 +122,7 @@ func TestTailscaleRustAxum(t *testing.T) {
 		}
 	}()
 
-	// Wait for the tailscale-rs node to appear in tower's node list.
+	// Wait for the tailscale-rs node to appear in headscale's node list.
 	// Verify it gets both IPv4 and IPv6 addresses and has the expected hostname.
 	var (
 		rustNodeIPv4 string
@@ -133,7 +133,7 @@ func TestTailscaleRustAxum(t *testing.T) {
 	t.Log("Waiting for tailscale-rs node to register with tower...")
 
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(c, err)
 
 		// Expect 2 nodes: 1 tsic probe + 1 tsric
@@ -165,7 +165,7 @@ func TestTailscaleRustAxum(t *testing.T) {
 		rustNodeName, rustNodeIPv4, rustNodeIPv6)
 
 	// Verify IPv6 was allocated. The axum example only listens on IPv4,
-	// so we can't curl via IPv6, but tower should still assign both.
+	// so we can't curl via IPv6, but headscale should still assign both.
 	assert.NotEmpty(t, rustNodeIPv6,
 		"tower should assign both IPv4 and IPv6 to the tailscale-rs node")
 

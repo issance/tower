@@ -22,7 +22,7 @@ const allowAllPolicy = `{"acls":[{"action":"accept","src":["*"],"dst":["*:*"]}]}
 
 // storedPolicy returns the HuJSON actually persisted in the DB (server-side
 // ground truth), or "" when none is set.
-func storedPolicy(t *testing.T, app *Tower) string {
+func storedPolicy(t *testing.T, app *Headscale) string {
 	t.Helper()
 
 	p, err := app.state.GetPolicy()

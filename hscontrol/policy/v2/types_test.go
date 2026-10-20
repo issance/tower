@@ -4733,7 +4733,7 @@ func TestSSHRuleSaaSValidation(t *testing.T) {
 		},
 		{
 			// SaaS rejects hosts-table aliases on SSH dst with
-			// `invalid dst "srv"`. tower validates the same
+			// `invalid dst "srv"`. headscale validates the same
 			// regardless of whether the alias resolves to a
 			// single IP or a CIDR.
 			name: "host alias as SSH dst rejected",

@@ -149,11 +149,11 @@ func TestPolicyCheckCommand(t *testing.T) {
 			)
 			require.NoError(t, err)
 
-			tower, err := scenario.Tower()
+			headscale, err := scenario.Headscale()
 			require.NoError(t, err)
 
 			require.EventuallyWithT(t, func(c *assert.CollectT) {
-				stdout, err := tower.Execute([]string{"tower", "policy", "get"})
+				stdout, err := headscale.Execute([]string{"tower", "policy", "get"})
 				assert.NoError(c, err)
 				assert.JSONEq(c, string(livePolicyBytes), stdout)
 			}, integrationutil.StatusReadyTimeout, integrationutil.FastPoll, "live policy should be loaded before checks")
@@ -164,12 +164,12 @@ func TestPolicyCheckCommand(t *testing.T) {
 					require.NoError(t, err)
 
 					policyFilePath := "/etc/tower/policy-check-" + tt.name + ".json"
-					err = tower.WriteFile(policyFilePath, pBytes)
+					err = headscale.WriteFile(policyFilePath, pBytes)
 					require.NoError(t, err)
 
 					t.Cleanup(func() {
 						assert.EventuallyWithT(t, func(c *assert.CollectT) {
-							stdout, err := tower.Execute([]string{"tower", "policy", "get"})
+							stdout, err := headscale.Execute([]string{"tower", "policy", "get"})
 							assert.NoError(c, err)
 							assert.JSONEq(c, string(livePolicyBytes), stdout)
 						}, integrationutil.StatusReadyTimeout, integrationutil.FastPoll, "policy check must not alter the live policy")
@@ -183,7 +183,7 @@ func TestPolicyCheckCommand(t *testing.T) {
 						cmd = append(cmd, "--bypass-server-and-access-database-directly", "--force")
 					}
 
-					stdout, err := tower.Execute(cmd)
+					stdout, err := headscale.Execute(cmd)
 
 					if tt.wantErr != "" {
 						require.ErrorContains(t, err, tt.wantErr)
@@ -262,7 +262,7 @@ func TestSSHTestsRejectFailingPolicy(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	require.NoError(t, err)
 
 	goodBytes, err := json.Marshal(goodPolicy)
@@ -276,17 +276,17 @@ func TestSSHTestsRejectFailingPolicy(t *testing.T) {
 		badPath  = "/etc/tower/policy-bad.json"
 	)
 
-	require.NoError(t, tower.WriteFile(goodPath, goodBytes))
-	require.NoError(t, tower.WriteFile(badPath, badBytes))
+	require.NoError(t, headscale.WriteFile(goodPath, goodBytes))
+	require.NoError(t, headscale.WriteFile(badPath, badBytes))
 
 	// Establish the good policy as the live policy.
-	_, err = tower.Execute([]string{
+	_, err = headscale.Execute([]string{
 		"tower", "policy", "set", "-f", goodPath,
 	})
 	require.NoError(t, err, "setting the good policy must succeed")
 
 	// Confirm the server returns the good policy.
-	stdoutBefore, err := tower.Execute([]string{
+	stdoutBefore, err := headscale.Execute([]string{
 		"tower", "policy", "get",
 	})
 	require.NoError(t, err)
@@ -296,7 +296,7 @@ func TestSSHTestsRejectFailingPolicy(t *testing.T) {
 	// Attempt to overwrite with a policy whose sshTests fail. The CLI
 	// must surface the engine's "test(s) failed" sentinel and exit
 	// non-zero.
-	_, err = tower.Execute([]string{
+	_, err = headscale.Execute([]string{
 		"tower", "policy", "set", "-f", badPath,
 	})
 	require.Error(t, err, "setting a policy with failing sshTests must fail")
@@ -304,7 +304,7 @@ func TestSSHTestsRejectFailingPolicy(t *testing.T) {
 		"CLI error must surface the engine's test failure sentinel")
 
 	// The rejected write must not have mutated the stored policy.
-	stdoutAfter, err := tower.Execute([]string{
+	stdoutAfter, err := headscale.Execute([]string{
 		"tower", "policy", "get",
 	})
 	require.NoError(t, err)
@@ -333,7 +333,7 @@ func TestPolicyCommand(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	require.NoError(t, err)
 
 	p := policyv2.Policy{
@@ -356,12 +356,12 @@ func TestPolicyCommand(t *testing.T) {
 
 	policyFilePath := "/etc/tower/policy.json"
 
-	err = tower.WriteFile(policyFilePath, pBytes)
+	err = headscale.WriteFile(policyFilePath, pBytes)
 	require.NoError(t, err)
 
 	// No policy is present at this time.
 	// Add a new policy from a file.
-	_, err = tower.Execute(
+	_, err = headscale.Execute(
 		[]string{
 			"tower",
 			"policy",
@@ -379,7 +379,7 @@ func TestPolicyCommand(t *testing.T) {
 
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
 		err = executeAndUnmarshal(
-			tower,
+			headscale,
 			[]string{
 				"tower",
 				"policy",
@@ -418,7 +418,7 @@ func TestPolicyBrokenConfigCommand(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	require.NoError(t, err)
 
 	p := policyv2.Policy{
@@ -443,12 +443,12 @@ func TestPolicyBrokenConfigCommand(t *testing.T) {
 
 	policyFilePath := "/etc/tower/policy.json"
 
-	err = tower.WriteFile(policyFilePath, pBytes)
+	err = headscale.WriteFile(policyFilePath, pBytes)
 	require.NoError(t, err)
 
 	// No policy is present at this time.
 	// Add a new policy from a file.
-	_, err = tower.Execute(
+	_, err = headscale.Execute(
 		[]string{
 			"tower",
 			"policy",
@@ -461,7 +461,7 @@ func TestPolicyBrokenConfigCommand(t *testing.T) {
 
 	// The new policy was invalid, the old one should still be in place, which
 	// is none.
-	_, err = tower.Execute(
+	_, err = headscale.Execute(
 		[]string{
 			"tower",
 			"policy",

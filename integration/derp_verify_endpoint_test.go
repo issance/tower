@@ -22,7 +22,7 @@ import (
 func TestDERPVerifyEndpoint(t *testing.T) {
 	IntegrationSkip(t)
 
-	// Generate random hostname for the tower instance
+	// Generate random hostname for the headscale instance
 	hash := rands.HexString(6)
 
 	testName := "derpverify"
@@ -30,7 +30,7 @@ func TestDERPVerifyEndpoint(t *testing.T) {
 
 	headscalePort := 8080
 
-	// Create cert for tower
+	// Create cert for headscale
 	caHeadscale, certHeadscale, keyHeadscale, err := integrationutil.CreateCertificate(hostname)
 	require.NoError(t, err)
 
@@ -78,7 +78,7 @@ func TestDERPVerifyEndpoint(t *testing.T) {
 	//
 	// [tsic.WithCACert] passes the external DERP server's certificate so
 	// tailscale clients trust it. [hsic.WithCustomTLS] and [hsic.WithDERPConfig]
-	// configure tower to use the external DERP server created
+	// configure headscale to use the external DERP server created
 	// above instead of the default embedded one.
 	err = scenario.CreateHeadscaleEnv([]tsic.Option{tsic.WithCACert(derper.GetCert())},
 		hsic.WithHostname(hostname),

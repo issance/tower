@@ -1,11 +1,11 @@
 [Unit]
 After=network.target
-Description=tower coordination server for Tailscale
+Description=headscale coordination server for Tailscale
 
 [Service]
 Type=simple
-User=tower
-Group=tower
+User=headscale
+Group=headscale
 ExecStart=/usr/bin/headscale serve
 ExecReload=/usr/bin/kill -HUP $MAINPID
 Restart=always
@@ -38,9 +38,9 @@ RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
 RestrictNamespaces=true
 RestrictRealtime=true
 RestrictSUIDSGID=true
-RuntimeDirectory=tower
+RuntimeDirectory=headscale
 RuntimeDirectoryMode=0750
-StateDirectory=tower
+StateDirectory=headscale
 StateDirectoryMode=0750
 SystemCallArchitectures=native
 SystemCallFilter=@system-service

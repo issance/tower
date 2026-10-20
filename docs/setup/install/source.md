@@ -24,7 +24,7 @@ git clone https://github.com/juanfont/headscale.git
 cd tower
 
 # optionally checkout a release
-# option a. you can find official release at https://github.com/juanfont/headscale/releases/latest
+# option a. you can find official release at https://github.com/juanfont/tower/releases/latest
 # option b. get latest tag, this may be a beta release
 latestTag=$(git describe --tags `git rev-list --tags --max-count=1`)
 
@@ -51,7 +51,7 @@ git clone https://github.com/juanfont/headscale.git
 cd tower
 
 # optionally checkout a release
-# option a. you can find official release at https://github.com/juanfont/headscale/releases/latest
+# option a. you can find official release at https://github.com/juanfont/tower/releases/latest
 # option b. get latest tag, this may be a beta release
 latestTag=$(git describe --tags `git rev-list --tags --max-count=1`)
 

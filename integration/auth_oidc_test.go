@@ -80,10 +80,10 @@ func TestOIDCAuthenticationPingAll(t *testing.T) {
 
 	assertPingAll(t, allClients, allAddrs)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	require.NoError(t, err)
 
-	listUsers, err := tower.ListUsers()
+	listUsers, err := headscale.ListUsers()
 	require.NoError(t, err)
 
 	want := []*clientv1.User{
@@ -384,12 +384,12 @@ func TestOIDC024UserCreation(t *testing.T) {
 			err = scenario.WaitForTailscaleSync()
 			requireNoErrSync(t, err)
 
-			tower, err := scenario.Tower()
+			headscale, err := scenario.Headscale()
 			require.NoError(t, err)
 
 			want := tt.want(scenario.mockOIDC.Issuer())
 
-			listUsers, err := tower.ListUsers()
+			listUsers, err := headscale.ListUsers()
 			require.NoError(t, err)
 
 			sort.Slice(listUsers, func(i, j int) bool {
@@ -491,13 +491,13 @@ func TestOIDCReloginSameNodeNewUser(t *testing.T) {
 	)
 	requireNoErrHeadscaleEnv(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	require.NoError(t, err)
 
 	ts, err := scenario.CreateTailscaleNode("unstable", tsic.WithNetwork(scenario.networks[scenario.testDefaultNetwork]))
 	require.NoError(t, err)
 
-	u, err := ts.LoginWithURL(tower.GetEndpoint())
+	u, err := ts.LoginWithURL(headscale.GetEndpoint())
 	require.NoError(t, err)
 
 	_, err = doLoginURL(ts.Hostname(), u)
@@ -505,7 +505,7 @@ func TestOIDCReloginSameNodeNewUser(t *testing.T) {
 
 	t.Logf("Validating initial user creation at %s", time.Now().Format(TimestampFormat))
 	assert.EventuallyWithT(t, func(ct *assert.CollectT) {
-		listUsers, err := tower.ListUsers()
+		listUsers, err := headscale.ListUsers()
 		assert.NoError(ct, err, "Failed to list users during initial validation")
 		assert.Len(ct, listUsers, 1, "Expected exactly 1 user after first login, got %d", len(listUsers))
 
@@ -535,7 +535,7 @@ func TestOIDCReloginSameNodeNewUser(t *testing.T) {
 	assert.EventuallyWithT(t, func(ct *assert.CollectT) {
 		var err error
 
-		listNodes, err = tower.ListNodes()
+		listNodes, err = headscale.ListNodes()
 		assert.NoError(ct, err, "Failed to list nodes during initial validation")
 		assert.Len(ct, listNodes, 1, "Expected exactly 1 node after first login, got %d", len(listNodes))
 	}, integrationutil.StatusReadyTimeout, 1*time.Second, "validating initial node creation for user1 after OIDC login")
@@ -558,7 +558,7 @@ func TestOIDCReloginSameNodeNewUser(t *testing.T) {
 	expectedNodes = append(expectedNodes, types.NodeID(nodeID))
 
 	// Validate initial connection state for user1
-	validateInitialConnection(t, tower, expectedNodes)
+	validateInitialConnection(t, headscale, expectedNodes)
 
 	// Log out user1 and log in user2, this should create a new node
 	// for user2, the node should have the same machine key and
@@ -581,7 +581,7 @@ func TestOIDCReloginSameNodeNewUser(t *testing.T) {
 		assert.Equal(ct, "NeedsLogin", status.BackendState, "Expected NeedsLogin state after logout, got %s", status.BackendState)
 	}, integrationutil.StatusReadyTimeout, 1*time.Second, "waiting for user1 logout to complete before user2 login")
 
-	u, err = ts.LoginWithURL(tower.GetEndpoint())
+	u, err = ts.LoginWithURL(headscale.GetEndpoint())
 	require.NoError(t, err)
 
 	_, err = doLoginURL(ts.Hostname(), u)
@@ -589,7 +589,7 @@ func TestOIDCReloginSameNodeNewUser(t *testing.T) {
 
 	t.Logf("Validating user2 creation at %s", time.Now().Format(TimestampFormat))
 	assert.EventuallyWithT(t, func(ct *assert.CollectT) {
-		listUsers, err := tower.ListUsers()
+		listUsers, err := headscale.ListUsers()
 		assert.NoError(ct, err, "Failed to list users after user2 login")
 		assert.Len(ct, listUsers, 2, "Expected exactly 2 users after user2 login, got %d users", len(listUsers))
 
@@ -623,7 +623,7 @@ func TestOIDCReloginSameNodeNewUser(t *testing.T) {
 	// First, wait for the new node to be created
 	t.Logf("Waiting for user2 node creation at %s", time.Now().Format(TimestampFormat))
 	assert.EventuallyWithT(t, func(ct *assert.CollectT) {
-		listNodesAfterNewUserLogin, err = tower.ListNodes()
+		listNodesAfterNewUserLogin, err = headscale.ListNodes()
 		assert.NoError(ct, err, "Failed to list nodes after user2 login")
 		// We might temporarily have more than 2 nodes during cleanup, so check for at least 2
 		assert.GreaterOrEqual(ct, len(listNodesAfterNewUserLogin), 2, "Should have at least 2 nodes after user2 login, got %d (may include temporary nodes during cleanup)", len(listNodesAfterNewUserLogin))
@@ -632,7 +632,7 @@ func TestOIDCReloginSameNodeNewUser(t *testing.T) {
 	// Then wait for cleanup to stabilize at exactly 2 nodes
 	t.Logf("Waiting for node cleanup stabilization at %s", time.Now().Format(TimestampFormat))
 	assert.EventuallyWithT(t, func(ct *assert.CollectT) {
-		listNodesAfterNewUserLogin, err = tower.ListNodes()
+		listNodesAfterNewUserLogin, err = headscale.ListNodes()
 		assert.NoError(ct, err, "Failed to list nodes during cleanup validation")
 		assert.Len(ct, listNodesAfterNewUserLogin, 2, "Should have exactly 2 nodes after cleanup (1 for user1, 1 for user2), got %d nodes", len(listNodesAfterNewUserLogin))
 
@@ -661,7 +661,7 @@ func TestOIDCReloginSameNodeNewUser(t *testing.T) {
 	// Validate only user2's node is online (security requirement)
 	t.Logf("Validating only user2 node is online at %s", time.Now().Format(TimestampFormat))
 	require.EventuallyWithT(t, func(c *assert.CollectT) {
-		nodeStore, err := tower.DebugNodeStore()
+		nodeStore, err := headscale.DebugNodeStore()
 		assert.NoError(c, err, "Failed to get nodestore debug info")
 
 		// Check user2 node is online
@@ -679,7 +679,7 @@ func TestOIDCReloginSameNodeNewUser(t *testing.T) {
 	// Before logging out user2, validate we have exactly 2 nodes and both are stable
 	t.Logf("Pre-logout validation: checking node stability at %s", time.Now().Format(TimestampFormat))
 	assert.EventuallyWithT(t, func(ct *assert.CollectT) {
-		currentNodes, err := tower.ListNodes()
+		currentNodes, err := headscale.ListNodes()
 		assert.NoError(ct, err, "Failed to list nodes before user2 logout")
 		assert.Len(ct, currentNodes, 2, "Should have exactly 2 stable nodes before user2 logout, got %d", len(currentNodes))
 
@@ -724,7 +724,7 @@ func TestOIDCReloginSameNodeNewUser(t *testing.T) {
 	// Additional validation that nodes are properly maintained during logout
 	t.Logf("Post-logout validation: checking node persistence at %s", time.Now().Format(TimestampFormat))
 	assert.EventuallyWithT(t, func(ct *assert.CollectT) {
-		currentNodes, err := tower.ListNodes()
+		currentNodes, err := headscale.ListNodes()
 		assert.NoError(ct, err, "Failed to list nodes after user2 logout")
 		assert.Len(ct, currentNodes, 2, "Should still have exactly 2 nodes after user2 logout (nodes should persist), got %d", len(currentNodes))
 
@@ -739,7 +739,7 @@ func TestOIDCReloginSameNodeNewUser(t *testing.T) {
 	// We do not actually "change" the user here, it is done by logging in again
 	// as the OIDC mock server is kind of like a stack, and the next user is
 	// prepared and ready to go.
-	u, err = ts.LoginWithURL(tower.GetEndpoint())
+	u, err = ts.LoginWithURL(headscale.GetEndpoint())
 	require.NoError(t, err)
 
 	_, err = doLoginURL(ts.Hostname(), u)
@@ -757,7 +757,7 @@ func TestOIDCReloginSameNodeNewUser(t *testing.T) {
 
 	t.Logf("Final validation: checking user persistence at %s", time.Now().Format(TimestampFormat))
 	assert.EventuallyWithT(t, func(ct *assert.CollectT) {
-		listUsers, err := tower.ListUsers()
+		listUsers, err := headscale.ListUsers()
 		assert.NoError(ct, err, "Failed to list users during final validation")
 		assert.Len(ct, listUsers, 2, "Should still have exactly 2 users after user1 relogin, got %d", len(listUsers))
 
@@ -791,7 +791,7 @@ func TestOIDCReloginSameNodeNewUser(t *testing.T) {
 	// Wait for login to complete and nodes to stabilize
 	t.Logf("Final node validation: checking node stability after user1 relogin at %s", time.Now().Format(TimestampFormat))
 	assert.EventuallyWithT(t, func(ct *assert.CollectT) {
-		listNodesAfterLoggingBackIn, err = tower.ListNodes()
+		listNodesAfterLoggingBackIn, err = headscale.ListNodes()
 		assert.NoError(ct, err, "Failed to list nodes during final validation")
 
 		// Allow for temporary instability during login process
@@ -843,7 +843,7 @@ func TestOIDCReloginSameNodeNewUser(t *testing.T) {
 	// Validate only user1's node is online (security requirement)
 	t.Logf("Validating only user1 node is online after relogin at %s", time.Now().Format(TimestampFormat))
 	require.EventuallyWithT(t, func(c *assert.CollectT) {
-		nodeStore, err := tower.DebugNodeStore()
+		nodeStore, err := headscale.DebugNodeStore()
 		assert.NoError(c, err, "Failed to get nodestore debug info")
 
 		// Check user1 node is online
@@ -900,10 +900,10 @@ func TestOIDCFollowUpUrl(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	require.NoError(t, err)
 
-	listUsers, err := tower.ListUsers()
+	listUsers, err := headscale.ListUsers()
 	require.NoError(t, err)
 	assert.Empty(t, listUsers)
 
@@ -913,7 +913,7 @@ func TestOIDCFollowUpUrl(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	u, err := ts.LoginWithURL(tower.GetEndpoint())
+	u, err := ts.LoginWithURL(headscale.GetEndpoint())
 	require.NoError(t, err)
 
 	// wait for the registration cache to expire
@@ -941,7 +941,7 @@ func TestOIDCFollowUpUrl(t *testing.T) {
 	err = ts.WaitForRunning(integrationutil.PeerSyncTimeout())
 	require.NoError(t, err)
 
-	listUsers, err = tower.ListUsers()
+	listUsers, err = headscale.ListUsers()
 	require.NoError(t, err)
 	assert.Len(t, listUsers, 1)
 
@@ -971,7 +971,7 @@ func TestOIDCFollowUpUrl(t *testing.T) {
 	}
 
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		listNodes, err := tower.ListNodes()
+		listNodes, err := headscale.ListNodes()
 		assert.NoError(c, err)
 		assert.Len(c, listNodes, 1)
 	}, integrationutil.ScaledTimeout(10*time.Second), integrationutil.FastPoll, "Waiting for expected node list after OIDC login")
@@ -1011,10 +1011,10 @@ func TestOIDCMultipleOpenedLoginUrls(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	require.NoError(t, err)
 
-	listUsers, err := tower.ListUsers()
+	listUsers, err := headscale.ListUsers()
 	require.NoError(t, err)
 	assert.Empty(t, listUsers)
 
@@ -1024,10 +1024,10 @@ func TestOIDCMultipleOpenedLoginUrls(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	u1, err := ts.LoginWithURL(tower.GetEndpoint())
+	u1, err := ts.LoginWithURL(headscale.GetEndpoint())
 	require.NoError(t, err)
 
-	u2, err := ts.LoginWithURL(tower.GetEndpoint())
+	u2, err := ts.LoginWithURL(headscale.GetEndpoint())
 	require.NoError(t, err)
 
 	// make sure login URLs are different
@@ -1050,7 +1050,7 @@ func TestOIDCMultipleOpenedLoginUrls(t *testing.T) {
 	_, _, err = doLoginURLWithClient(ts.Hostname(), redirect1, loginClient, true)
 	require.NoError(t, err)
 
-	listUsers, err = tower.ListUsers()
+	listUsers, err = headscale.ListUsers()
 	require.NoError(t, err)
 	assert.Len(t, listUsers, 1)
 
@@ -1081,7 +1081,7 @@ func TestOIDCMultipleOpenedLoginUrls(t *testing.T) {
 
 	assert.EventuallyWithT(
 		t, func(c *assert.CollectT) {
-			listNodes, err := tower.ListNodes()
+			listNodes, err := headscale.ListNodes()
 			assert.NoError(c, err)
 			assert.Len(c, listNodes, 1)
 		}, integrationutil.ScaledTimeout(10*time.Second), integrationutil.FastPoll, "Waiting for expected node list after OIDC login",
@@ -1093,9 +1093,9 @@ func TestOIDCMultipleOpenedLoginUrls(t *testing.T) {
 //
 // OIDC is an authentication layer built on top of OAuth 2.0 that allows users to authenticate
 // using external identity providers (like Google, Microsoft, etc.) rather than managing
-// credentials directly in tower.
+// credentials directly in headscale.
 //
-// This test validates the "same user relogin" behavior in tower's OIDC authentication flow:
+// This test validates the "same user relogin" behavior in headscale's OIDC authentication flow:
 // - A single client authenticates via OIDC as user1
 // - The client logs out, ending the session
 // - The same client logs back in via OIDC as the same user (user1)
@@ -1107,7 +1107,7 @@ func TestOIDCMultipleOpenedLoginUrls(t *testing.T) {
 //
 // This scenario is important for normal user workflows where someone might need to restart
 // their Tailscale client, reboot their computer, or temporarily disconnect and reconnect.
-// It ensures that tower properly handles session management while preserving device
+// It ensures that headscale properly handles session management while preserving device
 // identity and user associations.
 //
 // The test uses a single node scenario (unlike multi-node tests) to focus specifically on
@@ -1143,14 +1143,14 @@ func TestOIDCReloginSameNodeSameUser(t *testing.T) {
 	)
 	requireNoErrHeadscaleEnv(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	require.NoError(t, err)
 
 	ts, err := scenario.CreateTailscaleNode("unstable", tsic.WithNetwork(scenario.networks[scenario.testDefaultNetwork]))
 	require.NoError(t, err)
 
 	// Initial login as user1
-	u, err := ts.LoginWithURL(tower.GetEndpoint())
+	u, err := ts.LoginWithURL(headscale.GetEndpoint())
 	require.NoError(t, err)
 
 	_, err = doLoginURL(ts.Hostname(), u)
@@ -1158,7 +1158,7 @@ func TestOIDCReloginSameNodeSameUser(t *testing.T) {
 
 	t.Logf("Validating initial user1 creation at %s", time.Now().Format(TimestampFormat))
 	assert.EventuallyWithT(t, func(ct *assert.CollectT) {
-		listUsers, err := tower.ListUsers()
+		listUsers, err := headscale.ListUsers()
 		assert.NoError(ct, err, "Failed to list users during initial validation")
 		assert.Len(ct, listUsers, 1, "Expected exactly 1 user after first login, got %d", len(listUsers))
 
@@ -1188,7 +1188,7 @@ func TestOIDCReloginSameNodeSameUser(t *testing.T) {
 	assert.EventuallyWithT(t, func(ct *assert.CollectT) {
 		var err error
 
-		initialNodes, err = tower.ListNodes()
+		initialNodes, err = headscale.ListNodes()
 		assert.NoError(ct, err, "Failed to list nodes during initial validation")
 		assert.Len(ct, initialNodes, 1, "Expected exactly 1 node after first login, got %d", len(initialNodes))
 	}, integrationutil.StatusReadyTimeout, 1*time.Second, "validating initial node creation for user1 after OIDC login")
@@ -1211,7 +1211,7 @@ func TestOIDCReloginSameNodeSameUser(t *testing.T) {
 	expectedNodes = append(expectedNodes, types.NodeID(nodeID))
 
 	// Validate initial connection state for user1
-	validateInitialConnection(t, tower, expectedNodes)
+	validateInitialConnection(t, headscale, expectedNodes)
 
 	// Store initial node keys for comparison
 	initialMachineKey := initialNodes[0].MachineKey
@@ -1240,13 +1240,13 @@ func TestOIDCReloginSameNodeSameUser(t *testing.T) {
 	// Validate node persistence during logout (node should remain in DB)
 	t.Logf("Validating node persistence during logout at %s", time.Now().Format(TimestampFormat))
 	assert.EventuallyWithT(t, func(ct *assert.CollectT) {
-		listNodes, err := tower.ListNodes()
+		listNodes, err := headscale.ListNodes()
 		assert.NoError(ct, err, "Failed to list nodes during logout validation")
 		assert.Len(ct, listNodes, 1, "Should still have exactly 1 node during logout (node should persist in DB), got %d", len(listNodes))
 	}, integrationutil.StatusReadyTimeout, 1*time.Second, "validating node persistence in database during same-user logout")
 
 	// Login again as the same user (user1)
-	u, err = ts.LoginWithURL(tower.GetEndpoint())
+	u, err = ts.LoginWithURL(headscale.GetEndpoint())
 	require.NoError(t, err)
 
 	_, err = doLoginURL(ts.Hostname(), u)
@@ -1261,7 +1261,7 @@ func TestOIDCReloginSameNodeSameUser(t *testing.T) {
 
 	t.Logf("Final validation: checking user persistence after same-user relogin at %s", time.Now().Format(TimestampFormat))
 	assert.EventuallyWithT(t, func(ct *assert.CollectT) {
-		listUsers, err := tower.ListUsers()
+		listUsers, err := headscale.ListUsers()
 		assert.NoError(ct, err, "Failed to list users during final validation")
 		assert.Len(ct, listUsers, 1, "Should still have exactly 1 user after same-user relogin, got %d", len(listUsers))
 
@@ -1288,7 +1288,7 @@ func TestOIDCReloginSameNodeSameUser(t *testing.T) {
 
 	t.Logf("Final node validation: checking node stability after same-user relogin at %s", time.Now().Format(TimestampFormat))
 	assert.EventuallyWithT(t, func(ct *assert.CollectT) {
-		finalNodes, err = tower.ListNodes()
+		finalNodes, err = headscale.ListNodes()
 		assert.NoError(ct, err, "Failed to list nodes during final validation")
 		assert.Len(ct, finalNodes, 1, "Should have exactly 1 node after same-user relogin, got %d", len(finalNodes))
 
@@ -1312,7 +1312,7 @@ func TestOIDCReloginSameNodeSameUser(t *testing.T) {
 
 	t.Logf("Validating user1 node is online after same-user relogin at %s", time.Now().Format(TimestampFormat))
 	require.EventuallyWithT(t, func(c *assert.CollectT) {
-		nodeStore, err := tower.DebugNodeStore()
+		nodeStore, err := headscale.DebugNodeStore()
 		assert.NoError(c, err, "Failed to get nodestore debug info")
 
 		// Check user1 node is online
@@ -1329,14 +1329,14 @@ func TestOIDCReloginSameNodeSameUser(t *testing.T) {
 }
 
 // TestOIDCExpiryAfterRestart validates that node expiry is preserved
-// when a tailscaled client restarts and reconnects to tower.
+// when a tailscaled client restarts and reconnects to headscale.
 //
 // This test reproduces the bug reported in https://github.com/juanfont/headscale/issues/2862
 // where OIDC expiry was reset to 0001-01-01 00:00:00 after tailscaled restart.
 //
 // Test flow:
 // 1. Node logs in with OIDC (gets 72h expiry)
-// 2. Verify expiry is set correctly in tower
+// 2. Verify expiry is set correctly in headscale
 // 3. Restart tailscaled container (simulates daemon restart)
 // 4. Wait for reconnection
 // 5. Verify expiry is still set correctly (not zero).
@@ -1368,14 +1368,14 @@ func TestOIDCExpiryAfterRestart(t *testing.T) {
 	)
 	requireNoErrHeadscaleEnv(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	require.NoError(t, err)
 
 	// Create and login tailscale client
 	ts, err := scenario.CreateTailscaleNode("unstable", tsic.WithNetwork(scenario.networks[scenario.testDefaultNetwork]))
 	require.NoError(t, err)
 
-	u, err := ts.LoginWithURL(tower.GetEndpoint())
+	u, err := ts.LoginWithURL(headscale.GetEndpoint())
 	require.NoError(t, err)
 
 	_, err = doLoginURL(ts.Hostname(), u)
@@ -1387,7 +1387,7 @@ func TestOIDCExpiryAfterRestart(t *testing.T) {
 	var initialExpiry time.Time
 
 	assert.EventuallyWithT(t, func(ct *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(ct, err)
 		assert.Len(ct, nodes, 1)
 
@@ -1429,7 +1429,7 @@ func TestOIDCExpiryAfterRestart(t *testing.T) {
 	t.Logf("Validating expiry preservation after restart at %s", time.Now().Format(TimestampFormat))
 
 	assert.EventuallyWithT(t, func(ct *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(ct, err)
 		assert.Len(ct, nodes, 1, "Should still have exactly 1 node after restart")
 
@@ -1504,7 +1504,7 @@ func TestOIDCACLPolicyOnJoin(t *testing.T) {
 		"HEADSCALE_OIDC_CLIENT_SECRET_PATH": "${CREDENTIALS_DIRECTORY_TEST}/hs_client_oidc_secret",
 	}
 
-	// Create tower environment with ACL policy that allows OIDC user
+	// Create headscale environment with ACL policy that allows OIDC user
 	// to access routes advertised by gateway user
 	err = scenario.CreateHeadscaleEnvWithLoginURL(
 		[]tsic.Option{
@@ -1537,7 +1537,7 @@ func TestOIDCACLPolicyOnJoin(t *testing.T) {
 	)
 	requireNoErrHeadscaleEnv(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	require.NoError(t, err)
 
 	// Get the gateway client (CLI user) - only one client at first
@@ -1565,7 +1565,7 @@ func TestOIDCACLPolicyOnJoin(t *testing.T) {
 	var gatewayNodeID uint64
 
 	assert.EventuallyWithT(t, func(ct *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(ct, err)
 		assert.Len(ct, nodes, 1)
 
@@ -1576,7 +1576,7 @@ func TestOIDCACLPolicyOnJoin(t *testing.T) {
 	}, integrationutil.ScaledTimeout(10*time.Second), integrationutil.SlowPoll, "route advertisement should propagate to tower")
 
 	// Approve the advertised route
-	_, err = tower.ApproveRoutes(
+	_, err = headscale.ApproveRoutes(
 		gatewayNodeID,
 		[]netip.Prefix{netip.MustParsePrefix(advertiseRoute)},
 	)
@@ -1584,7 +1584,7 @@ func TestOIDCACLPolicyOnJoin(t *testing.T) {
 
 	// Wait for route approval to propagate
 	assert.EventuallyWithT(t, func(ct *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(ct, err)
 		assert.Len(ct, nodes, 1)
 
@@ -1609,7 +1609,7 @@ func TestOIDCACLPolicyOnJoin(t *testing.T) {
 	require.NoError(t, err)
 
 	// OIDC login happens automatically via LoginWithURL
-	loginURL, err := oidcClient.LoginWithURL(tower.GetEndpoint())
+	loginURL, err := oidcClient.LoginWithURL(headscale.GetEndpoint())
 	require.NoError(t, err)
 
 	_, err = doLoginURL(oidcClient.Hostname(), loginURL)
@@ -1696,14 +1696,14 @@ func TestOIDCACLPolicyOnJoin(t *testing.T) {
 	}, integrationutil.ScaledTimeout(15*time.Second), integrationutil.SlowPoll,
 		"Gateway user should immediately see OIDC's advertised route (AutoApproveRoutes check)")
 
-	// Additional validation: Verify nodes in tower match expectations
+	// Additional validation: Verify nodes in headscale match expectations
 	assert.EventuallyWithT(t, func(ct *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(ct, err)
 		assert.Len(ct, nodes, 2, "Should have 2 nodes (gateway + oidcuser)")
 
 		// Verify OIDC user was created correctly
-		users, err := tower.ListUsers()
+		users, err := headscale.ListUsers()
 		assert.NoError(ct, err)
 		// Note: mockoidc may create additional default users (like jane.doe)
 		// so we check for at least 2 users, not exactly 2
@@ -1758,7 +1758,7 @@ func TestOIDCACLPolicyOnJoin(t *testing.T) {
 //
 // Bug: When a node with already-approved routes restarts/re-authenticates,
 // the routes show as "Approved" and "Available" but NOT "Serving" (Primary).
-// A tower restart would fix it, indicating a state management issue.
+// A headscale restart would fix it, indicating a state management issue.
 func TestOIDCReloginSameUserRoutesPreserved(t *testing.T) {
 	IntegrationSkip(t)
 
@@ -1808,7 +1808,7 @@ func TestOIDCReloginSameUserRoutesPreserved(t *testing.T) {
 	)
 	requireNoErrHeadscaleEnv(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	require.NoError(t, err)
 
 	// Create client with route advertisement
@@ -1821,7 +1821,7 @@ func TestOIDCReloginSameUserRoutesPreserved(t *testing.T) {
 	require.NoError(t, err)
 
 	// Initial login as user1
-	u, err := ts.LoginWithURL(tower.GetEndpoint())
+	u, err := ts.LoginWithURL(headscale.GetEndpoint())
 	require.NoError(t, err)
 
 	_, err = doLoginURL(ts.Hostname(), u)
@@ -1840,7 +1840,7 @@ func TestOIDCReloginSameUserRoutesPreserved(t *testing.T) {
 	var initialNode *clientv1.Node
 
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(c, err)
 		assert.Len(c, nodes, 1, "Should have exactly 1 node")
 
@@ -1880,7 +1880,7 @@ func TestOIDCReloginSameUserRoutesPreserved(t *testing.T) {
 
 	// Verify node still exists (routes should still be in DB)
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(c, err)
 		assert.Len(c, nodes, 1, "Node should persist in database after logout")
 	}, integrationutil.ScaledTimeout(10*time.Second), integrationutil.SlowPoll, "node should persist after logout")
@@ -1888,7 +1888,7 @@ func TestOIDCReloginSameUserRoutesPreserved(t *testing.T) {
 	// Step 3: Re-authenticate via OIDC as the same user
 	t.Logf("Step 3: Re-authenticating with same user via OIDC at %s", time.Now().Format(TimestampFormat))
 
-	u, err = ts.LoginWithURL(tower.GetEndpoint())
+	u, err = ts.LoginWithURL(headscale.GetEndpoint())
 	require.NoError(t, err)
 
 	_, err = doLoginURL(ts.Hostname(), u)
@@ -1907,7 +1907,7 @@ func TestOIDCReloginSameUserRoutesPreserved(t *testing.T) {
 	t.Logf("Step 4: Verifying routes are STILL SERVING after re-authentication at %s", time.Now().Format(TimestampFormat))
 
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(c, err)
 		assert.Len(c, nodes, 1, "Should still have exactly 1 node after relogin")
 

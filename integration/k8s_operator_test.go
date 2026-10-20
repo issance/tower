@@ -48,13 +48,13 @@ func k8sOperatorPolicy() *policyv2.Policy {
 }
 
 // TestK8sOperator verifies that the real Tailscale Kubernetes operator, installed
-// into a real k3s cluster via its Helm chart and pointed at an in-test Tower,
+// into a real k3s cluster via its Helm chart and pointed at an in-test Headscale,
 // can authenticate with OAuth client credentials, mint auth keys, and register
 // nodes that then interoperate with a regular tailnet node.
 //
-// The operator targets Tower over plain HTTP by IP (hsic.WithoutTLS +
+// The operator targets Headscale over plain HTTP by IP (hsic.WithoutTLS +
 // GetIPEndpoint), so the operator and proxy pods need no CA and no DNS entry for
-// Tower. See integration/k3sic/tls-ca-baking.md for the TLS variant.
+// Headscale. See integration/k3sic/tls-ca-baking.md for the TLS variant.
 //
 // The cluster-side steps are reusable building blocks on k3sic.K3sInContainer
 // (InstallOperator, DeployConnector, DeployEchoServer, ExposeServiceToTailnet,
@@ -87,13 +87,13 @@ func TestK8sOperator(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	require.NoError(t, err)
 
 	// Mint an OAuth client for the operator: devices:core + auth_keys scopes,
 	// tagged tag:k8s-operator. CreateOAuthClient mints the admin API key and calls
 	// the v2 keys API itself.
-	clientID, clientSecret, err := tower.CreateOAuthClient(
+	clientID, clientSecret, err := headscale.CreateOAuthClient(
 		t.Context(),
 		[]string{"devices:core", "auth_keys"},
 		[]string{tagK8sOperator},
@@ -125,19 +125,19 @@ func TestK8sOperator(t *testing.T) {
 	require.NoError(t, k3s.InstallHelm())
 
 	// The operator reaches the control plane by IP, but the embedded DERP map
-	// references Tower by hostname; teach CoreDNS to resolve it so the proxy
+	// references Headscale by hostname; teach CoreDNS to resolve it so the proxy
 	// pods can connect to DERP and get a data path to nodes outside the cluster.
-	hsIP := tower.GetIPInNetwork(scenario.Networks()[0])
-	require.NoError(t, k3s.ConfigureCoreDNSHost(tower.GetHostname(), hsIP))
+	hsIP := headscale.GetIPInNetwork(scenario.Networks()[0])
+	require.NoError(t, k3s.ConfigureCoreDNSHost(headscale.GetHostname(), hsIP))
 
 	// loginServer is the in-cluster-reachable HTTP endpoint by IP; the operator
 	// uses it for both the control plane and the management API.
-	loginServer := tower.GetIPEndpoint()
+	loginServer := headscale.GetIPEndpoint()
 	require.NoError(t, k3s.InstallOperator(loginServer, clientID, clientSecret))
 
 	t.Run("operator-registers", func(t *testing.T) {
 		assert.EventuallyWithT(t, func(c *assert.CollectT) {
-			nodes, err := tower.ListNodes()
+			nodes, err := headscale.ListNodes()
 			assert.NoError(c, err)
 			assert.True(c, hasNodeWithTag(nodes, tagK8sOperator),
 				"expected a node tagged %s registered by the operator, got %s",
@@ -150,7 +150,7 @@ func TestK8sOperator(t *testing.T) {
 		require.NoError(t, k3s.DeployConnector("k8s-egress", []string{tagK8s}, []string{"10.40.0.0/14"}))
 
 		assert.EventuallyWithT(t, func(c *assert.CollectT) {
-			nodes, err := tower.ListNodes()
+			nodes, err := headscale.ListNodes()
 			assert.NoError(c, err)
 			assert.True(c, hasNodeWithTag(nodes, tagK8s),
 				"expected a proxy node tagged %s registered by the operator, got %s",
@@ -169,12 +169,12 @@ func TestK8sOperator(t *testing.T) {
 
 		// The operator registers the ingress proxy as a tailnet node named after
 		// the exposed Service (<namespace>-<service>, here default-echo-ts). Read
-		// its IP from Tower rather than the Service's LoadBalancer status,
-		// which the operator does not populate against Tower.
+		// its IP from Headscale rather than the Service's LoadBalancer status,
+		// which the operator does not populate against Headscale.
 		var svcIP string
 
 		assert.EventuallyWithT(t, func(c *assert.CollectT) {
-			nodes, err := tower.ListNodes()
+			nodes, err := headscale.ListNodes()
 			assert.NoError(c, err)
 
 			ip, ok := nodeIPv4ByName(nodes, "echo")
@@ -196,7 +196,7 @@ func TestK8sOperator(t *testing.T) {
 	})
 
 	t.Run("proxy-group", func(t *testing.T) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		require.NoError(t, err)
 
 		before := countNodesWithTag(nodes, tagK8s)
@@ -207,7 +207,7 @@ func TestK8sOperator(t *testing.T) {
 
 		// A ProxyGroup runs a pool of proxies; each replica registers its own node.
 		assert.EventuallyWithT(t, func(c *assert.CollectT) {
-			nodes, err := tower.ListNodes()
+			nodes, err := headscale.ListNodes()
 			assert.NoError(c, err)
 			assert.GreaterOrEqual(c, countNodesWithTag(nodes, tagK8s), before+replicas,
 				"expected %d more %s nodes from the ProxyGroup, got %s",

@@ -69,7 +69,7 @@ type fileInContainer struct {
 }
 
 // HeadscaleInContainer is an implementation of ControlServer which
-// sets up a Tower instance inside a container.
+// sets up a Headscale instance inside a container.
 type HeadscaleInContainer struct {
 	hostname string
 
@@ -97,7 +97,7 @@ type HeadscaleInContainer struct {
 }
 
 // Option represent optional settings that can be given to a
-// Tower instance.
+// Headscale instance.
 type Option = func(c *HeadscaleInContainer)
 
 // WithACLPolicy adds a [policyv2.Policy] to the
@@ -131,7 +131,7 @@ func WithoutTLS() Option {
 	}
 }
 
-// WithCustomTLS uses the given certificates for the Tower instance.
+// WithCustomTLS uses the given certificates for the Headscale instance.
 // The caCert is installed into the container's trust store and returned
 // by [HeadscaleInContainer.GetCert] so that clients can trust this server.
 func WithCustomTLS(caCert, cert, key []byte) Option {
@@ -144,14 +144,14 @@ func WithCustomTLS(caCert, cert, key []byte) Option {
 }
 
 // WithConfigEnv takes a map of environment variables that
-// can be used to override Tower configuration.
+// can be used to override Headscale configuration.
 func WithConfigEnv(configEnv map[string]string) Option {
 	return func(hsic *HeadscaleInContainer) {
 		maps.Copy(hsic.env, configEnv)
 	}
 }
 
-// WithPort sets the port on where to run Tower.
+// WithPort sets the port on where to run Headscale.
 func WithPort(port int) Option {
 	return func(hsic *HeadscaleInContainer) {
 		hsic.port = port
@@ -182,7 +182,7 @@ func WithTestName(testName string) Option {
 	}
 }
 
-// WithHostname sets the hostname of the Tower instance.
+// WithHostname sets the hostname of the Headscale instance.
 func WithHostname(hostname string) Option {
 	return func(hsic *HeadscaleInContainer) {
 		hsic.hostname = hostname
@@ -208,7 +208,7 @@ func WithPostgres() Option {
 	}
 }
 
-// WithPolicyMode sets the policy mode for tower.
+// WithPolicyMode sets the policy mode for headscale.
 func WithPolicyMode(mode types.PolicyMode) Option {
 	return func(hsic *HeadscaleInContainer) {
 		hsic.policyMode = mode
@@ -240,7 +240,7 @@ func WithPublicDERP() Option {
 	}
 }
 
-// WithDERPConfig configures Tower use a custom
+// WithDERPConfig configures Headscale use a custom
 // DERP server only.
 func WithDERPConfig(derpMap tailcfg.DERPMap) Option {
 	return func(hsic *HeadscaleInContainer) {
@@ -297,7 +297,7 @@ func WithTimezone(timezone string) Option {
 // 2. Wait for config.yaml (always written after container start)
 // 3. Wait for CA certs if configured
 // 4. Update CA certificates
-// 5. Run tower serve
+// 5. Run headscale serve
 // 6. Sleep at end to keep container alive for log collection on shutdown.
 func (hsic *HeadscaleInContainer) buildEntrypoint() []string {
 	var commands []string
@@ -317,10 +317,10 @@ func (hsic *HeadscaleInContainer) buildEntrypoint() []string {
 	// Update CA certificates
 	commands = append(commands, "update-ca-certificates")
 
-	// Run tower serve
+	// Run headscale serve
 	commands = append(commands, "/usr/local/bin/headscale serve")
 
-	// Keep container alive after tower exits for log collection
+	// Keep container alive after headscale exits for log collection
 	commands = append(commands, "/bin/sleep 30")
 
 	return []string{"/bin/bash", "-c", strings.Join(commands, " ; ")}
@@ -379,7 +379,7 @@ func New(
 		hsic.tlsCert = cert
 		hsic.tlsKey = key
 
-		// Install the CA cert into the tower container's trust
+		// Install the CA cert into the headscale container's trust
 		// store so that tools like curl trust the server's own
 		// certificate.
 		hsic.caCerts = append(hsic.caCerts, caCert)
@@ -470,7 +470,7 @@ func New(
 		Networks:     networks,
 		// Cmd:          []string{"tower", "serve"},
 		// TODO(kradalby): Get rid of this hack, we currently need to give us some
-		// to inject the tower configuration further down.
+		// to inject the headscale configuration further down.
 		Entrypoint: hsic.buildEntrypoint(),
 		Env:        env,
 	}
@@ -629,7 +629,7 @@ func New(
 	}
 
 	// Load the database from policy file on repeat until it succeeds,
-	// this is done as the container sleeps before starting tower.
+	// this is done as the container sleeps before starting headscale.
 	if hsic.aclPolicy != nil && hsic.policyMode == types.PolicyModeDB {
 		err := pool.Retry(hsic.reloadDatabasePolicy)
 		if err != nil {
@@ -648,7 +648,7 @@ func (t *HeadscaleInContainer) hasTLS() bool {
 	return len(t.tlsCert) != 0 && len(t.tlsKey) != 0
 }
 
-// Shutdown stops and cleans up the Tower container.
+// Shutdown stops and cleans up the Headscale container.
 func (t *HeadscaleInContainer) Shutdown() (string, string, error) {
 	stdoutPath, stderrPath, err := t.SaveLog("/tmp/control")
 	if err != nil {
@@ -718,7 +718,7 @@ func (t *HeadscaleInContainer) WriteLogs(stdout, stderr io.Writer) error {
 	return dockertestutil.WriteLog(t.pool, t.container, stdout, stderr)
 }
 
-// ReadLog returns the current stdout and stderr logs from the tower container.
+// ReadLog returns the current stdout and stderr logs from the headscale container.
 func (t *HeadscaleInContainer) ReadLog() (string, string, error) {
 	var stdout, stderr bytes.Buffer
 
@@ -978,7 +978,7 @@ func (t *HeadscaleInContainer) SaveDatabase(savePath string) error {
 	return errors.New("no regular file found in database tar archive") //nolint:err113
 }
 
-// Execute runs a command inside the Tower container and returns the
+// Execute runs a command inside the Headscale container and returns the
 // result of stdout as a string.
 func (t *HeadscaleInContainer) Execute(
 	command []string,
@@ -1020,7 +1020,7 @@ func (t *HeadscaleInContainer) GetHealthEndpoint() string {
 	return t.GetEndpoint() + "/health"
 }
 
-// GetEndpoint returns the Tower endpoint for the [HeadscaleInContainer].
+// GetEndpoint returns the Headscale endpoint for the [HeadscaleInContainer].
 func (t *HeadscaleInContainer) GetEndpoint() string {
 	return t.getEndpoint(false)
 }
@@ -1091,7 +1091,7 @@ func (t *HeadscaleInContainer) CreateOAuthClient(
 	return clientID, clientSecret, nil
 }
 
-// httpClient returns an HTTP client that trusts this Tower's TLS CA when TLS
+// httpClient returns an HTTP client that trusts this Headscale's TLS CA when TLS
 // is enabled, or a default client when it serves plain HTTP.
 func (t *HeadscaleInContainer) httpClient() *http.Client {
 	if !t.hasTLS() {
@@ -1109,12 +1109,12 @@ func (t *HeadscaleInContainer) httpClient() *http.Client {
 	}
 }
 
-// GetIPEndpoint returns the Tower endpoint using IP address instead of hostname.
+// GetIPEndpoint returns the Headscale endpoint using IP address instead of hostname.
 func (t *HeadscaleInContainer) GetIPEndpoint() string {
 	return t.getEndpoint(true)
 }
 
-// getEndpoint returns the Tower endpoint, optionally using IP address instead of hostname.
+// getEndpoint returns the Headscale endpoint, optionally using IP address instead of hostname.
 func (t *HeadscaleInContainer) getEndpoint(useIP bool) string {
 	var host string
 	if useIP && len(t.networks) > 0 {
@@ -1149,7 +1149,7 @@ func (t *HeadscaleInContainer) GetIPInNetwork(network *dockertest.Network) strin
 	return t.container.GetIPInNetwork(network)
 }
 
-// WaitForRunning blocks until the Tower instance is ready to
+// WaitForRunning blocks until the Headscale instance is ready to
 // serve clients.
 func (t *HeadscaleInContainer) WaitForRunning() error {
 	url := t.GetHealthEndpoint()
@@ -1178,7 +1178,7 @@ func (t *HeadscaleInContainer) WaitForRunning() error {
 	})
 }
 
-// CreateUser adds a new user to the Tower instance.
+// CreateUser adds a new user to the Headscale instance.
 func (t *HeadscaleInContainer) CreateUser(
 	user string,
 ) (*clientv1.User, error) {
@@ -1333,7 +1333,7 @@ func (t *HeadscaleInContainer) DeleteAuthKey(
 	return nil
 }
 
-// ListNodes lists the currently registered Nodes in tower.
+// ListNodes lists the currently registered Nodes in headscale.
 // Optionally a list of usernames can be passed to get users for
 // specific users.
 func (t *HeadscaleInContainer) ListNodes(
@@ -1443,7 +1443,7 @@ func (t *HeadscaleInContainer) NodesByName() (map[string]*clientv1.Node, error) 
 	return nameMap, nil
 }
 
-// ListUsers returns a list of users from Tower.
+// ListUsers returns a list of users from Headscale.
 func (t *HeadscaleInContainer) ListUsers() ([]*clientv1.User, error) {
 	command := []string{binHeadscale, "users", "list", flagOutput, "json"}
 
@@ -1466,7 +1466,7 @@ func (t *HeadscaleInContainer) ListUsers() ([]*clientv1.User, error) {
 	return users, nil
 }
 
-// MapUsers returns a map of users from Tower. It is keyed by the
+// MapUsers returns a map of users from Headscale. It is keyed by the
 // user name.
 func (t *HeadscaleInContainer) MapUsers() (map[string]*clientv1.User, error) {
 	users, err := t.ListUsers()
@@ -1482,7 +1482,7 @@ func (t *HeadscaleInContainer) MapUsers() (map[string]*clientv1.User, error) {
 	return userMap, nil
 }
 
-// DeleteUser deletes a user from the Tower instance.
+// DeleteUser deletes a user from the Headscale instance.
 func (t *HeadscaleInContainer) DeleteUser(userID uint64) error {
 	command := []string{
 		binHeadscale,
@@ -1563,7 +1563,7 @@ func (h *HeadscaleInContainer) writePolicy(pol *policyv2.Policy) error {
 }
 
 func (h *HeadscaleInContainer) PID() (int, error) {
-	// Use pidof to find the tower process, which is more reliable than grep
+	// Use pidof to find the headscale process, which is more reliable than grep
 	// as it only looks for the actual binary name, not processes that contain
 	// "tower" in their command line (like the dlv debugger).
 	output, err := h.Execute([]string{"pidof", binHeadscale})
@@ -1604,7 +1604,7 @@ func (h *HeadscaleInContainer) PID() (int, error) {
 	}
 }
 
-// Reload sends a SIGHUP to the tower process to reload internals,
+// Reload sends a SIGHUP to the headscale process to reload internals,
 // for example Policy from file.
 func (h *HeadscaleInContainer) Reload() error {
 	pid, err := h.PID()
@@ -1620,7 +1620,7 @@ func (h *HeadscaleInContainer) Reload() error {
 	return nil
 }
 
-// Restart restarts the tower container. The on-disk database and keys
+// Restart restarts the headscale container. The on-disk database and keys
 // persist across the restart, but all in-memory state is dropped — including
 // the bounded cache of pending authentication sessions. This reproduces a
 // control-plane restart, one of the real-world cases where a pending SSH-check
@@ -1667,9 +1667,9 @@ func (t *HeadscaleInContainer) ApproveRoutes(id uint64, routes []netip.Prefix) (
 	return node, nil
 }
 
-// SetNodeTags sets tags on a node via the tower CLI.
-// This simulates what the Tailscale admin console UI does - it calls the tower
-// SetTags API which is exposed via the CLI command: tower nodes tag -i <id> -t <tags>.
+// SetNodeTags sets tags on a node via the headscale CLI.
+// This simulates what the Tailscale admin console UI does - it calls the headscale
+// SetTags API which is exposed via the CLI command: headscale nodes tag -i <id> -t <tags>.
 func (t *HeadscaleInContainer) SetNodeTags(nodeID uint64, tags []string) error {
 	command := []string{
 		binHeadscale, "nodes", "tag",
@@ -1697,12 +1697,12 @@ func (t *HeadscaleInContainer) SetNodeTags(nodeID uint64, tags []string) error {
 	return nil
 }
 
-// WriteFile save file inside the Tower container.
+// WriteFile save file inside the Headscale container.
 func (t *HeadscaleInContainer) WriteFile(path string, data []byte) error {
 	return integrationutil.WriteFileToContainer(t.pool, t.container, path, data)
 }
 
-// FetchPath gets a path from inside the Tower container and returns a tar
+// FetchPath gets a path from inside the Headscale container and returns a tar
 // file as byte array.
 func (t *HeadscaleInContainer) FetchPath(path string) ([]byte, error) {
 	return integrationutil.FetchPathFromContainer(t.pool, t.container, path)

@@ -1,4 +1,4 @@
-// Package state provides core state management for Tower,
+// Package state provides core state management for Headscale,
 // coordinating between subsystems like database, IP allocation,
 // policy management, and DERP routing.
 //
@@ -135,13 +135,13 @@ type sshCheckPair struct {
 	Dst types.NodeID
 }
 
-// State manages Tower's core state, coordinating between database, policy management,
+// State manages Headscale's core state, coordinating between database, policy management,
 // IP allocation, and DERP routing. All methods are thread-safe.
 //
 // See [policy.PolicyManager] for policy evaluation and [NodeStore] for the
 // in-memory node cache.
 type State struct {
-	// cfg holds the current Tower configuration
+	// cfg holds the current Headscale configuration
 	cfg *types.Config
 
 	// nodeStore provides an in-memory cache for nodes.
@@ -2013,7 +2013,7 @@ func (s *State) applyAuthNodeUpdate(params authNodeUpdateParams) (types.NodeView
 			}
 		case isTagged && node.IsExpired():
 			// Tagged → Tagged, but carrying a stale PAST expiry from an older
-			// tower's logout stamp (#3371). Tagged nodes never expire, so
+			// headscale's logout stamp (#3371). Tagged nodes never expire, so
 			// clear it; a deliberate future expiry has IsExpired() == false and
 			// falls through to the no-op below.
 			node.Expiry = nil
@@ -3020,7 +3020,7 @@ func (s *State) reregisterNodeWithPAK(
 		} else if node.IsExpiredAt(now) {
 			// A tagged node must never carry key expiry. Clear a stale
 			// PAST logout stamp so re-auth is not permanently blocked. A
-			// deliberate future expiry (tower nodes expire) is not yet
+			// deliberate future expiry (headscale nodes expire) is not yet
 			// expired and is left untouched.
 			node.Expiry = nil
 		}
@@ -3645,7 +3645,7 @@ func (s *State) UpdateNodeFromMapRequest(id types.NodeID, req tailcfg.MapRequest
 // is only safe once peers already hold an endpoint set to fall back on; the
 // first set a node announces is therefore always broadcast.
 //
-// Limitation: tower stores bare []netip.AddrPort with no per-endpoint
+// Limitation: headscale stores bare []netip.AddrPort with no per-endpoint
 // type, so we can only classify the *new* request's endpoints (via the
 // parallel newTypes slice). We therefore gate on whether any newly-added
 // endpoint (present in new, absent from stored) is useful (non-STUN). When

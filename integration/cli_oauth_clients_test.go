@@ -38,12 +38,12 @@ func TestOAuthClientCommand(t *testing.T) {
 	err = scenario.CreateHeadscaleEnv([]tsic.Option{}, hsic.WithTestName("cli-oauthclient"))
 	require.NoError(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	require.NoError(t, err)
 
 	// Create an OAuth client with scopes and a tag. devices:core/auth_keys
 	// require a tag, which is supplied.
-	createOut, err := tower.Execute([]string{
+	createOut, err := headscale.Execute([]string{
 		"tower", "oauth-clients", "create",
 		"--scope", "auth_keys",
 		"--scope", "devices:core",
@@ -65,7 +65,7 @@ func TestOAuthClientCommand(t *testing.T) {
 	var listed []cliOAuthClient
 
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		err := executeAndUnmarshal(tower,
+		err := executeAndUnmarshal(headscale,
 			[]string{"tower", "oauth-clients", "list", "--output", "json"}, &listed)
 		assert.NoError(c, err)
 		assert.Len(c, listed, 1)
@@ -77,13 +77,13 @@ func TestOAuthClientCommand(t *testing.T) {
 	assert.Equal(t, "operator", listed[0].Description)
 
 	// Delete it.
-	_, err = tower.Execute([]string{"tower", "oauth-clients", "delete", "--id", created.ID})
+	_, err = headscale.Execute([]string{"tower", "oauth-clients", "delete", "--id", created.ID})
 	require.NoError(t, err)
 
 	var afterDelete []cliOAuthClient
 
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		err := executeAndUnmarshal(tower,
+		err := executeAndUnmarshal(headscale,
 			[]string{"tower", "oauth-clients", "list", "--output", "json"}, &afterDelete)
 		assert.NoError(c, err)
 		assert.Empty(c, afterDelete)
@@ -103,7 +103,7 @@ func TestOAuthClientCommandValidation(t *testing.T) {
 	err = scenario.CreateHeadscaleEnv([]tsic.Option{}, hsic.WithTestName("cli-oauthclientval"))
 	require.NoError(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	require.NoError(t, err)
 
 	tests := []struct {
@@ -119,7 +119,7 @@ func TestOAuthClientCommandValidation(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := tower.Execute(append([]string{"tower"}, tt.args...))
+			_, err := headscale.Execute(append([]string{"tower"}, tt.args...))
 			require.ErrorContains(t, err, tt.wantErr)
 		})
 	}

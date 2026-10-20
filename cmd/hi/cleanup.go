@@ -188,7 +188,7 @@ func removeContainerWithRetry(ctx context.Context, cli *client.Client, container
 }
 
 // testContainerNamePrefixes are the name prefixes used by containers that the
-// integration test harness creates (tower, tailscale, DERP, and k3s).
+// integration test harness creates (headscale, tailscale, DERP, and k3s).
 var testContainerNamePrefixes = []string{"hs-", "ts-", "derp-", "k3s-"}
 
 // matchesTestContainerPrefix reports whether name belongs to an integration
@@ -374,7 +374,7 @@ func cleanupSuccessfulTestArtifacts(logsDir string, verbose bool) error {
 				}
 			}
 		} else {
-			// Only process test-related files (tower and tailscale)
+			// Only process test-related files (headscale and tailscale)
 			if !strings.HasPrefix(name, "hs-") && !strings.HasPrefix(name, "ts-") {
 				continue
 			}

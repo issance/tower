@@ -32,7 +32,7 @@ func (k *K3sInContainer) ApplyManifest(name, manifest string) error {
 // InstallOperator installs the Tailscale Kubernetes operator via Helm into the
 // tailscale namespace, pointed at loginServer with the given OAuth client
 // credentials. loginServer is used by the operator for both the control plane
-// and the management API; for an in-test Tower pass its HTTP endpoint by IP
+// and the management API; for an in-test Headscale pass its HTTP endpoint by IP
 // (hsic.HeadscaleInContainer.GetIPEndpoint) so the pods need no DNS or CA. The
 // operator and proxy images come from ghcr at the capver-derived tag. Blocks
 // (helm --wait) until the operator deployment is available.
@@ -125,7 +125,7 @@ spec:
 
 // DeployConnector applies a Connector CR advertising an egress subnet router for
 // advertiseRoutes, tagged with tags. The operator provisions a proxy and
-// registers it as a node in Tower.
+// registers it as a node in Headscale.
 func (k *K3sInContainer) DeployConnector(name string, tags, advertiseRoutes []string) error {
 	manifest := fmt.Sprintf(`apiVersion: tailscale.com/v1alpha1
 kind: Connector

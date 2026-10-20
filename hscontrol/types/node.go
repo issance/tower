@@ -119,7 +119,7 @@ func MustParseNodeID(s string) NodeID {
 	return id
 }
 
-// Node is a Tower client.
+// Node is a Headscale client.
 type Node struct {
 	ID NodeID `gorm:"primary_key"`
 
@@ -143,7 +143,7 @@ type Node struct {
 	// a valid name set by the [User]
 	//
 	// GivenName is the name used in all DNS related
-	// parts of tower.
+	// parts of headscale.
 	GivenName string `gorm:"type:varchar(63);unique_index"`
 
 	// UserID identifies the owning user for user-owned nodes.
@@ -169,7 +169,7 @@ type Node struct {
 	Expiry *time.Time
 
 	// LastSeen is when the node was last in contact with
-	// tower. It is best effort and not persisted.
+	// headscale. It is best effort and not persisted.
 	LastSeen *time.Time `gorm:"column:last_seen"`
 
 	// ApprovedRoutes is a list of routes that the node is allowed to announce

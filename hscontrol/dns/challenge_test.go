@@ -20,7 +20,7 @@ const (
 	// renamedName is testName's node after it changed its hostname.
 	renamedName = "_acme-challenge.renamed.ts.example.com."
 	testOwner   = 1
-	// operatorValue is a record tower did not create and must keep.
+	// operatorValue is a record headscale did not create and must keep.
 	operatorValue = "operator-owned"
 )
 

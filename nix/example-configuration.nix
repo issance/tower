@@ -1,6 +1,6 @@
-# Example NixOS configuration using the tower module
+# Example NixOS configuration using the headscale module
 #
-# This file demonstrates how to use the tower NixOS module from this flake.
+# This file demonstrates how to use the headscale NixOS module from this flake.
 # To use in your own configuration, add this to your flake.nix inputs:
 #
 #   inputs.headscale.url = "github:juanfont/headscale";
@@ -13,7 +13,7 @@
 { config, pkgs, ... }:
 
 {
-  # Import the tower module
+  # Import the headscale module
   # In a real configuration, this would come from the flake input
   # imports = [ inputs.headscale.nixosModules.default ];
 
@@ -32,7 +32,7 @@
       server_url = "https://headscale.example.com";
 
       # IP prefixes for the tailnet
-      # These use the freeform settings - you can set any tower config option
+      # These use the freeform settings - you can set any headscale config option
       prefixes = {
         v4 = "100.64.0.0/10";
         v6 = "fd7a:115c:a1e0::/48";
@@ -84,8 +84,8 @@
         # postgres = {
         #   host = "localhost";
         #   port = 5432;
-        #   name = "tower";
-        #   user = "tower";
+        #   name = "headscale";
+        #   user = "headscale";
         #   password_file = "/run/secrets/headscale-db-password";
         # };
       };
@@ -107,7 +107,7 @@
 
       # Optional: Let's Encrypt TLS certificates
       # tls.acme = {
-      #   hostname = "tower.example.com";
+      #   hostname = "headscale.example.com";
       #   challenge_type = "HTTP-01";
       # };
 
@@ -121,7 +121,7 @@
         path = "/var/lib/tower/policy.hujson";
       };
 
-      # You can add ANY tower configuration option here thanks to freeform settings
+      # You can add ANY headscale configuration option here thanks to freeform settings
       # For example, experimental features or settings not explicitly defined above:
       # experimental_feature = true;
       # custom_setting = "value";
@@ -138,7 +138,7 @@
   # Optional: Use with nginx reverse proxy for TLS termination
   # services.nginx = {
   #   enable = true;
-  #   virtualHosts."tower.example.com" = {
+  #   virtualHosts."headscale.example.com" = {
   #     enableACME = true;
   #     forceSSL = true;
   #     locations."/" = {

@@ -13,8 +13,8 @@ import (
 
 // seedPreAuthKeys creates a user-owned key and a tagged (system-created) key;
 // the tagged key exercises the user:null path.
-func seedPreAuthKeys() func(t *testing.T, app *Tower) {
-	return func(t *testing.T, app *Tower) {
+func seedPreAuthKeys() func(t *testing.T, app *Headscale) {
+	return func(t *testing.T, app *Headscale) {
 		t.Helper()
 
 		user := app.state.CreateUserForTest("alice")

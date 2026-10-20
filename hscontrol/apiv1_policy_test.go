@@ -19,8 +19,8 @@ const validPolicy = `{"acls":[{"action":"accept","src":["*"],"dst":["*:*"]}]}`
 const invalidPolicy = `{"acls": [`
 
 // seedPolicy stores a policy in the database so reads return it.
-func seedPolicy(policy string) func(t *testing.T, app *Tower) {
-	return func(t *testing.T, app *Tower) {
+func seedPolicy(policy string) func(t *testing.T, app *Headscale) {
+	return func(t *testing.T, app *Headscale) {
 		t.Helper()
 
 		_, err := app.state.SetPolicyInDB(policy)
@@ -146,7 +146,7 @@ func TestAPIV1PolicyCheck(t *testing.T) {
 
 // createFilePolicyApp mirrors createTestApp but with file-based policy mode so
 // the policy-update-disabled path can be exercised.
-func createFilePolicyApp(t *testing.T) *Tower {
+func createFilePolicyApp(t *testing.T) *Headscale {
 	t.Helper()
 
 	tmpDir := t.TempDir()

@@ -1,5 +1,5 @@
 #!/bin/sh
-# postinst script for tower.
+# postinst script for headscale.
 
 set -e
 
@@ -15,8 +15,8 @@ set -e
 # for details, see https://www.debian.org/doc/debian-policy/ or
 # the debian-policy package.
 
-HEADSCALE_USER="tower"
-HEADSCALE_GROUP="tower"
+HEADSCALE_USER="headscale"
+HEADSCALE_GROUP="headscale"
 HEADSCALE_HOME_DIR="/var/lib/tower"
 HEADSCALE_SHELL="/usr/sbin/nologin"
 HEADSCALE_SERVICE="tower.service"
@@ -27,7 +27,7 @@ case "$1" in
       if ! id -u "$HEADSCALE_USER" >/dev/null 2>&1; then
         useradd --system --shell "$HEADSCALE_SHELL" \
           --gid "$HEADSCALE_GROUP" --home-dir "$HEADSCALE_HOME_DIR" \
-          --comment "tower default user" "$HEADSCALE_USER"
+          --comment "headscale default user" "$HEADSCALE_USER"
       fi
 
       # Enable service and keep track of its state

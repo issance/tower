@@ -204,7 +204,7 @@ func TestNodeAttrsBaselineCapsAlwaysOn(t *testing.T) {
 // TestTaildropDisabledWithholdsFileSharingCap asserts the off path of
 // the Taildrop config gate. The Tailscale v2 API does not expose the
 // equivalent tailnet setting, so the nodeAttrs compat suite cannot
-// vary it; this test covers the tower side directly.
+// vary it; this test covers the headscale side directly.
 func TestTaildropDisabledWithholdsFileSharingCap(t *testing.T) {
 	t.Parallel()
 

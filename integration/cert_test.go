@@ -65,7 +65,7 @@ HTTPServer(("127.0.0.1", int(sys.argv[1])), Echo).serve_forever()
 `
 
 // TestTailscaleCert runs `tailscale cert` on every client version against
-// tower's real rfc2136 provider, then runs every `tailscale serve`
+// headscale's real rfc2136 provider, then runs every `tailscale serve`
 // mode on each and fetches it from another user's node. A TSIG-checked
 // DNS server and Pebble (Let's Encrypt's test CA) run inside this test
 // process; the containers reach them through the test suite's address in
@@ -159,16 +159,16 @@ func TestTailscaleCert(t *testing.T) {
 	// display name differs from its login, so the headers must name the
 	// requester rather than the serving node's owner, and login apart from
 	// name.
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	require.NoError(t, err)
 
-	_, err = tower.Execute([]string{
+	_, err = headscale.Execute([]string{
 		"tower", "users", "create", "user2",
 		"--email=user2@test.no", "--display-name=User Two",
 	})
 	require.NoError(t, err)
 
-	users, err := tower.MapUsers()
+	users, err := headscale.MapUsers()
 	require.NoError(t, err)
 
 	key, err := scenario.CreatePreAuthKey(mustParseID(users["user2"].Id), false, false)
@@ -183,7 +183,7 @@ func TestTailscaleCert(t *testing.T) {
 
 	scenario.GetOrCreateUser("user2").Clients[fetcher.Hostname()] = fetcher
 
-	require.NoError(t, fetcher.Login(tower.GetEndpoint(), key.Key))
+	require.NoError(t, fetcher.Login(headscale.GetEndpoint(), key.Key))
 	require.NoError(t, fetcher.WaitForRunning(integrationutil.PeerSyncTimeout()))
 
 	backend := fmt.Sprintf("127.0.0.1:%d", webserverPort)
@@ -268,7 +268,7 @@ func suiteAddrIn(network *dockertest.Network) (string, error) {
 
 // updateDNS is an authoritative DNS server for one zone that accepts
 // RFC 2136 updates signed with a TSIG key, like a BIND zone with an
-// update-policy, so an issued certificate proves tower signs them. It
+// update-policy, so an issued certificate proves headscale signs them. It
 // serves TCP only: both rfc2136 and Pebble use TCP.
 type updateDNS struct {
 	addr, port string

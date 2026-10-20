@@ -1,7 +1,7 @@
 // This file implements a data-driven test runner for grant compatibility
 // tests. It loads HuJSON golden files from testdata/grant_results/grant-*.hujson
 // and via-grant-*.hujson, captured from a Tailscale-hosted control plane, and compares
-// tower's grants engine output against the captured packet filter rules.
+// headscale's grants engine output against the captured packet filter rules.
 //
 // Each file is a testcapture.Capture containing:
 //   - A full policy with grants (and optionally ACLs)
@@ -9,7 +9,7 @@
 //   - Or an error response for invalid policies
 //
 // Tests known to fail due to unimplemented features or known differences are
-// skipped with a TODO comment explaining the root cause. As tower's grants
+// skipped with a TODO comment explaining the root cause. As headscale's grants
 // implementation improves, tests should be removed from the skip list.
 //
 // Test data source: testdata/grant_results/{grant,via-grant}-*.hujson
@@ -148,13 +148,13 @@ var grantSkipReasons = map[string]string{
 	// USER_PASSKEY_WILDCARD (2 tests)
 	//
 	// Tailscale SaaS policies can use user:*@passkey as a wildcard matching
-	// all passkey-authenticated users. tower does not support passkey
+	// all passkey-authenticated users. headscale does not support passkey
 	// authentication and has no equivalent for this wildcard pattern.
 	"grant-k20": "USER_PASSKEY_WILDCARD: src=user:*@passkey not supported in tower",
 	"grant-k21": "USER_PASSKEY_WILDCARD: dst=user:*@passkey not supported in tower",
 
 	// SaaS lists contiguous source addresses one by one and writes
-	// autogroup:internet as address ranges; tower merges sources into
+	// autogroup:internet as address ranges; headscale merges sources into
 	// ranges and writes the internet as prefixes. The address sets match;
 	// TestViaGrantMapCompat compares these captures' filters by address.
 	"via-grant-v52": "FILTER_ADDRESS_FORM: same addresses, different wire form",
@@ -171,7 +171,7 @@ var grantSkipReasons = map[string]string{
 }
 
 // TestGrantsCompat is a data-driven test that loads all GRANT-*.json
-// test files captured from Tailscale SaaS and compares tower's grants
+// test files captured from Tailscale SaaS and compares headscale's grants
 // engine output against the real Tailscale behavior.
 //
 // Each JSON file contains:
@@ -179,7 +179,7 @@ var grantSkipReasons = map[string]string{
 //   - For success cases: expected packet_filter_rules per node
 //   - For error cases: expected error message
 //
-// The test converts Tailscale user email formats to tower format
+// The test converts Tailscale user email formats to headscale format
 // (@example.com, @example.org) and runs the policy through unmarshalPolicy,
 // validate, compileFilterRulesForNode, and ReduceFilterRules.
 //
@@ -259,7 +259,7 @@ func testGrantError(t *testing.T, policyJSON []byte, tf *testcapture.Capture) {
 		tf.TestID, wantMsg)
 }
 
-// assertGrantErrorContains requires that tower's error contains
+// assertGrantErrorContains requires that headscale's error contains
 // the Tailscale SaaS error message exactly. Divergence means an
 // emitter needs to be aligned, not papered over with a translation
 // table.
@@ -298,7 +298,7 @@ func testGrantSuccess(
 			require.NotNilf(t, node,
 				"golden node %s not found in test setup", nodeName)
 
-			// Compile tower filter rules for this node
+			// Compile headscale filter rules for this node
 			gotRules := pol.compileFilterRulesForNode(
 				users,
 				node.View(),
@@ -309,11 +309,11 @@ func testGrantSuccess(
 
 			wantRules := capture.PacketFilterRules
 
-			// Compare tower output against Tailscale expected output.
-			// The diff labels show (-tailscale +tower) to make clear
+			// Compare headscale output against Tailscale expected output.
+			// The diff labels show (-tailscale +headscale) to make clear
 			// which side produced which output.
 			// EquateEmpty treats nil and empty slices as equal since
-			// Tailscale's JSON null -> nil, tower may return empty slice.
+			// Tailscale's JSON null -> nil, headscale may return empty slice.
 			opts := append(cmpOptions(), cmpopts.EquateEmpty())
 			if diff := cmp.Diff(wantRules, gotRules, opts...); diff != "" {
 				t.Errorf(

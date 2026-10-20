@@ -21,14 +21,14 @@ func init() {
 const defaultExpiry = 90 * 24 * time.Hour
 
 const (
-	// keyTypeAuth is a machine auth key (Tower pre-auth key); the default.
+	// keyTypeAuth is a machine auth key (Headscale pre-auth key); the default.
 	keyTypeAuth = "auth"
 	// keyTypeClient is an OAuth client (client-credentials). Multiplexed onto the
 	// keys resource exactly as Tailscale does.
 	keyTypeClient = "client"
 )
 
-// KeyCapabilities maps a resource to the actions a key permits. Tower
+// KeyCapabilities maps a resource to the actions a key permits. Headscale
 // populates only devices.create (auth keys); the named types (vs Tailscale's
 // anonymous nesting) give Huma stable schema names.
 type KeyCapabilities struct {
@@ -477,7 +477,7 @@ func findKeyByID(b Backend, rawID string) (*types.PreAuthKey, error) {
 
 // keyFromNew builds the create response from the freshly created key. The
 // plaintext secret is returned only here. preauthorized is reported true to
-// match keyFromStored: Tower always authorizes pre-auth-key nodes, so the
+// match keyFromStored: Headscale always authorizes pre-auth-key nodes, so the
 // create and read paths must agree or the Terraform provider sees a diff.
 func keyFromNew(pak *types.PreAuthKeyNew, req CreateKeyRequest) Key {
 	var create KeyDeviceCreateCapabilities
@@ -514,7 +514,7 @@ func keyFromNew(pak *types.PreAuthKeyNew, req CreateKeyRequest) Key {
 }
 
 // keyFromStored builds the get/list response from a stored key. The secret is
-// never returned here. preauthorized is reported true: Tower has no separate
+// never returned here. preauthorized is reported true: Headscale has no separate
 // device-approval step, so every pre-auth key authorizes its nodes. Reporting it
 // stably keeps the Terraform provider from seeing a forced-replacement diff.
 func keyFromStored(pak *types.PreAuthKey) Key {

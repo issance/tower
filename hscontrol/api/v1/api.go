@@ -1,4 +1,4 @@
-// Package apiv1 is the code-first Huma implementation of the Tower v1 API.
+// Package apiv1 is the code-first Huma implementation of the Headscale v1 API.
 // Handlers are a thin adapter over hscontrol/state; Huma emits the OpenAPI 3.1
 // spec from the Go definitions (see Spec), and that spec drives the client.
 //

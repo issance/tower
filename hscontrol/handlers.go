@@ -133,7 +133,7 @@ func parseCapabilityVersion(req *http.Request) (tailcfg.CapabilityVersion, error
 // OOMing the public router with arbitrarily large POSTs.
 const verifyBodyLimit int64 = 4 * 1024
 
-func (h *Tower) handleVerifyRequest(
+func (h *Headscale) handleVerifyRequest(
 	req *http.Request,
 	writer io.Writer,
 ) error {
@@ -161,7 +161,7 @@ func (h *Tower) handleVerifyRequest(
 // VerifyHandler answers a DERP server's client-verification POST
 // ([tailcfg.DERPAdmitClientRequest]). A client is admitted while its NodeKey
 // belongs to a registered node; expiry, tags and ephemerality do not gate it.
-func (h *Tower) VerifyHandler(
+func (h *Headscale) VerifyHandler(
 	writer http.ResponseWriter,
 	req *http.Request,
 ) {
@@ -186,9 +186,9 @@ func (h *Tower) VerifyHandler(
 	}
 }
 
-// KeyHandler provides the Tower pub key
+// KeyHandler provides the Headscale pub key
 // Listens in /key.
-func (h *Tower) KeyHandler(
+func (h *Headscale) KeyHandler(
 	writer http.ResponseWriter,
 	req *http.Request,
 ) {
@@ -223,7 +223,7 @@ func (h *Tower) KeyHandler(
 	}
 }
 
-func (h *Tower) HealthHandler(
+func (h *Headscale) HealthHandler(
 	writer http.ResponseWriter,
 	req *http.Request,
 ) {
@@ -258,7 +258,7 @@ func (h *Tower) HealthHandler(
 	respond(nil)
 }
 
-func (h *Tower) RobotsHandler(
+func (h *Headscale) RobotsHandler(
 	writer http.ResponseWriter,
 	req *http.Request,
 ) {
@@ -274,9 +274,9 @@ func (h *Tower) RobotsHandler(
 	}
 }
 
-// VersionHandler returns version information about the Tower server
+// VersionHandler returns version information about the Headscale server
 // Listens in /version.
-func (h *Tower) VersionHandler(
+func (h *Headscale) VersionHandler(
 	writer http.ResponseWriter,
 	req *http.Request,
 ) {

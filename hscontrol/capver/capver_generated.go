@@ -89,5 +89,5 @@ var capVerToTailscaleVer = map[tailcfg.CapabilityVersion]string{
 const SupportedMajorMinorVersions = 10
 
 // MinSupportedCapabilityVersion represents the minimum capability version
-// supported by this Tower instance (latest 10 minor versions)
+// supported by this Headscale instance (latest 10 minor versions)
 const MinSupportedCapabilityVersion tailcfg.CapabilityVersion = 116

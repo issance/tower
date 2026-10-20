@@ -144,7 +144,7 @@ func WithNetwork(network *dockertest.Network) Option {
 	}
 }
 
-// WithHeadscaleName set the name of the tower instance,
+// WithHeadscaleName set the name of the headscale instance,
 // mostly useful in combination with TLS and WithCACert.
 func WithHeadscaleName(hsName string) Option {
 	return func(tsic *TailscaleInContainer) {
@@ -169,7 +169,7 @@ func WithWebsocketDERP(enabled bool) Option {
 
 // WithDERPOverHTTP makes the client reach the DERP server over plain-HTTP
 // websockets (TS_DEBUG_DERP_WS_CLIENT + TS_DEBUG_USE_DERP_HTTP). It is the
-// counterpart to [hsic.WithoutTLS]: a Tower serving its embedded DERP without
+// counterpart to [hsic.WithoutTLS]: a Headscale serving its embedded DERP without
 // TLS is otherwise unreachable, because the client defaults to dialing DERP over
 // HTTPS.
 func WithDERPOverHTTP() Option {

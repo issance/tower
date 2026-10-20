@@ -19,7 +19,7 @@ import (
 // OAuth token endpoint, which the humatest harness in apiv2_keys_test.go does
 // not mount) over a real httptest server, returning the app, its base URL, and
 // an all-access admin API key.
-func newOAuthTestServer(t *testing.T) (*Tower, string, string) {
+func newOAuthTestServer(t *testing.T) (*Headscale, string, string) {
 	t.Helper()
 
 	app := createTestApp(t)

@@ -127,7 +127,7 @@ func TestResolveMagicDNSExtraRecordsPath(t *testing.T) {
 		assertCommandOutputContains(t, client, []string{"dig", "test.myvpn.example.com"}, "6.6.6.6")
 	}
 
-	hs, err := scenario.Tower()
+	hs, err := scenario.Headscale()
 	require.NoError(t, err)
 
 	// Write the file directly into place from the docker API.

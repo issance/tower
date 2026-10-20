@@ -67,7 +67,7 @@ type AuthInfo struct {
 }
 
 type AuthProviderOIDC struct {
-	h         *Tower
+	h         *Headscale
 	serverURL string
 	cfg       *types.OIDCConfig
 
@@ -82,7 +82,7 @@ type AuthProviderOIDC struct {
 
 func NewAuthProviderOIDC(
 	ctx context.Context,
-	h *Tower,
+	h *Headscale,
 	serverURL string,
 	cfg *types.OIDCConfig,
 ) (*AuthProviderOIDC, error) {
@@ -120,7 +120,7 @@ func NewAuthProviderOIDC(
 
 // cookiesSecure reports whether the OIDC cookies should carry the Secure flag.
 // It keys off the configured server_url scheme, not req.TLS, so cookies stay
-// Secure behind a TLS-terminating reverse proxy (where the proxy→Tower hop
+// Secure behind a TLS-terminating reverse proxy (where the proxy→Headscale hop
 // is plain HTTP and req.TLS is nil). Deriving it from config avoids trusting a
 // spoofable X-Forwarded-Proto header.
 func (a *AuthProviderOIDC) cookiesSecure() bool {
@@ -698,7 +698,7 @@ var errRegistrationLinkSpent = newHTTPUserError(
 
 // registerConfirmURL is the browser-facing URL of the confirmation page.
 // It is built from server_url, like [AuthProviderOIDC.RegisterURL] and the
-// OIDC redirect URI, so a Tower that a reverse proxy serves under a
+// OIDC redirect URI, so a Headscale that a reverse proxy serves under a
 // path prefix hands the browser a URL that resolves.
 func (a *AuthProviderOIDC) registerConfirmURL(authID types.AuthID) string {
 	return authPathURL(a.serverURL, "register/confirm", authID)

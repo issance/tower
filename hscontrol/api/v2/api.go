@@ -1,12 +1,12 @@
-// Package apiv2 is Tower's v2 HTTP API, served at /api/v2.
+// Package apiv2 is Headscale's v2 HTTP API, served at /api/v2.
 //
 // Where the v1 API (hscontrol/api/v1) is the headscale-native admin surface, v2
 // additionally ports selected endpoints from Tailscale's API, reusing
 // Tailscale's wire shapes (paths, request/response JSON, error body), so the
 // existing Tailscale ecosystem (the Terraform/OpenTofu provider, tscli, and
-// tailscale.com/client/tailscale/v2) can drive Tower unchanged. Ported
+// tailscale.com/client/tailscale/v2) can drive Headscale unchanged. Ported
 // operations carry the "Tailscale compat" tag; a headscale-native v2 operation
-// may use tower's own conventions instead. See README.md for the porting
+// may use headscale's own conventions instead. See README.md for the porting
 // guide.
 //
 // It depends only on the domain layer (hscontrol/state, hscontrol/types, and
@@ -268,7 +268,7 @@ func principalTags(ctx context.Context) ([]string, bool) {
 	return tags, ok
 }
 
-// requireDefaultTailnet rejects any tailnet other than "-". Tower is
+// requireDefaultTailnet rejects any tailnet other than "-". Headscale is
 // single-tailnet; the Tailscale SDK sends "-" (its default tailnet). A non-"-"
 // value is "no such tailnet", a 404, which lets the SDK's IsNotFound behave.
 func requireDefaultTailnet(tailnet string) error {

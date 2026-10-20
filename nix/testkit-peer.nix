@@ -1,5 +1,5 @@
 # A tailscaled peer for nix/testkit.nix: `hs-join KEY` joins the kit's control
-# node, which is named tower. Contract: nix/README.md.
+# node, which is named headscale. Contract: nix/README.md.
 {
   config,
   lib,

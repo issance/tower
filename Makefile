@@ -1,4 +1,4 @@
-# Tower Makefile
+# Headscale Makefile
 # Modern Makefile following best practices
 
 # Version calculation
@@ -38,8 +38,8 @@ check-deps:
 # Build targets
 .PHONY: build
 build: check-deps $(GO_SOURCES) go.mod go.sum
-	@echo "Building tower..."
-	go build $(PIE_FLAGS) -ldflags "-X main.version=$(VERSION)" -o tower ./cmd/tower
+	@echo "Building headscale..."
+	go build $(PIE_FLAGS) -ldflags "-X main.version=$(VERSION)" -o headscale ./cmd/tower
 
 # Test targets
 .PHONY: test
@@ -110,13 +110,13 @@ client:
 # Clean targets
 .PHONY: clean
 clean:
-	rm -rf tower gen/client
+	rm -rf headscale gen/client
 
 # Development workflow
 .PHONY: dev
 dev: fmt lint test build
 
-# Start a local tower dev server (use mts to add nodes)
+# Start a local headscale dev server (use mts to add nodes)
 .PHONY: dev-server
 dev-server:
 	go run ./cmd/dev
@@ -124,11 +124,11 @@ dev-server:
 # Help target
 .PHONY: help
 help:
-	@echo "Tower Development Makefile"
+	@echo "Headscale Development Makefile"
 	@echo ""
 	@echo "Main targets:"
 	@echo "  all          - Run lint, test, and build (default)"
-	@echo "  build        - Build tower binary"
+	@echo "  build        - Build headscale binary"
 	@echo "  test         - Run Go tests"
 	@echo "  fmt          - Format all code (Go, docs, markup)"
 	@echo "  lint         - Lint all code (Go)"

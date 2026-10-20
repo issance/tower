@@ -23,8 +23,8 @@ import (
 // the matching HTTP-client Go type, so a change to the API handlers,
 // schema definitions or output encoders that breaks a command is caught here.
 
-func executeAndUnmarshal[T any](tower ControlServer, command []string, result T) error {
-	str, err := tower.Execute(command)
+func executeAndUnmarshal[T any](headscale ControlServer, command []string, result T) error {
+	str, err := headscale.Execute(command)
 	if err != nil {
 		return err
 	}
@@ -42,10 +42,10 @@ func executeAndUnmarshal[T any](tower ControlServer, command []string, result T)
 // asserting the serialisation is stable. This is the transport contract guard:
 // if the underlying type drifts in a way that loses data, the round-trip
 // breaks. The decoded value is returned so callers can assert on real fields.
-func assertJSONRoundtrip[T any](t require.TestingT, tower ControlServer, command []string) T {
+func assertJSONRoundtrip[T any](t require.TestingT, headscale ControlServer, command []string) T {
 	var first T
 
-	err := executeAndUnmarshal(tower, command, &first)
+	err := executeAndUnmarshal(headscale, command, &first)
 	require.NoError(t, err, "decoding CLI json output")
 
 	firstBytes, err := json.Marshal(first)
@@ -71,9 +71,9 @@ func sortWithID(a, b *clientv1.User) int {
 }
 
 // setupCLIScenario boots a scenario with the given users and nodes-per-user,
-// creates the tower environment and returns the running scenario and its
+// creates the headscale environment and returns the running scenario and its
 // control server. It removes the repeated NewScenario/CreateHeadscaleEnv/
-// Tower boilerplate shared by the CLI tests. Callers still defer
+// Headscale boilerplate shared by the CLI tests. Callers still defer
 // scenario.ShutdownAssertNoPanics(t) themselves so the cleanup is visible at
 // the call site.
 func setupCLIScenario(t *testing.T, testName string, users []string, nodesPerUser int) (*Scenario, ControlServer) {
@@ -90,8 +90,8 @@ func setupCLIScenario(t *testing.T, testName string, users []string, nodesPerUse
 	err = scenario.CreateHeadscaleEnv([]tsic.Option{}, hsic.WithTestName(testName))
 	require.NoError(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	require.NoError(t, err)
 
-	return scenario, tower
+	return scenario, headscale
 }

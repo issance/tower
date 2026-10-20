@@ -5,7 +5,7 @@
 // access to autogroup:internet:* combined with autoApprovers.exitNode
 // approving exit routes on tagged exit nodes. SaaS surfaces those exit
 // nodes as peers in the ACL source's netmap with 0.0.0.0/0 and ::/0 in
-// AllowedIPs. Tower must do the same — that is the user-visible UX
+// AllowedIPs. Headscale must do the same — that is the user-visible UX
 // driving `tailscale exit-node list`.
 //
 // Captures live under testdata/issue_3212/ rather than testdata/
@@ -33,11 +33,11 @@ import (
 )
 
 // TestIssue3212AutogroupInternetExitVisibility loads the b17/b18
-// SaaS captures and asserts tower's BuildPeerMap surfaces every
+// SaaS captures and asserts headscale's BuildPeerMap surfaces every
 // exit-route advertiser to every ACL-source node — matching the peer
 // list in the captured netmap.
 //
-// The bug fixed by this PR (#3212) was that tower skipped
+// The bug fixed by this PR (#3212) was that headscale skipped
 // autogroup:internet during FilterRule compilation, which silently
 // dropped the matchers that Node.CanAccess reads via DestsIsTheInternet.
 // The captures pin the SaaS-equivalent expectation as a regression

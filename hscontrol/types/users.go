@@ -58,7 +58,7 @@ func (u Users) String() string {
 	return sb.String()
 }
 
-// User is the way Tower implements the concept of users in Tailscale
+// User is the way Headscale implements the concept of users in Tailscale
 //
 // At the end of the day, users in Tailscale are some kind of 'bubbles' or users
 // that contain our machines.
@@ -125,9 +125,9 @@ func (u *User) TypedID() *UserID {
 // Username is the main way to get the username of a user,
 // it will return the email if it exists, the name if it exists,
 // the OIDCIdentifier if it exists, and the ID if nothing else exists.
-// Email and OIDCIdentifier will be set when the user has tower
+// Email and OIDCIdentifier will be set when the user has headscale
 // enabled with OIDC, which means that there is a domain involved which
-// should be used throughout tower, in information returned to the
+// should be used throughout headscale, in information returned to the
 // user and the Policy engine.
 func (u *User) Username() string {
 	return cmp.Or(

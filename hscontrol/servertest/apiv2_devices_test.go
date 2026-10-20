@@ -449,7 +449,7 @@ func apiv2DevicesACLTerraform(t *testing.T, srv *servertest.TestServer, baseURL,
 	tf.assertNoDrift()
 
 	// destroy resets the policy; the node is a data source, so it persists.
-	// Tags/expiry teardown are no-ops on Tower, so they are not reverted.
+	// Tags/expiry teardown are no-ops on Headscale, so they are not reverted.
 	tf.run("destroy", "-auto-approve", "-no-color", "-input=false", "-parallelism=1")
 
 	_, ok := srv.State().GetNodeByID(id)

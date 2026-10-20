@@ -644,7 +644,7 @@ func isPermanentDockerPullError(err error) bool {
 		strings.Contains(msg, "no such image")
 }
 
-// listControlFiles displays the tower test artifacts created in the control logs directory.
+// listControlFiles displays the headscale test artifacts created in the control logs directory.
 func listControlFiles(logsDir string) {
 	entries, err := os.ReadDir(logsDir)
 	if err != nil {
@@ -660,7 +660,7 @@ func listControlFiles(logsDir string) {
 
 	for _, entry := range entries {
 		name := entry.Name()
-		// Only show tower (hs-*) files and directories
+		// Only show headscale (hs-*) files and directories
 		if !strings.HasPrefix(name, "hs-") {
 			continue
 		}
@@ -834,7 +834,7 @@ func extractContainerLogs(ctx context.Context, cli *client.Client, containerID, 
 	}
 	defer logReader.Close()
 
-	// Create log files following the tower naming convention
+	// Create log files following the headscale naming convention
 	stdoutPath := filepath.Join(logsDir, containerName+".stdout.log")
 	stderrPath := filepath.Join(logsDir, containerName+".stderr.log")
 

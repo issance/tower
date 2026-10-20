@@ -1,6 +1,6 @@
 // Replay golden HuJSON captures under testdata/sshtest_results/*.hujson:
-// the 200 path requires tower's evaluateSSHTests to pass; the
-// non-200 path requires tower to reject the same input with the
+// the 200 path requires headscale's evaluateSSHTests to pass; the
+// non-200 path requires headscale to reject the same input with the
 // captured error body as a substring. Divergences are listed in
 // knownSSHTesterDivergences with the engine gap each represents.
 
@@ -16,7 +16,7 @@ import (
 )
 
 // knownSSHTesterDivergences names the engine gap for each capture where
-// tower and upstream disagree.
+// headscale and upstream disagree.
 var knownSSHTesterDivergences = map[string]string{
 	"sshtest-malformed-dst-bare-ipv6": "bare-IPv6 sshTests dst: upstream parse-accepts then engine-rejects; tower accepts (IPv4 mirror passes both sides)",
 }

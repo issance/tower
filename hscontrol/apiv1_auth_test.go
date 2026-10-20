@@ -23,8 +23,8 @@ func seedAuthRequest(
 	nodeKey key.NodePublic,
 	discoKey key.DiscoPublic,
 	hostname string,
-) func(t *testing.T, app *Tower) {
-	return func(t *testing.T, app *Tower) {
+) func(t *testing.T, app *Headscale) {
+	return func(t *testing.T, app *Headscale) {
 		t.Helper()
 
 		app.state.CreateUserForTest(user)

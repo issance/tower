@@ -7,7 +7,7 @@ import (
 )
 
 // Design System Constants
-// These constants define the visual language for all Tower HTML templates.
+// These constants define the visual language for all Headscale HTML templates.
 // They ensure consistency across all pages and make it easy to maintain and update the design.
 
 // Spacing System

@@ -119,7 +119,7 @@ type NodeConfig struct {
 	Routes RouteConfig
 }
 
-// Config contains the initial Tower configuration.
+// Config contains the initial Headscale configuration.
 type Config struct {
 	ServerURL           string
 	Addr                string
@@ -141,7 +141,7 @@ type Config struct {
 
 	TLS TLSConfig
 
-	// DNSConfig is the tower representation of the DNS configuration.
+	// DNSConfig is the headscale representation of the DNS configuration.
 	// It is kept in the config update for some settings that are
 	// not directly converted into a [tailcfg.DNSConfig].
 	DNSConfig DNSConfig
@@ -180,7 +180,7 @@ type DNSConfig struct {
 }
 
 // CertificatesConfig lets nodes get TLS certificates for their MagicDNS
-// name with `tailscale cert`. The node runs ACME itself; tower
+// name with `tailscale cert`. The node runs ACME itself; headscale
 // publishes its DNS-01 challenge through [DNSChallengeConfig].
 type CertificatesConfig struct {
 	Enabled bool
@@ -190,7 +190,7 @@ type CertificatesConfig struct {
 }
 
 // DNSChallengeConfig is the DNS provider answering ACME DNS-01
-// challenges for node certificates and tower's own certificate.
+// challenges for node certificates and headscale's own certificate.
 type DNSChallengeConfig struct {
 	PropagationTimeout time.Duration
 	Resolvers          []string
@@ -251,7 +251,7 @@ type TLSConfig struct {
 	ACME ACMEConfig
 }
 
-// ACMEConfig gets tower's own certificate from an ACME CA.
+// ACMEConfig gets headscale's own certificate from an ACME CA.
 type ACMEConfig struct {
 	Hostname      string
 	ChallengeType string
@@ -351,7 +351,7 @@ type TaildropConfig struct {
 }
 
 // AutoUpdateConfig controls the tailnet-wide default for client
-// auto-update. When Enabled is true, tower emits the
+// auto-update. When Enabled is true, headscale emits the
 // [tailcfg.NodeAttrDefaultAutoUpdate] cap with value [true] on every
 // node's CapMap; clients fall back to that default unless they have
 // opted in or out locally.
@@ -361,7 +361,7 @@ type AutoUpdateConfig struct {
 
 type CLIConfig struct {
 	Address  string
-	APIKey   string `json:"-"` // never serialise the tower admin API key
+	APIKey   string `json:"-"` // never serialise the headscale admin API key
 	Timeout  time.Duration
 	Insecure bool
 }
@@ -380,7 +380,7 @@ type LogConfig struct {
 	Level  zerolog.Level
 }
 
-// Tuning contains advanced performance tuning parameters for Tower.
+// Tuning contains advanced performance tuning parameters for Headscale.
 // These settings control internal batching, timeouts, and resource allocation.
 // The defaults are carefully chosen for typical deployments and should rarely
 // need adjustment. Changes to these values can significantly impact performance
@@ -420,7 +420,7 @@ type Tuning struct {
 	// peer relationships between all nodes based on the current ACL policy, which
 	// is computationally expensive and scales with the square of the number of nodes.
 	//
-	// By batching writes, Tower can process N operations but only rebuild once,
+	// By batching writes, Headscale can process N operations but only rebuild once,
 	// rather than rebuilding N times. This significantly reduces CPU usage during
 	// bulk operations like initial sync or policy updates.
 	//
@@ -489,7 +489,7 @@ func (c *Config) Domain() string {
 	return u.Hostname()
 }
 
-// LoadConfig prepares and loads the Tower configuration into Viper.
+// LoadConfig prepares and loads the Headscale configuration into Viper.
 // This means it sets the default values, reads the configuration file and
 // environment variables, and handles deprecated configuration options.
 // It has to be called before [LoadServerConfig] and [LoadCLIConfig].
@@ -742,7 +742,7 @@ func validateServerConfigInto(v *configValidator) {
 	if tlsKey("tls.acme.hostname") != "" &&
 		tlsKey("tls.acme.challenge_type") == TLSALPN01ChallengeType &&
 		!strings.HasSuffix(viper.GetString("listen_addr"), ":443") {
-		// this is only a warning because there could be something sitting in front of tower that redirects the traffic (e.g. an iptables rule)
+		// this is only a warning because there could be something sitting in front of headscale that redirects the traffic (e.g. an iptables rule)
 		log.Warn().
 			Msg("Warning: when using tls.acme.hostname with TLS-ALPN-01 as challenge type, tower must be reachable on port 443, i.e. listen_addr should probably end in :443")
 	}
@@ -1023,7 +1023,7 @@ func dnsChallengeConfig() (DNSChallengeConfig, error) {
 	}
 
 	// Only node certificates let a client pick what is published; a record
-	// shared by tower's own certificate alone is harmless.
+	// shared by headscale's own certificate alone is harmless.
 	if iso, ok := provider.(hsdns.Isolator); ok && viper.GetBool("dns.certificates.enabled") {
 		err = iso.CheckIsolation()
 		if err != nil {
@@ -1394,7 +1394,7 @@ func trustedProxies() ([]netip.Prefix, error) {
 }
 
 // LoadCLIConfig returns the needed configuration for the CLI client
-// of Tower to connect to a Tower server.
+// of Headscale to connect to a Headscale server.
 func LoadCLIConfig() (*Config, error) {
 	logConfig := logConfig()
 	zerolog.SetGlobalLevel(logConfig.Level)
@@ -1412,8 +1412,8 @@ func LoadCLIConfig() (*Config, error) {
 	}, nil
 }
 
-// LoadServerConfig returns the full Tower configuration to
-// host a Tower server. This is called as part of `tower serve`.
+// LoadServerConfig returns the full Headscale configuration to
+// host a Headscale server. This is called as part of `tower serve`.
 func LoadServerConfig() (*Config, error) {
 	v := &configValidator{}
 	validateServerConfigInto(v)
@@ -1593,7 +1593,7 @@ func LoadServerConfig() (*Config, error) {
 
 	// BaseDomain cannot be the same as the server URL.
 	// This is because Tailscale takes over the domain in BaseDomain,
-	// causing the tower server and DERP to be unreachable.
+	// causing the headscale server and DERP to be unreachable.
 	// For Tailscale upstream, the following is true:
 	// - DERP run on their own domains
 	// - Control plane runs on login.tailscale.com/controlplane.tailscale.com
@@ -1757,7 +1757,7 @@ func addServerURLConfigError(v *configValidator, serverURL, baseDomain string, e
 
 // BaseDomain cannot be a suffix of the server URL.
 // This is because Tailscale takes over the domain in BaseDomain,
-// causing the tower server and DERP to be unreachable.
+// causing the headscale server and DERP to be unreachable.
 // For Tailscale upstream, the following is true:
 // - DERP run on their own domains.
 // - Control plane runs on login.tailscale.com/controlplane.tailscale.com.

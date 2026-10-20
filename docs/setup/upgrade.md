@@ -7,7 +7,7 @@
 
 Update an existing Tower installation to a new version:
 
-- Read the announcement on the [GitHub releases](https://github.com/juanfont/headscale/releases) page for the new
+- Read the announcement on the [GitHub releases](https://github.com/juanfont/tower/releases) page for the new
   version. It lists the changes of the release along with possible breaking changes and version-specific upgrade
   instructions.
 - Stop Tower

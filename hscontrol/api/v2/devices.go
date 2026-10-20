@@ -18,8 +18,8 @@ func init() {
 	registrations = append(registrations, registerDevices)
 }
 
-// Device is the Tailscale device response. Tower nodes map onto it; fields
-// Tower does not track are emitted as their zero value. The route slices
+// Device is the Tailscale device response. Headscale nodes map onto it; fields
+// Headscale does not track are emitted as their zero value. The route slices
 // are only populated for the fields=all variant, matching Tailscale.
 type Device struct {
 	Addresses         []string   `json:"addresses"          nullable:"false"`
@@ -63,7 +63,7 @@ type (
 	}
 	// setTagsRequest.Tags is intentionally not nullable:"false": the SDK sends
 	// "tags":null for "make untagged", which the handler accepts as a no-op
-	// rather than failing to decode (Tower cannot untag a node).
+	// rather than failing to decode (Headscale cannot untag a node).
 	setTagsRequest struct {
 		Tags []string `json:"tags"`
 	}
@@ -202,7 +202,7 @@ func registerDevices(api huma.API, b Backend) {
 			return nil, err
 		}
 
-		// Tower nodes are authorized the moment they register; there is no
+		// Headscale nodes are authorized the moment they register; there is no
 		// de-authorize state. Accept authorized=true as a no-op; reject false so
 		// callers are not misled into thinking the device is fenced off.
 		if !in.Body.Authorized {
@@ -254,7 +254,7 @@ func registerDevices(api huma.API, b Backend) {
 			return nil, err
 		}
 
-		// Tower cannot make a node untagged (tags-as-identity is one-way), so
+		// Headscale cannot make a node untagged (tags-as-identity is one-way), so
 		// an empty/null tag set is accepted as a no-op rather than rejected. This
 		// keeps tooling lifecycles such as Terraform destroy working; the SDK
 		// sends "tags":null for "make untagged".
@@ -301,7 +301,7 @@ func registerDevices(api huma.API, b Backend) {
 		}
 
 		// Only disabling expiry maps cleanly (expiry=nil never expires).
-		// Re-enabling has no target expiry in the Tailscale request and Tower
+		// Re-enabling has no target expiry in the Tailscale request and Headscale
 		// stores no original, so it is accepted as a no-op (keeps Terraform
 		// destroy working) rather than guessing a lifetime.
 		if !in.Body.KeyExpiryDisabled {
@@ -405,7 +405,7 @@ func parseRoutes(routes []string) ([]netip.Prefix, error) {
 	return slices.Compact(approved), nil
 }
 
-// deviceFromView maps a Tower node onto the Tailscale Device, reading
+// deviceFromView maps a Headscale node onto the Tailscale Device, reading
 // through the [types.NodeView] accessors. allFields gates the route slices,
 // which Tailscale only returns for fields=all.
 func deviceFromView(view types.NodeView, allFields bool) Device {
@@ -416,7 +416,7 @@ func deviceFromView(view types.NodeView, allFields bool) Device {
 		Name:              view.GivenName(),
 		ID:                id,
 		NodeID:            id,
-		Authorized:        true, // Tower has no post-registration de-auth state.
+		Authorized:        true, // Headscale has no post-registration de-auth state.
 		User:              deviceUser(view),
 		Tags:              emptyIfNil(view.Tags().AsSlice()),
 		KeyExpiryDisabled: !view.Expiry().Valid(),

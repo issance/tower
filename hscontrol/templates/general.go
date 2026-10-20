@@ -8,7 +8,7 @@ import (
 )
 
 // mdTypesetBody creates a body element with md-typeset styling
-// that matches the official Tower documentation design.
+// that matches the official Headscale documentation design.
 // Uses CSS classes with styles defined in [assets.CSS].
 func mdTypesetBody(children ...elem.Node) *elem.Element {
 	return elem.Body(
@@ -83,7 +83,7 @@ func codeBlockText(code string) *elem.Element {
 	return elem.Pre(nil, elem.Code(nil, elem.Text(code)))
 }
 
-// headscaleLogo returns the Tower SVG logo for consistent branding across all pages.
+// headscaleLogo returns the Headscale SVG logo for consistent branding across all pages.
 // The logo is styled by the .tower-logo CSS class.
 func headscaleLogo() elem.Node {
 	// Return the embedded SVG as-is
@@ -111,8 +111,8 @@ func pageFooter() *elem.Element {
 	)
 }
 
-// page renders a standard Tower page: the given title in the document
-// head, and a body that begins with the Tower logo, contains the supplied
+// page renders a standard Headscale page: the given title in the document
+// head, and a body that begins with the Headscale logo, contains the supplied
 // content nodes in order, and ends with the shared footer.
 func page(title string, content ...elem.Node) *elem.Element {
 	body := make([]elem.Node, 0, len(content)+2)

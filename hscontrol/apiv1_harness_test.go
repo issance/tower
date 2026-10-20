@@ -25,7 +25,7 @@ import (
 // intentional contract change. assertParity suits reads/errors; mutations use
 // assertParityIsolated against a freshly-seeded app.
 type apiV1Harness struct {
-	app  *Tower
+	app  *Headscale
 	huma http.Handler
 }
 
@@ -44,7 +44,7 @@ func newAPIV1Harness(t *testing.T) *apiV1Harness {
 // bearer-key middleware — the same local-trust the unix socket gets — so these
 // tests can exercise response shapes. Auth itself is covered against the full
 // router in TestAPIV1AuthMiddleware.
-func newHumaTestHandler(app *Tower) http.Handler {
+func newHumaTestHandler(app *Headscale) http.Handler {
 	mux, _ := apiv1.Handler(apiv1.Backend{
 		State:  app.state,
 		Change: app.Change,
@@ -99,7 +99,7 @@ func (h *apiV1Harness) assertParity(t *testing.T, method, path string, body []by
 // be nil) and compares to the golden. Use for mutations.
 func assertParityIsolated(
 	t *testing.T,
-	seed func(t *testing.T, app *Tower),
+	seed func(t *testing.T, app *Headscale),
 	method, path string,
 	body []byte,
 ) httpResult {

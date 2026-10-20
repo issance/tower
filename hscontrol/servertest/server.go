@@ -1,5 +1,5 @@
-// Package servertest provides an in-process test harness for Tower's
-// control plane. It wires a real Tower server to real Tailscale
+// Package servertest provides an in-process test harness for Headscale's
+// control plane. It wires a real Headscale server to real Tailscale
 // [controlclient.Direct] instances, enabling fast, deterministic tests
 // of the full control protocol without Docker or separate processes.
 package servertest
@@ -21,13 +21,13 @@ import (
 	"tailscale.com/types/dnstype"
 )
 
-// TestServer is an in-process Tower control server suitable for
+// TestServer is an in-process Headscale control server suitable for
 // use with Tailscale's [controlclient.Direct].
 //
 // Networking uses tailscale.com/net/memnet so that all TCP
 // connections stay in-process — no real sockets are opened.
 type TestServer struct {
-	App *hscontrol.Tower
+	App *hscontrol.Headscale
 	URL string
 
 	memNet     *memnet.Network
@@ -132,7 +132,7 @@ func WithLogTailEnabled() ServerOption {
 	return func(c *serverConfig) { c.logTailEnabled = true }
 }
 
-// NewServer creates and starts a Tower test server.
+// NewServer creates and starts a Headscale test server.
 // The server is fully functional and accepts real Tailscale control
 // protocol connections over Noise.
 func NewServer(tb testing.TB, opts ...ServerOption) *TestServer {
@@ -280,8 +280,8 @@ func (s *TestServer) State() *state.State {
 
 // Close shuts down the in-memory HTTP server and listener.
 // Subsystem cleanup (batcher, ephemeral GC) is handled by
-// [testing.TB.Cleanup] callbacks registered in [hscontrol.Tower.StartBatcherForTest] and
-// [hscontrol.Tower.StartEphemeralGCForTest].
+// [testing.TB.Cleanup] callbacks registered in [hscontrol.Headscale.StartBatcherForTest] and
+// [hscontrol.Headscale.StartEphemeralGCForTest].
 func (s *TestServer) Close() {
 	s.httpServer.Close()
 	s.ln.Close()

@@ -74,7 +74,7 @@ const (
 )
 
 type noiseServer struct {
-	tower *Tower
+	headscale *Headscale
 
 	conn       *controlbase.Conn
 	machineKey key.MachinePublic
@@ -86,7 +86,7 @@ type noiseServer struct {
 
 // NoiseUpgradeHandler is to upgrade the connection and hijack the [net.Conn]
 // in order to use the Noise-based TS2021 protocol. Listens in /ts2021.
-func (h *Tower) NoiseUpgradeHandler(
+func (h *Headscale) NoiseUpgradeHandler(
 	writer http.ResponseWriter,
 	req *http.Request,
 ) {
@@ -94,9 +94,9 @@ func (h *Tower) NoiseUpgradeHandler(
 
 	upgrade := req.Header.Get("Upgrade")
 	if upgrade == "" {
-		// This probably means that the user is running Tower behind an
+		// This probably means that the user is running Headscale behind an
 		// improperly configured reverse proxy. TS2021 requires WebSockets to
-		// be passed to Tower. Let's give them a hint.
+		// be passed to Headscale. Let's give them a hint.
 		log.Warn().
 			Caller().
 			Msg("no upgrade header in TS2021 request. If tower is behind a reverse proxy, make sure it is configured to pass WebSockets through.")
@@ -106,7 +106,7 @@ func (h *Tower) NoiseUpgradeHandler(
 	}
 
 	ns := noiseServer{
-		tower: h,
+		headscale: h,
 		challenge: key.NewChallenge(),
 	}
 
@@ -305,7 +305,7 @@ func (ns *noiseServer) NotImplementedHandler(writer http.ResponseWriter, req *ht
 // PingResponseHandler handles HEAD requests from clients responding to a
 // [tailcfg.PingRequest]. The client calls this endpoint to prove connectivity.
 // The unguessable ping ID serves as authentication.
-func (h *Tower) PingResponseHandler(
+func (h *Headscale) PingResponseHandler(
 	writer http.ResponseWriter,
 	req *http.Request,
 ) {
@@ -737,7 +737,7 @@ func (ns *noiseServer) PollNetMapHandler(
 		// clients treat every non-200 on the map path the same way and retry
 		// forever with loggedIn still set; only a self node whose KeyExpiry is
 		// in the past drives them to NeedsLogin. There is no MapResponse field
-		// that says "deleted", so reuse the expiry signal tower already
+		// that says "deleted", so reuse the expiry signal headscale already
 		// sends for expired nodes.
 		// See: https://github.com/juanfont/headscale/issues/3410
 		if errors.Is(err, errNodeNotInStore) && mapRequest.Stream {

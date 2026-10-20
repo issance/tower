@@ -147,7 +147,7 @@ func (hsdb *HSDatabase) AuthenticateAPIKey(keyStr string) (*types.APIKey, error)
 }
 
 // SetAPIKeyUser sets the owning user of an API key. Used when an admin mints a
-// key on behalf of a user (tower apikeys create --user).
+// key on behalf of a user (headscale apikeys create --user).
 func (hsdb *HSDatabase) SetAPIKeyUser(keyID uint64, userID types.UserID) error {
 	res := hsdb.DB.Model(&types.Credential{}).
 		Where("kind = ? AND id = ?", types.CredentialAPIKey, keyID).

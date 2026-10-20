@@ -57,7 +57,7 @@ func TestPingAllByIP(t *testing.T) {
 	err = scenario.WaitForTailscaleSync()
 	requireNoErrSync(t, err)
 
-	hs, err := scenario.Tower()
+	hs, err := scenario.Headscale()
 	require.NoError(t, err)
 
 	// Extract node IDs for validation
@@ -76,13 +76,13 @@ func TestPingAllByIP(t *testing.T) {
 		return x.String()
 	})
 
-	// Get tower instance for batcher debug check
-	tower, err := scenario.Tower()
+	// Get headscale instance for batcher debug check
+	headscale, err := scenario.Headscale()
 	require.NoError(t, err)
 
 	// Test our DebugBatcher functionality
 	t.Logf("Testing DebugBatcher functionality...")
-	requireAllClientsOnline(t, tower, expectedNodes, true, "all clients should be connected to the batcher", integrationutil.ScaledTimeout(30*time.Second))
+	requireAllClientsOnline(t, headscale, expectedNodes, true, "all clients should be connected to the batcher", integrationutil.ScaledTimeout(30*time.Second))
 
 	assertPingAll(t, allClients, allAddrs)
 }
@@ -104,7 +104,7 @@ func TestPingAllByIPPublicDERP(t *testing.T) {
 		hsic.WithTestName("pingallbyippubderp"),
 		// Explicitly use public DERP relays instead of the embedded
 		// DERP server to verify connectivity through Tailscale's
-		// infrastructure. TLS is disabled because the tower
+		// infrastructure. TLS is disabled because the headscale
 		// server does not need to terminate TLS for this test.
 		hsic.WithPublicDERP(),
 		hsic.WithoutTLS(),
@@ -155,7 +155,7 @@ func testEphemeralWithOptions(t *testing.T, opts ...hsic.Option) {
 	require.NoError(t, err)
 	defer scenario.ShutdownAssertNoPanics(t)
 
-	tower, err := scenario.Tower(opts...)
+	headscale, err := scenario.Headscale(opts...)
 	requireNoErrHeadscaleEnv(t, err)
 
 	for _, userName := range spec.Users {
@@ -174,7 +174,7 @@ func testEphemeralWithOptions(t *testing.T, opts ...hsic.Option) {
 			t.Fatalf("failed to create pre-auth key for user %s: %s", userName, err)
 		}
 
-		err = scenario.RunTailscaleUp(userName, tower.GetEndpoint(), key.Key)
+		err = scenario.RunTailscaleUp(userName, headscale.GetEndpoint(), key.Key)
 		if err != nil {
 			t.Fatalf("failed to run tailscale up for user %s: %s", userName, err)
 		}
@@ -208,7 +208,7 @@ func testEphemeralWithOptions(t *testing.T, opts ...hsic.Option) {
 	t.Logf("all clients logged out")
 
 	assert.EventuallyWithT(t, func(ct *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		assert.NoError(ct, err)
 		assert.Len(ct, nodes, 0, "All ephemeral nodes should be cleaned up after logout")
 	}, integrationutil.StatusReadyTimeout, 2*time.Second)
@@ -228,7 +228,7 @@ func TestEphemeral2006DeletedTooQuickly(t *testing.T) {
 	require.NoError(t, err)
 	defer scenario.ShutdownAssertNoPanics(t)
 
-	tower, err := scenario.Tower(
+	headscale, err := scenario.Headscale(
 		hsic.WithTestName("ephemeral2006"),
 		hsic.WithConfigEnv(map[string]string{
 			"HEADSCALE_EPHEMERAL_NODE_INACTIVITY_TIMEOUT": "1m6s",
@@ -252,7 +252,7 @@ func TestEphemeral2006DeletedTooQuickly(t *testing.T) {
 			t.Fatalf("failed to create pre-auth key for user %s: %s", userName, err)
 		}
 
-		err = scenario.RunTailscaleUp(userName, tower.GetEndpoint(), key.Key)
+		err = scenario.RunTailscaleUp(userName, headscale.GetEndpoint(), key.Key)
 		if err != nil {
 			t.Fatalf("failed to run tailscale up for user %s: %s", userName, err)
 		}
@@ -312,14 +312,14 @@ func TestEphemeral2006DeletedTooQuickly(t *testing.T) {
 	// registered.
 	assert.EventuallyWithT(t, func(ct *assert.CollectT) {
 		for _, userName := range spec.Users {
-			nodes, err := tower.ListNodes(userName)
+			nodes, err := headscale.ListNodes(userName)
 			assert.NoError(ct, err)
 			assert.Len(ct, nodes, 0, "Ephemeral nodes should be expired and removed for user %s", userName)
 		}
 	}, integrationutil.ScaledTimeout(4*time.Minute), 10*time.Second)
 
 	for _, userName := range spec.Users {
-		nodes, err := tower.ListNodes(userName)
+		nodes, err := headscale.ListNodes(userName)
 		if err != nil {
 			log.Error().
 				Err(err).
@@ -391,10 +391,10 @@ func TestTaildrop(t *testing.T) {
 	)
 	requireNoErrHeadscaleEnv(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	requireNoErrGetHeadscale(t, err)
 
-	userMap, err := tower.MapUsers()
+	userMap, err := headscale.MapUsers()
 	require.NoError(t, err)
 
 	networks := scenario.Networks()
@@ -414,7 +414,7 @@ func TestTaildrop(t *testing.T) {
 		)
 		require.NoError(t, err)
 
-		err = client.Login(tower.GetEndpoint(), user1Key.Key)
+		err = client.Login(headscale.GetEndpoint(), user1Key.Key)
 		require.NoError(t, err)
 
 		err = client.WaitForRunning(integrationutil.PeerSyncTimeout())
@@ -437,7 +437,7 @@ func TestTaildrop(t *testing.T) {
 		)
 		require.NoError(t, err)
 
-		err = client.Login(tower.GetEndpoint(), user2Key.Key)
+		err = client.Login(headscale.GetEndpoint(), user2Key.Key)
 		require.NoError(t, err)
 
 		err = client.WaitForRunning(integrationutil.PeerSyncTimeout())
@@ -458,7 +458,7 @@ func TestTaildrop(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	err = taggedClient.Login(tower.GetEndpoint(), taggedKey.Key)
+	err = taggedClient.Login(headscale.GetEndpoint(), taggedKey.Key)
 	require.NoError(t, err)
 
 	err = taggedClient.WaitForRunning(integrationutil.PeerSyncTimeout())
@@ -793,7 +793,7 @@ func TestUpdateHostnameFromClient(t *testing.T) {
 	err = scenario.WaitForTailscaleSync()
 	requireNoErrSync(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	requireNoErrGetHeadscale(t, err)
 
 	// update hostnames using the up command
@@ -817,7 +817,7 @@ func TestUpdateHostnameFromClient(t *testing.T) {
 	var nodes []*clientv1.Node
 	assert.EventuallyWithT(t, func(ct *assert.CollectT) {
 		err := executeAndUnmarshal(
-			tower,
+			headscale,
 			[]string{
 				"tower",
 				"node",
@@ -843,7 +843,7 @@ func TestUpdateHostnameFromClient(t *testing.T) {
 	// Rename givenName in nodes
 	for _, node := range nodes {
 		givenName := fmt.Sprintf("%s-givenname", node.Id)
-		_, err = tower.Execute(
+		_, err = headscale.Execute(
 			[]string{
 				"tower",
 				"node",
@@ -915,7 +915,7 @@ func TestUpdateHostnameFromClient(t *testing.T) {
 	// [state.NodeStore] batching timeout is 500ms, so we wait up to 1 second
 	assert.Eventually(t, func() bool {
 		err = executeAndUnmarshal(
-			tower,
+			headscale,
 			[]string{
 				"tower",
 				"node",
@@ -950,13 +950,13 @@ const peersMapResponseType = "peers"
 // its response_type label. curl runs inside the container because the metrics
 // listener is published to the Docker host, not to the network the test
 // process shares with the server.
-func mapResponseCountsByType(tower ControlServer) (map[string]float64, error) {
+func mapResponseCountsByType(headscale ControlServer) (map[string]float64, error) {
 	const (
 		metricName  = "headscale_mapresponse_generated_total"
 		labelPrefix = `response_type="`
 	)
 
-	out, err := tower.Execute(
+	out, err := headscale.Execute(
 		[]string{"curl", "-s", "http://localhost:9090/metrics"},
 	)
 	if err != nil {
@@ -1003,7 +1003,7 @@ func mapResponseCountsByType(tower ControlServer) (map[string]float64, error) {
 // mid-fan-out charges someone else's responses to the change under test.
 func quiescedMapResponseCounts(
 	t *testing.T,
-	tower ControlServer,
+	headscale ControlServer,
 	waitingFor string,
 ) map[string]float64 {
 	t.Helper()
@@ -1013,7 +1013,7 @@ func quiescedMapResponseCounts(
 	previous := -1.0
 
 	require.EventuallyWithT(t, func(ct *assert.CollectT) {
-		current, err := mapResponseCountsByType(tower)
+		current, err := mapResponseCountsByType(headscale)
 		assert.NoError(ct, err)
 		assert.NotEmpty(ct, current, "metrics should carry the map response counter")
 		assert.Equal(ct, previous, current[peersMapResponseType],
@@ -1061,7 +1061,7 @@ func TestHostinfoChangeReachesPeersOnlyWhenPeerVisible(t *testing.T) {
 	err = scenario.WaitForTailscaleSync()
 	requireNoErrSync(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	requireNoErrGetHeadscale(t, err)
 
 	subject, observer := allClients[0], allClients[1]
@@ -1071,7 +1071,7 @@ func TestHostinfoChangeReachesPeersOnlyWhenPeerVisible(t *testing.T) {
 	require.NoErrorf(t, err,
 		"tower issues numeric stable node IDs, got %q", subjectStableID)
 
-	baseline := quiescedMapResponseCounts(t, tower,
+	baseline := quiescedMapResponseCounts(t, headscale,
 		"registration fan-out should settle before the baseline counter read")
 
 	// Shields-up moves Hostinfo.ShieldsUp and nothing a peer reads.
@@ -1082,7 +1082,7 @@ func TestHostinfoChangeReachesPeersOnlyWhenPeerVisible(t *testing.T) {
 	// the NodeStore is the sync point that proves the map request landed
 	// whatever the server chose to broadcast.
 	require.EventuallyWithT(t, func(ct *assert.CollectT) {
-		store, err := tower.DebugNodeStore()
+		store, err := headscale.DebugNodeStore()
 		assert.NoError(ct, err)
 
 		node, ok := store[types.NodeID(subjectNodeID)]
@@ -1099,7 +1099,7 @@ func TestHostinfoChangeReachesPeersOnlyWhenPeerVisible(t *testing.T) {
 	}, integrationutil.HAConvergeTimeout, 1*time.Second,
 		"tower should record the shields-up Hostinfo change")
 
-	afterShields := quiescedMapResponseCounts(t, tower,
+	afterShields := quiescedMapResponseCounts(t, headscale,
 		"map response counter should settle after the shields-up change")
 
 	t.Logf("map response counts: baseline=%v afterShields=%v", baseline, afterShields)
@@ -1138,7 +1138,7 @@ func TestHostinfoChangeReachesPeersOnlyWhenPeerVisible(t *testing.T) {
 	}, integrationutil.HAConvergeTimeout, 1*time.Second,
 		"hostname is peer-visible, so the rename must reach the peer")
 
-	afterHostname := quiescedMapResponseCounts(t, tower,
+	afterHostname := quiescedMapResponseCounts(t, headscale,
 		"map response counter should settle after the hostname change")
 
 	t.Logf("map response counts after hostname change: %v", afterHostname)
@@ -1191,7 +1191,7 @@ func TestExpireNode(t *testing.T) {
 		}, integrationutil.StatusReadyTimeout, 1*time.Second)
 	}
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	require.NoError(t, err)
 
 	// Exercise expiry and recovery on every supported test client version.
@@ -1210,7 +1210,7 @@ func TestExpireNode(t *testing.T) {
 				selfID, selfKey = string(status.Self.ID), status.Self.PublicKey
 			}, integrationutil.StatusReadyTimeout, integrationutil.FastPoll, "client must report its own status before expiry")
 
-			result, err := tower.Execute([]string{
+			result, err := headscale.Execute([]string{
 				"tower", "nodes", "expire", "--identifier", selfID, "--output", "json",
 			})
 			require.NoError(t, err)
@@ -1227,7 +1227,7 @@ func TestExpireNode(t *testing.T) {
 			}, integrationutil.StatusReadyTimeout, integrationutil.FastPoll, "expired client must require authentication")
 
 			require.EventuallyWithT(t, func(c *assert.CollectT) {
-				nodes, err := tower.ListNodes()
+				nodes, err := headscale.ListNodes()
 				if !assert.NoError(c, err) {
 					return
 				}
@@ -1241,7 +1241,7 @@ func TestExpireNode(t *testing.T) {
 			}, integrationutil.StatusReadyTimeout, integrationutil.FastPoll, "Tower must report the expired node offline")
 
 			require.EventuallyWithT(t, func(c *assert.CollectT) {
-				info, err := tower.DebugBatcher()
+				info, err := headscale.DebugBatcher()
 				if !assert.NoError(c, err) {
 					return
 				}
@@ -1280,7 +1280,7 @@ func TestExpireNode(t *testing.T) {
 
 			// No tailscale up/login: restoring expiry must recover the client
 			// using its existing node key and control connection.
-			_, err = tower.Execute([]string{
+			_, err = headscale.Execute([]string{
 				"tower", "nodes", "expire", "--identifier", node.Id, "--disable",
 			})
 			require.NoError(t, err)
@@ -1294,7 +1294,7 @@ func TestExpireNode(t *testing.T) {
 			}, integrationutil.StatusReadyTimeout, integrationutil.FastPoll, "restored key must recover the client without login")
 
 			require.EventuallyWithT(t, func(c *assert.CollectT) {
-				nodes, err := tower.ListNodes()
+				nodes, err := headscale.ListNodes()
 				if !assert.NoError(c, err) {
 					return
 				}
@@ -1352,12 +1352,12 @@ func TestSetNodeExpiryInFuture(t *testing.T) {
 	err = scenario.WaitForTailscaleSync()
 	requireNoErrSync(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	require.NoError(t, err)
 
 	targetExpiry := time.Now().Add(2 * time.Hour).Round(time.Second).UTC()
 
-	result, err := tower.Execute(
+	result, err := headscale.Execute(
 		[]string{
 			"tower", "nodes", "expire",
 			"--identifier", "1",
@@ -1450,11 +1450,11 @@ func TestDisableNodeExpiry(t *testing.T) {
 	err = scenario.WaitForTailscaleSync()
 	requireNoErrSync(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	require.NoError(t, err)
 
 	// First set an expiry on the node.
-	result, err := tower.Execute(
+	result, err := headscale.Execute(
 		[]string{
 			"tower", "nodes", "expire",
 			"--identifier", "1",
@@ -1470,7 +1470,7 @@ func TestDisableNodeExpiry(t *testing.T) {
 	require.NotNil(t, node.Expiry, "node should have an expiry set")
 
 	// Now disable the expiry.
-	result, err = tower.Execute(
+	result, err = headscale.Execute(
 		[]string{
 			"tower", "nodes", "expire",
 			"--identifier", "1",
@@ -1566,7 +1566,7 @@ func TestNodeOnlineStatus(t *testing.T) {
 		}, integrationutil.ScaledTimeout(10*time.Second), integrationutil.FastPoll, "Waiting for expected peer count")
 	}
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	require.NoError(t, err)
 
 	// Duration is chosen arbitrarily, 10m is reported in #1561
@@ -1590,7 +1590,7 @@ func TestNodeOnlineStatus(t *testing.T) {
 
 		var nodes []*clientv1.Node
 		assert.EventuallyWithT(t, func(ct *assert.CollectT) {
-			result, err := tower.Execute([]string{
+			result, err := headscale.Execute([]string{
 				"tower", "nodes", "list", "--output", "json",
 			})
 			assert.NoError(ct, err)
@@ -1598,7 +1598,7 @@ func TestNodeOnlineStatus(t *testing.T) {
 			err = json.Unmarshal([]byte(result), &nodes)
 			assert.NoError(ct, err)
 
-			// Verify that tower reports the nodes as online
+			// Verify that headscale reports the nodes as online
 			for _, node := range nodes {
 				// All nodes should be online
 				assert.Truef(
@@ -1685,8 +1685,8 @@ func TestPingAllByIPManyUpDown(t *testing.T) {
 		return x.String()
 	})
 
-	// Get tower instance for batcher debug checks
-	tower, err := scenario.Tower()
+	// Get headscale instance for batcher debug checks
+	headscale, err := scenario.Headscale()
 	require.NoError(t, err)
 
 	// Initial check: all nodes should be connected to batcher
@@ -1698,7 +1698,7 @@ func TestPingAllByIPManyUpDown(t *testing.T) {
 		require.NoError(t, err)
 		expectedNodes = append(expectedNodes, types.NodeID(nodeID))
 	}
-	requireAllClientsOnline(t, tower, expectedNodes, true, "all clients should be connected to batcher", integrationutil.ScaledTimeout(30*time.Second))
+	requireAllClientsOnline(t, headscale, expectedNodes, true, "all clients should be connected to batcher", integrationutil.ScaledTimeout(30*time.Second))
 
 	assertPingAll(t, allClients, allAddrs)
 
@@ -1723,7 +1723,7 @@ func TestPingAllByIPManyUpDown(t *testing.T) {
 		t.Logf("All nodes taken down at %s", time.Now().Format(TimestampFormat))
 
 		// After taking down all nodes, verify all systems show nodes offline
-		requireAllClientsOnline(t, tower, expectedNodes, false, fmt.Sprintf("Run %d: all nodes should be offline after Down()", run+1), integrationutil.ScaledTimeout(120*time.Second))
+		requireAllClientsOnline(t, headscale, expectedNodes, false, fmt.Sprintf("Run %d: all nodes should be offline after Down()", run+1), integrationutil.ScaledTimeout(120*time.Second))
 
 		for _, client := range allClients {
 			c := client
@@ -1739,7 +1739,7 @@ func TestPingAllByIPManyUpDown(t *testing.T) {
 		t.Logf("All nodes brought up at %s", time.Now().Format(TimestampFormat))
 
 		// After bringing up all nodes, verify batcher shows all reconnected
-		requireAllClientsOnline(t, tower, expectedNodes, true, fmt.Sprintf("Run %d: all nodes should be reconnected after Up()", run+1), integrationutil.ScaledTimeout(120*time.Second))
+		requireAllClientsOnline(t, headscale, expectedNodes, true, fmt.Sprintf("Run %d: all nodes should be reconnected after Up()", run+1), integrationutil.ScaledTimeout(120*time.Second))
 
 		// Wait for sync and successful pings after nodes come back up
 		err = scenario.WaitForTailscaleSync()
@@ -1747,7 +1747,7 @@ func TestPingAllByIPManyUpDown(t *testing.T) {
 
 		t.Logf("All nodes synced up %s", time.Now().Format(TimestampFormat))
 
-		requireAllClientsOnline(t, tower, expectedNodes, true, fmt.Sprintf("Run %d: all systems should show nodes online after reconnection", run+1), integrationutil.ScaledTimeout(60*time.Second))
+		requireAllClientsOnline(t, headscale, expectedNodes, true, fmt.Sprintf("Run %d: all systems should show nodes online after reconnection", run+1), integrationutil.ScaledTimeout(60*time.Second))
 
 		assertPingAll(t, allClients, allAddrs)
 
@@ -1782,7 +1782,7 @@ func TestNodeDeletionEndsLongPoll(t *testing.T) {
 	err = scenario.WaitForTailscaleSync()
 	requireNoErrSync(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	require.NoError(t, err)
 
 	allClients, err := scenario.ListTailscaleClients()
@@ -1797,7 +1797,7 @@ func TestNodeDeletionEndsLongPoll(t *testing.T) {
 	var nodeIDsByName map[string]uint64
 
 	assert.EventuallyWithT(t, func(ct *assert.CollectT) {
-		nodes, err := tower.ListNodes()
+		nodes, err := headscale.ListNodes()
 		if !assert.NoError(ct, err) || !assert.Len(ct, nodes, len(allClients)) {
 			return
 		}
@@ -1821,7 +1821,7 @@ func TestNodeDeletionEndsLongPoll(t *testing.T) {
 	for i, deleted := range allClients {
 		deletedID, ok := nodeIDsByName[deleted.Hostname()]
 		require.True(t, ok, "node list must contain client %s", deleted.Hostname())
-		require.NoError(t, tower.DeleteNode(deletedID))
+		require.NoError(t, headscale.DeleteNode(deletedID))
 
 		require.NoError(t, deleted.WaitForNeedsLogin(integrationutil.StatusReadyTimeout),
 			"deleted client %s must stop polling and ask for a new login", deleted.Hostname())
@@ -1873,13 +1873,13 @@ func Test2118DeletingOnlineNodePanics(t *testing.T) {
 
 	assertPingAll(t, allClients, allAddrs)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	require.NoError(t, err)
 
 	// Test list all nodes after added otherUser
 	var nodeList []clientv1.Node
 	err = executeAndUnmarshal(
-		tower,
+		headscale,
 		[]string{
 			"tower",
 			"nodes",
@@ -1895,7 +1895,7 @@ func Test2118DeletingOnlineNodePanics(t *testing.T) {
 	assert.True(t, nodeList[1].Online)
 
 	// Delete the first node, which is online
-	_, err = tower.Execute(
+	_, err = headscale.Execute(
 		[]string{
 			"tower",
 			"nodes",
@@ -1914,7 +1914,7 @@ func Test2118DeletingOnlineNodePanics(t *testing.T) {
 	var nodeListAfter []clientv1.Node
 	assert.EventuallyWithT(t, func(ct *assert.CollectT) {
 		err = executeAndUnmarshal(
-			tower,
+			headscale,
 			[]string{
 				"tower",
 				"nodes",
@@ -1929,7 +1929,7 @@ func Test2118DeletingOnlineNodePanics(t *testing.T) {
 	}, integrationutil.ScaledTimeout(10*time.Second), 1*time.Second)
 
 	err = executeAndUnmarshal(
-		tower,
+		headscale,
 		[]string{
 			"tower",
 			"nodes",

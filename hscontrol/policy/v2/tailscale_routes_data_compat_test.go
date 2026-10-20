@@ -1,6 +1,6 @@
 // This file implements data-driven test runners for routes compatibility tests.
 // It loads HuJSON golden files from testdata/routes_results/routes-*.hujson,
-// captured from a Tailscale-hosted control plane, and compares tower's route-aware
+// captured from a Tailscale-hosted control plane, and compares headscale's route-aware
 // ACL engine output against the captured packet filter rules.
 //
 // Each capture file is a testcapture.Capture containing:
@@ -183,7 +183,7 @@ var subnetToSubnetFiles = []string{
 }
 
 // TestRoutesCompat is a data-driven test that loads all routes-*.hujson test
-// files and compares tower's route-aware ACL engine output against the
+// files and compares headscale's route-aware ACL engine output against the
 // expected behavior.
 func TestRoutesCompat(t *testing.T) {
 	t.Parallel()
@@ -209,7 +209,7 @@ func TestRoutesCompat(t *testing.T) {
 			// Build topology from JSON
 			users, nodes := buildRoutesUsersAndNodes(t, tf.Topology)
 
-			// Convert Tailscale SaaS user emails to tower format
+			// Convert Tailscale SaaS user emails to headscale format
 			policyJSON := convertPolicyUserEmails(tf.Input.FullPolicy)
 
 			// Parse and validate policy
@@ -485,7 +485,7 @@ func TestRoutesCompatPeerVisibility(t *testing.T) {
 			// Build topology from JSON.
 			users, nodes := buildRoutesUsersAndNodes(t, tf.Topology)
 
-			// Convert Tailscale SaaS user emails to tower format.
+			// Convert Tailscale SaaS user emails to headscale format.
 			policyJSON := convertPolicyUserEmails(tf.Input.FullPolicy)
 
 			// Create a PolicyManager — this compiles the global filter
@@ -686,7 +686,7 @@ func TestRoutesCompatPeerVisibility(t *testing.T) {
 	}
 }
 
-// TestRoutesCompatAutoApproval validates that tower's auto-approval
+// TestRoutesCompatAutoApproval validates that headscale's auto-approval
 // logic (NodeCanApproveRoute) produces the same approval decisions as
 // captured in the golden files from Tailscale SaaS.
 //
@@ -719,7 +719,7 @@ func TestRoutesCompatAutoApproval(t *testing.T) {
 			// Build topology from JSON.
 			users, nodes := buildRoutesUsersAndNodes(t, tf.Topology)
 
-			// Convert Tailscale SaaS user emails to tower format.
+			// Convert Tailscale SaaS user emails to headscale format.
 			policyJSON := convertPolicyUserEmails(tf.Input.FullPolicy)
 
 			// Create a PolicyManager — this resolves autoApprovers
@@ -801,7 +801,7 @@ func TestRoutesCompatAutoApproval(t *testing.T) {
 	}
 }
 
-// TestRoutesCompatReduceRoutes validates that tower's CanAccessRoute
+// TestRoutesCompatReduceRoutes validates that headscale's CanAccessRoute
 // produces route visibility decisions consistent with the golden file
 // captures from Tailscale SaaS.
 //
@@ -835,7 +835,7 @@ func TestRoutesCompatReduceRoutes(t *testing.T) {
 			// Build topology from JSON.
 			users, nodes := buildRoutesUsersAndNodes(t, tf.Topology)
 
-			// Convert Tailscale SaaS user emails to tower format.
+			// Convert Tailscale SaaS user emails to headscale format.
 			policyJSON := convertPolicyUserEmails(tf.Input.FullPolicy)
 
 			// Create a PolicyManager.
@@ -1139,7 +1139,7 @@ func TestRoutesCompatExitNodePeerVisibility(t *testing.T) {
 	}
 }
 
-// TestRoutesCompatNoPeersBeyondCaptures verifies that tower does not
+// TestRoutesCompatNoPeersBeyondCaptures verifies that headscale does not
 // create peer relationships beyond what the golden file captures imply.
 // For every pair of nodes NOT in the expected peer set (derived from
 // the capture SrcIPs), CanAccess must return false.
@@ -1380,10 +1380,10 @@ func prefixStrings(pfxs []netip.Prefix) []string {
 	return out
 }
 
-// TestRoutesCompatPeerAllowedIPs validates that tower computes the same
+// TestRoutesCompatPeerAllowedIPs validates that headscale computes the same
 // peer AllowedIPs as Tailscale SaaS. For each golden file that contains
 // netmap captures, the test compares the AllowedIPs that SaaS delivered
-// for each peer against what tower's ReduceRoutes (the core of
+// for each peer against what headscale's ReduceRoutes (the core of
 // RoutesForPeer) would produce.
 //
 // This is the authoritative proof that approved exit routes (0.0.0.0/0,
@@ -1425,7 +1425,7 @@ func TestRoutesCompatPeerAllowedIPs(t *testing.T) {
 		t.Run(tf.TestID, func(t *testing.T) {
 			t.Parallel()
 
-			// SaaS rejected this policy — verify tower also rejects it.
+			// SaaS rejected this policy — verify headscale also rejects it.
 			if tf.Error {
 				testRoutesError(t, tf)
 
@@ -1461,7 +1461,7 @@ func TestRoutesCompatPeerAllowedIPs(t *testing.T) {
 							continue
 						}
 
-						// Compute what tower would put in AllowedIPs.
+						// Compute what headscale would put in AllowedIPs.
 						//
 						// The SaaS netmap PrimaryRoutes tells us which
 						// subnet routes won HA election. Exit routes
@@ -1613,7 +1613,7 @@ func testRoutesError(t *testing.T, tf *testcapture.Capture) {
 	)
 }
 
-// assertRoutesErrorContains requires that tower's error contains
+// assertRoutesErrorContains requires that headscale's error contains
 // the Tailscale SaaS error message exactly. Divergence means an
 // emitter needs to be aligned, not papered over with a translation
 // table.

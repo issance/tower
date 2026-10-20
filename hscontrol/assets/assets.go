@@ -1,4 +1,4 @@
-// Package assets provides embedded static assets for Tower.
+// Package assets provides embedded static assets for Headscale.
 // All static files (favicon, CSS, SVG) are embedded here for
 // centralized asset management.
 package assets
@@ -18,7 +18,7 @@ var Favicon []byte
 //go:embed style.css
 var CSS string
 
-// SVG is the embedded tower.svg logo used in HTML templates.
+// SVG is the embedded headscale.svg logo used in HTML templates.
 //
-//go:embed tower.svg
+//go:embed headscale.svg
 var SVG string

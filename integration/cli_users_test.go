@@ -31,7 +31,7 @@ func TestUserCommand(t *testing.T) {
 	err = scenario.CreateHeadscaleEnv([]tsic.Option{}, hsic.WithTestName("cli-user"))
 	require.NoError(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	require.NoError(t, err)
 
 	var (
@@ -40,7 +40,7 @@ func TestUserCommand(t *testing.T) {
 	)
 
 	assert.EventuallyWithT(t, func(ct *assert.CollectT) {
-		err := executeAndUnmarshal(tower,
+		err := executeAndUnmarshal(headscale,
 			[]string{
 				"tower",
 				"users",
@@ -63,7 +63,7 @@ func TestUserCommand(t *testing.T) {
 		)
 	}, integrationutil.ScaledTimeout(20*time.Second), 1*time.Second)
 
-	_, err = tower.Execute(
+	_, err = headscale.Execute(
 		[]string{
 			"tower",
 			"users",
@@ -78,7 +78,7 @@ func TestUserCommand(t *testing.T) {
 	var listAfterRenameUsers []*clientv1.User
 
 	assert.EventuallyWithT(t, func(ct *assert.CollectT) {
-		err := executeAndUnmarshal(tower,
+		err := executeAndUnmarshal(headscale,
 			[]string{
 				"tower",
 				"users",
@@ -104,7 +104,7 @@ func TestUserCommand(t *testing.T) {
 	var listByUsername []*clientv1.User
 
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		err = executeAndUnmarshal(tower,
+		err = executeAndUnmarshal(headscale,
 			[]string{
 				"tower",
 				"users",
@@ -135,7 +135,7 @@ func TestUserCommand(t *testing.T) {
 	var listByID []*clientv1.User
 
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		err = executeAndUnmarshal(tower,
+		err = executeAndUnmarshal(headscale,
 			[]string{
 				"tower",
 				"users",
@@ -163,7 +163,7 @@ func TestUserCommand(t *testing.T) {
 		t.Errorf("unexpected users (-want +got):\n%s", diff)
 	}
 
-	deleteResult, err := tower.Execute(
+	deleteResult, err := headscale.Execute(
 		[]string{
 			"tower",
 			"users",
@@ -179,7 +179,7 @@ func TestUserCommand(t *testing.T) {
 	var listAfterIDDelete []*clientv1.User
 
 	assert.EventuallyWithT(t, func(ct *assert.CollectT) {
-		err := executeAndUnmarshal(tower,
+		err := executeAndUnmarshal(headscale,
 			[]string{
 				"tower",
 				"users",
@@ -206,7 +206,7 @@ func TestUserCommand(t *testing.T) {
 		}
 	}, integrationutil.ScaledTimeout(20*time.Second), 1*time.Second)
 
-	deleteResult, err = tower.Execute(
+	deleteResult, err = headscale.Execute(
 		[]string{
 			"tower",
 			"users",
@@ -221,7 +221,7 @@ func TestUserCommand(t *testing.T) {
 	var listAfterNameDelete []clientv1.User
 
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
-		err = executeAndUnmarshal(tower,
+		err = executeAndUnmarshal(headscale,
 			[]string{
 				"tower",
 				"users",
@@ -244,12 +244,12 @@ func TestUserCreateCommand(t *testing.T) {
 
 	// One pre-existing user with a node so the server holds real data while we
 	// create and inspect additional users via the CLI.
-	scenario, tower := setupCLIScenario(t, "cli-usercreate", []string{"existing"}, 1)
+	scenario, headscale := setupCLIScenario(t, "cli-usercreate", []string{"existing"}, 1)
 	defer scenario.ShutdownAssertNoPanics(t)
 
 	// Create a user populated with every optional field. The created user is
 	// returned on stdout and round-tripped through the User type.
-	created := assertJSONRoundtrip[*clientv1.User](t, tower, []string{
+	created := assertJSONRoundtrip[*clientv1.User](t, headscale, []string{
 		"tower",
 		"users",
 		"create",
@@ -270,7 +270,7 @@ func TestUserCreateCommand(t *testing.T) {
 	var byEmail []*clientv1.User
 
 	assert.EventuallyWithT(t, func(ct *assert.CollectT) {
-		err := executeAndUnmarshal(tower,
+		err := executeAndUnmarshal(headscale,
 			[]string{
 				"tower",
 				"users",
@@ -296,7 +296,7 @@ func TestUserCreateCommand(t *testing.T) {
 func TestUserCommandValidation(t *testing.T) {
 	IntegrationSkip(t)
 
-	scenario, tower := setupCLIScenario(t, "cli-userval", []string{"user1"}, 0)
+	scenario, headscale := setupCLIScenario(t, "cli-userval", []string{"user1"}, 0)
 	defer scenario.ShutdownAssertNoPanics(t)
 
 	// wantEmptyList means the command must succeed and return no users;
@@ -318,7 +318,7 @@ func TestUserCommandValidation(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			out, err := tower.Execute(append([]string{"tower"}, tt.args...))
+			out, err := headscale.Execute(append([]string{"tower"}, tt.args...))
 
 			switch {
 			case tt.wantEmptyList:

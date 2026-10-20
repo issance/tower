@@ -15,7 +15,7 @@ func init() {
 	registrations = append(registrations, registerSettings)
 }
 
-// TailnetSettings is the Tailscale tailnet-settings response. Tower's config
+// TailnetSettings is the Tailscale tailnet-settings response. Headscale's config
 // is file-based and mostly not runtime-mutable, so only a few fields carry a
 // real value; the rest report the default "off".
 type TailnetSettings struct {
@@ -72,7 +72,7 @@ func registerSettings(api huma.API, b Backend) {
 			// File-mode policy is genuinely externally managed (read-only via API).
 			ACLsExternallyManagedOn: cfg.Policy.Mode == types.PolicyModeFile,
 			DevicesKeyDurationDays:  int(cfg.Node.Expiry / (24 * time.Hour)),
-			// Tailscale's toggle for node certificates, not tower's own TLS.
+			// Tailscale's toggle for node certificates, not headscale's own TLS.
 			HTTPSEnabled:                           cfg.DNSConfig.Certificates.Enabled,
 			UsersRoleAllowedToJoinExternalTailnets: "none",
 		}}, nil

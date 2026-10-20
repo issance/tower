@@ -35,7 +35,7 @@ func machineKeyMismatch(node types.NodeView, machineKey key.MachinePublic) error
 	return nil
 }
 
-func (h *Tower) handleRegister(
+func (h *Headscale) handleRegister(
 	ctx context.Context,
 	req tailcfg.RegisterRequest,
 	machineKey key.MachinePublic,
@@ -86,7 +86,7 @@ func (h *Tower) handleRegister(
 			// Without this check anyone holding a target's NodeKey could
 			// open a Noise session with a throwaway machine key and read
 			// the owner's User/Login back through [nodeToRegisterResponse].
-			// [Tower.handleLogout] enforces the same check on its own path.
+			// [Headscale.handleLogout] enforces the same check on its own path.
 			err := machineKeyMismatch(node, machineKey)
 			if err != nil {
 				return nil, err
@@ -154,7 +154,7 @@ func (h *Tower) handleRegister(
 
 // handleLogout checks if the [tailcfg.RegisterRequest] is a
 // logout attempt from a node. If the node is not attempting to.
-func (h *Tower) handleLogout(
+func (h *Headscale) handleLogout(
 	node types.NodeView,
 	req tailcfg.RegisterRequest,
 	machineKey key.MachinePublic,
@@ -201,7 +201,7 @@ func (h *Tower) handleLogout(
 	}
 
 	// If the request expiry is in the past, we consider it a logout.
-	// Zero expiry is handled in [Tower.handleRegister] before calling this function.
+	// Zero expiry is handled in [Headscale.handleRegister] before calling this function.
 	if req.Expiry.Before(time.Now()) {
 		log.Debug().
 			EmbedObject(node).
@@ -280,7 +280,7 @@ func nodeToRegisterResponse(node types.NodeView) *tailcfg.RegisterResponse {
 	resp := &tailcfg.RegisterResponse{
 		NodeKeyExpired: node.IsExpired(),
 
-		// Tower does not implement the concept of machine authorization
+		// Headscale does not implement the concept of machine authorization
 		// so we always return true here.
 		// Revisit this if #2176 gets implemented.
 		MachineAuthorized: true,
@@ -299,7 +299,7 @@ func nodeToRegisterResponse(node types.NodeView) *tailcfg.RegisterResponse {
 	return resp
 }
 
-func (h *Tower) waitForFollowup(
+func (h *Headscale) waitForFollowup(
 	ctx context.Context,
 	req tailcfg.RegisterRequest,
 	machineKey key.MachinePublic,
@@ -341,8 +341,8 @@ func (h *Tower) waitForFollowup(
 			// result was started with the same machine key that opened the
 			// registration. [State.HandleNodeFromAuthPath] resolves the node
 			// from the cached [types.RegistrationData.MachineKey], so the two
-			// match on the normal path. [Tower.handleRegister] and
-			// [Tower.handleLogout] apply the same check.
+			// match on the normal path. [Headscale.handleRegister] and
+			// [Headscale.handleLogout] apply the same check.
 			err := machineKeyMismatch(verdict.Node, machineKey)
 			if err != nil {
 				return nil, err
@@ -359,7 +359,7 @@ func (h *Tower) waitForFollowup(
 // reqToNewRegisterResponse refreshes the registration flow by creating a new
 // registration ID and returning the corresponding [tailcfg.RegisterResponse.AuthURL]
 // so the client can restart the authentication process.
-func (h *Tower) reqToNewRegisterResponse(
+func (h *Headscale) reqToNewRegisterResponse(
 	req tailcfg.RegisterRequest,
 	machineKey key.MachinePublic,
 ) (*tailcfg.RegisterResponse, error) {
@@ -409,7 +409,7 @@ func registrationDataFromRequest(
 	return regData
 }
 
-func (h *Tower) handleRegisterWithAuthKey(
+func (h *Headscale) handleRegisterWithAuthKey(
 	req tailcfg.RegisterRequest,
 	machineKey key.MachinePublic,
 ) (*tailcfg.RegisterResponse, error) {
@@ -476,7 +476,7 @@ func (h *Tower) handleRegisterWithAuthKey(
 	return resp, nil
 }
 
-func (h *Tower) handleRegisterInteractive(
+func (h *Headscale) handleRegisterInteractive(
 	req tailcfg.RegisterRequest,
 	machineKey key.MachinePublic,
 ) (*tailcfg.RegisterResponse, error) {

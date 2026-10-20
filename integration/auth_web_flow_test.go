@@ -90,14 +90,14 @@ func TestAuthWebFlowLogoutAndReloginSameUser(t *testing.T) {
 
 	assertPingAll(t, allClients, allAddrs)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	requireNoErrGetHeadscale(t, err)
 
 	// Collect expected node IDs for validation
 	expectedNodes := collectExpectedNodeIDs(t, allClients)
 
 	// Validate initial connection state
-	validateInitialConnection(t, tower, expectedNodes)
+	validateInitialConnection(t, headscale, expectedNodes)
 
 	var listNodes []*clientv1.Node
 
@@ -105,7 +105,7 @@ func TestAuthWebFlowLogoutAndReloginSameUser(t *testing.T) {
 	assert.EventuallyWithT(t, func(ct *assert.CollectT) {
 		var err error
 
-		listNodes, err = tower.ListNodes()
+		listNodes, err = headscale.ListNodes()
 		assert.NoError(ct, err, "Failed to list nodes after web authentication")
 		assert.Len(ct, listNodes, len(allClients), "Expected %d nodes after web auth, got %d", len(allClients), len(listNodes))
 	}, integrationutil.StatusReadyTimeout, 2*time.Second, "validating node count matches client count after web authentication")
@@ -135,14 +135,14 @@ func TestAuthWebFlowLogoutAndReloginSameUser(t *testing.T) {
 	requireNoErrLogout(t, err)
 
 	// Validate that all nodes are offline after logout
-	validateLogoutComplete(t, tower, expectedNodes)
+	validateLogoutComplete(t, headscale, expectedNodes)
 
 	t.Logf("all clients logged out")
 
 	for _, userName := range spec.Users {
-		err = scenario.RunTailscaleUpWithURL(userName, tower.GetEndpoint())
+		err = scenario.RunTailscaleUpWithURL(userName, headscale.GetEndpoint())
 		if err != nil {
-			t.Fatalf("failed to run tailscale up (%q): %s", tower.GetEndpoint(), err)
+			t.Fatalf("failed to run tailscale up (%q): %s", headscale.GetEndpoint(), err)
 		}
 	}
 
@@ -152,14 +152,14 @@ func TestAuthWebFlowLogoutAndReloginSameUser(t *testing.T) {
 	assert.EventuallyWithT(t, func(ct *assert.CollectT) {
 		var err error
 
-		listNodes, err = tower.ListNodes()
+		listNodes, err = headscale.ListNodes()
 		assert.NoError(ct, err, "Failed to list nodes after web flow logout")
 		assert.Len(ct, listNodes, nodeCountBeforeLogout, "Node count should remain unchanged after logout - expected %d nodes, got %d", nodeCountBeforeLogout, len(listNodes))
 	}, integrationutil.HAConvergeTimeout, 2*time.Second, "validating node persistence in database after web flow logout")
 	t.Logf("node count first login: %d, after relogin: %d", nodeCountBeforeLogout, len(listNodes))
 
 	// Validate connection state after relogin
-	validateReloginComplete(t, tower, expectedNodes)
+	validateReloginComplete(t, headscale, expectedNodes)
 
 	allIps, err = scenario.ListTailscaleClientsIPs()
 	requireNoErrListClientIPs(t, err)
@@ -242,7 +242,7 @@ func TestAuthWebFlowReloginExpiredNode(t *testing.T) {
 
 	assertPingAll(t, allClients, allAddrs)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	requireNoErrGetHeadscale(t, err)
 
 	for _, target := range allClients {
@@ -263,7 +263,7 @@ func TestAuthWebFlowReloginExpiredNode(t *testing.T) {
 
 			targetIP := target.MustIPv4().String()
 
-			_, err := tower.Execute([]string{
+			_, err := headscale.Execute([]string{
 				"tower", "nodes", "expire", "--identifier", selfID,
 			})
 			require.NoError(t, err)
@@ -325,7 +325,7 @@ func TestAuthWebFlowReloginExpiredNode(t *testing.T) {
 
 			t.Logf("%s served peerapi while expired: %v", target.Version(), settled)
 
-			loginURL, err := target.LoginWithURL(tower.GetEndpoint())
+			loginURL, err := target.LoginWithURL(headscale.GetEndpoint())
 			require.NoError(t, err)
 			body, err := doLoginURL(target.Hostname(), loginURL)
 			require.NoError(t, err)
@@ -377,7 +377,7 @@ func TestAuthWebFlowReloginExpiredNode(t *testing.T) {
 // initially authenticate using the web-based authentication flow (where users visit a URL
 // in their browser to authenticate), then all clients log out and log back in as a different user.
 //
-// This test validates the "user switching" behavior in tower's web authentication flow:
+// This test validates the "user switching" behavior in headscale's web authentication flow:
 // - Multiple clients authenticate via web flow, each to their respective users (user1, user2)
 // - All clients log out simultaneously
 // - All clients log back in via web flow, but this time they all authenticate as user1
@@ -386,10 +386,10 @@ func TestAuthWebFlowReloginExpiredNode(t *testing.T) {
 // - The test verifies network connectivity works after the user switch
 //
 // This scenario is important for organizations that need to reassign devices between users
-// or when consolidating multiple user accounts. It ensures that tower properly handles
+// or when consolidating multiple user accounts. It ensures that headscale properly handles
 // the security implications of user switching while maintaining node persistence in the database.
 //
-// The test uses tower's web authentication flow, which is the most user-friendly method
+// The test uses headscale's web authentication flow, which is the most user-friendly method
 // where authentication happens through a web browser rather than pre-shared keys or OIDC.
 func TestAuthWebFlowLogoutAndReloginNewUser(t *testing.T) {
 	IntegrationSkip(t)
@@ -423,14 +423,14 @@ func TestAuthWebFlowLogoutAndReloginNewUser(t *testing.T) {
 	err = scenario.WaitForTailscaleSync()
 	requireNoErrSync(t, err)
 
-	tower, err := scenario.Tower()
+	headscale, err := scenario.Headscale()
 	requireNoErrGetHeadscale(t, err)
 
 	// Collect expected node IDs for validation
 	expectedNodes := collectExpectedNodeIDs(t, allClients)
 
 	// Validate initial connection state
-	validateInitialConnection(t, tower, expectedNodes)
+	validateInitialConnection(t, headscale, expectedNodes)
 
 	var listNodes []*clientv1.Node
 
@@ -438,7 +438,7 @@ func TestAuthWebFlowLogoutAndReloginNewUser(t *testing.T) {
 	assert.EventuallyWithT(t, func(ct *assert.CollectT) {
 		var err error
 
-		listNodes, err = tower.ListNodes()
+		listNodes, err = headscale.ListNodes()
 		assert.NoError(ct, err, "Failed to list nodes after initial web authentication")
 		assert.Len(ct, listNodes, len(allClients), "Expected %d nodes after web auth, got %d", len(allClients), len(listNodes))
 	}, integrationutil.StatusReadyTimeout, 2*time.Second, "validating node count matches client count after initial web authentication")
@@ -458,7 +458,7 @@ func TestAuthWebFlowLogoutAndReloginNewUser(t *testing.T) {
 	requireNoErrLogout(t, err)
 
 	// Validate that all nodes are offline after logout
-	validateLogoutComplete(t, tower, expectedNodes)
+	validateLogoutComplete(t, headscale, expectedNodes)
 
 	t.Logf("all clients logged out")
 
@@ -467,7 +467,7 @@ func TestAuthWebFlowLogoutAndReloginNewUser(t *testing.T) {
 	// This tests the cross-user re-authentication behavior where ALL clients
 	// (including those originally from user2) are registered to user1
 	for _, client := range allClients {
-		loginURL, err := client.LoginWithURL(tower.GetEndpoint())
+		loginURL, err := client.LoginWithURL(headscale.GetEndpoint())
 		if err != nil {
 			t.Fatalf("failed to get login URL for client %s: %s", client.Hostname(), err)
 		}
@@ -478,7 +478,7 @@ func TestAuthWebFlowLogoutAndReloginNewUser(t *testing.T) {
 		}
 
 		// Register all clients as user1 (this is where cross-user registration happens)
-		// This simulates: tower auth register --auth-id <id> --user user1
+		// This simulates: headscale auth register --auth-id <id> --user user1
 		_ = scenario.runHeadscaleRegister("user1", body)
 	}
 
@@ -498,7 +498,7 @@ func TestAuthWebFlowLogoutAndReloginNewUser(t *testing.T) {
 	assert.EventuallyWithT(t, func(ct *assert.CollectT) {
 		var err error
 
-		user1Nodes, err = tower.ListNodes("user1")
+		user1Nodes, err = headscale.ListNodes("user1")
 		assert.NoError(ct, err, "Failed to list nodes for user1 after web flow relogin")
 		assert.Len(ct, user1Nodes, len(allClients), "User1 should have all %d clients after web flow relogin, got %d nodes", len(allClients), len(user1Nodes))
 	}, integrationutil.HAConvergeTimeout, 2*time.Second, "validating user1 has all client nodes after web flow user switch relogin")
@@ -510,7 +510,7 @@ func TestAuthWebFlowLogoutAndReloginNewUser(t *testing.T) {
 	}
 
 	// Validate connection state after relogin as user1
-	validateReloginComplete(t, tower, expectedUser1Nodes)
+	validateReloginComplete(t, headscale, expectedUser1Nodes)
 
 	// Validate that user2's old nodes still exist in database (but are expired/offline)
 	// When CLI registration creates new nodes for user1, user2's old nodes remain
@@ -520,7 +520,7 @@ func TestAuthWebFlowLogoutAndReloginNewUser(t *testing.T) {
 	assert.EventuallyWithT(t, func(ct *assert.CollectT) {
 		var err error
 
-		user2Nodes, err = tower.ListNodes("user2")
+		user2Nodes, err = headscale.ListNodes("user2")
 		assert.NoError(ct, err, "Failed to list nodes for user2 after CLI registration to user1")
 		assert.Len(ct, user2Nodes, len(allClients)/2, "User2 should still have %d old nodes (likely expired) after CLI registration to user1, got %d nodes", len(allClients)/2, len(user2Nodes))
 	}, integrationutil.StatusReadyTimeout, 2*time.Second, "validating user2 old nodes remain in database after CLI registration to user1")

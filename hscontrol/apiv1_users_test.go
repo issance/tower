@@ -9,8 +9,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func seedUsers(names ...string) func(t *testing.T, app *Tower) {
-	return func(t *testing.T, app *Tower) {
+func seedUsers(names ...string) func(t *testing.T, app *Headscale) {
+	return func(t *testing.T, app *Headscale) {
 		t.Helper()
 
 		for _, n := range names {

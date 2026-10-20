@@ -44,7 +44,7 @@ func TestDERPServerScenario(t *testing.T) {
 			}
 		}
 
-		hsServer, err := scenario.Tower()
+		hsServer, err := scenario.Headscale()
 		requireNoErrGetHeadscale(t, err)
 
 		derpRegion := tailcfg.DERPRegion{

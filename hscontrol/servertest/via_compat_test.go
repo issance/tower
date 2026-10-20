@@ -54,11 +54,11 @@ var viaCompatTests = []struct {
 }
 
 // TestViaGrantMapCompat loads golden captures from Tailscale SaaS and
-// compares tower's [tailcfg.MapResponse] structure against the captured [netmap.NetworkMap].
+// compares headscale's [tailcfg.MapResponse] structure against the captured [netmap.NetworkMap].
 //
 // The comparison is IP-independent: it validates peer visibility, route
 // prefixes in AllowedIPs, and PrimaryRoutes — not literal Tailscale IP
-// addresses which differ between Tailscale SaaS and tower allocation.
+// addresses which differ between Tailscale SaaS and headscale allocation.
 //
 // CROSS-DEPENDENCY WARNING:
 // This test reads golden files from ../policy/v2/testdata/grant_results/
@@ -119,7 +119,7 @@ func runViaMapCompat(t *testing.T, c *testcapture.Capture) {
 
 	// Create clients matching the golden topology: tagged nodes under
 	// tag-user, user-owned nodes under their capture user.
-	// Nodes are created in SaaS registration order so tower assigns
+	// Nodes are created in SaaS registration order so headscale assigns
 	// sequential DB IDs in the same relative order. This matters for
 	// PrimaryRoutes election which uses lowest-node-ID-wins — the
 	// tiebreaker must pick the same node as SaaS.
@@ -316,7 +316,7 @@ func (r *failRecorder) FailNow() {
 	r.CollectT.FailNow()
 }
 
-// compareNetmap compares the tower [tailcfg.MapResponse] against the
+// compareNetmap compares the headscale [tailcfg.MapResponse] against the
 // captured [netmap.NetworkMap] data in an IP-independent way. It validates:
 //   - Peer visibility (which peers are present, by hostname)
 //   - Route prefixes in AllowedIPs (non-Tailscale-IP entries like 10.44.0.0/16)
@@ -348,7 +348,7 @@ func compareNetmap(
 		}
 	}
 
-	// Build tower peer map.
+	// Build headscale peer map.
 	gotPeers := map[string]peerSummary{}
 
 	for _, peer := range got.Peers {
@@ -457,7 +457,7 @@ func compareNetmap(
 			"peer %s: PrimaryRoutes mismatch", name)
 	}
 
-	// Check for extra peers tower shows that Tailscale SaaS doesn't.
+	// Check for extra peers headscale shows that Tailscale SaaS doesn't.
 	for name := range gotPeers {
 		if _, expected := wantPeers[name]; !expected {
 			t.Errorf("peer %s: visible in tower but NOT in Tailscale SaaS", name)
@@ -468,10 +468,10 @@ func compareNetmap(
 }
 
 // comparePacketFilter compares PacketFilter rules as a set of (source,
-// destination, ports or capability) triples. Tower merges rules
+// destination, ports or capability) triples. Headscale merges rules
 // that share sources while SaaS keeps one rule per policy entry, so rule
 // count and order differ without changing what the filter allows.
-// Tailscale IPs differ between SaaS and tower allocation, so both
+// Tailscale IPs differ between SaaS and headscale allocation, so both
 // sides are re-keyed by peer identity.
 func comparePacketFilter(
 	t require.TestingT,
@@ -596,7 +596,7 @@ func saasAddrsByNode(
 	return out
 }
 
-// hsAddrsByPeer builds a map from tower Tailscale address to peer
+// hsAddrsByPeer builds a map from headscale Tailscale address to peer
 // hostname by walking each live client's self addresses.
 func hsAddrsByPeer(clients map[string]*servertest.TestClient) map[netip.Addr]string {
 	out := map[netip.Addr]string{}

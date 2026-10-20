@@ -1,5 +1,5 @@
 {
-  description = "tower - Open Source Tailscale Control server";
+  description = "headscale - Open Source Tailscale Control server";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
@@ -26,8 +26,8 @@
       # NixOS module
       nixosModules = rec {
         # A path, so importing it twice (directly and via testkit) dedupes.
-        tower = ./nix/module.nix;
-        default = tower;
+        headscale = ./nix/module.nix;
+        default = headscale;
         # Control node for NixOS VM tests of Tailscale clients, and a peer
         # that joins it; nix/README.md.
         testkit = import ./nix/testkit.nix self;
@@ -44,8 +44,8 @@
           vendorHash = (builtins.fromJSON (builtins.readFile ./flakehashes.json)).vendor.sri;
         in
         {
-          tower = buildGo {
-            pname = "tower";
+          headscale = buildGo {
+            pname = "headscale";
             version = headscaleVersion;
             src = pkgs.lib.cleanSource self;
 
@@ -59,7 +59,7 @@
             subPackages = [ "cmd/tower" ];
 
             meta = {
-              mainProgram = "tower";
+              mainProgram = "headscale";
             };
           };
 
@@ -157,14 +157,14 @@
           ]
           ++ lib.optionals pkgs.stdenv.hostPlatform.isLinux [ traceroute ];
 
-        # Add entry to build a docker image with tower
+        # Add entry to build a docker image with headscale
         # caveat: only works on Linux
         #
         # Usage:
         # nix build .#headscale-docker
         # docker load < result
         headscale-docker = pkgs.dockerTools.buildLayeredImage {
-          name = "tower";
+          name = "headscale";
           tag = headscaleVersion;
           contents = [ pkgs.headscale ];
           config.Entrypoint = [ (pkgs.headscale + "/bin/headscale") ];
@@ -178,7 +178,7 @@
         common = {
           inherit pkgs;
           root = ./.;
-          pname = "tower";
+          pname = "headscale";
           version = headscaleVersion;
           vendorHash = (builtins.fromJSON (builtins.readFile ./flakehashes.json)).vendor.sri;
           goPkg = pkgs.go_latest;
@@ -273,9 +273,9 @@
 
         # `nix build`
         packages = with pkgs; {
-          inherit tower;
+          inherit headscale;
           inherit headscale-docker;
-          default = tower;
+          default = headscale;
         };
 
         # `nix run`
@@ -302,7 +302,7 @@
         checks = pkgs.lib.optionalAttrs pkgs.stdenv.hostPlatform.isLinux (
           goChecks
           // {
-            tower = pkgs.testers.runNixOSTest (import ./nix/tests/headscale.nix self);
+            headscale = pkgs.testers.runNixOSTest (import ./nix/tests/headscale.nix self);
           }
         );
       }

@@ -31,7 +31,7 @@ import (
 func TestApplePlatformConfig_ServesProfilesViaChiRouter(t *testing.T) {
 	t.Parallel()
 
-	h := &Tower{
+	h := &Headscale{
 		cfg: &types.Config{
 			ServerURL: "https://headscale.example.com",
 		},
@@ -82,7 +82,7 @@ func TestApplePlatformConfig_ServesProfilesViaChiRouter(t *testing.T) {
 func TestApplePlatformConfig_RejectsUnknownPlatform(t *testing.T) {
 	t.Parallel()
 
-	h := &Tower{
+	h := &Headscale{
 		cfg: &types.Config{
 			ServerURL: "https://headscale.example.com",
 		},

@@ -1,10 +1,10 @@
 // Package tsric provides a TailscaleRustInContainer (tsric) implementation
 // that runs the tailscale-rs axum example inside a Docker container for
-// integration testing with tower.
+// integration testing with headscale.
 //
 // Unlike tsic (which runs the official Tailscale client), tsric runs a Rust
 // implementation of a Tailscale node. It does not have the `tailscale` CLI,
-// so verification is done externally via tower API and peer connectivity.
+// so verification is done externally via headscale API and peer connectivity.
 package tsric
 
 import (
@@ -72,7 +72,7 @@ func WithNetwork(network *dockertest.Network) Option {
 	}
 }
 
-// WithHeadscaleURL sets the tower control server URL.
+// WithHeadscaleURL sets the headscale control server URL.
 func WithHeadscaleURL(url string) Option {
 	return func(t *TailscaleRustInContainer) {
 		t.headscaleURL = url

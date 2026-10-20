@@ -654,7 +654,7 @@ func TestSQLiteRejectsPre029Database(t *testing.T) {
 // schema version. This test only validates migration success, not data integrity.
 //
 // All test database files are SQL dumps (created with `sqlite3 tower.db .dump`) generated
-// with old Tower binaries on empty databases (no user/node data). These dumps include the
+// with old Headscale binaries on empty databases (no user/node data). These dumps include the
 // migration history in the `migrations` table, which allows the migration system to correctly
 // skip already-applied migrations and only run new ones.
 func TestSQLiteAllTestdataMigrations(t *testing.T) {

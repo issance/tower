@@ -19,7 +19,7 @@ import (
 // app's state, with no auth middleware (the contract tests exercise wire shapes;
 // auth is covered by TestAPIv2). The full Backend (Change + Cfg) is wired so the
 // device/acl write handlers work.
-func registerAPIV2(t *testing.T, app *Tower) humatest.TestAPI {
+func registerAPIV2(t *testing.T, app *Headscale) humatest.TestAPI {
 	t.Helper()
 
 	_, api := humatest.New(t, apiv2.Config())
@@ -30,7 +30,7 @@ func registerAPIV2(t *testing.T, app *Tower) humatest.TestAPI {
 
 // deviceTestEnv is one seeded, registered, user-owned node plus the v2 API.
 type deviceTestEnv struct {
-	app      *Tower
+	app      *Headscale
 	api      humatest.TestAPI
 	user     *types.User
 	nodeID   types.NodeID

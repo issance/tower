@@ -1,6 +1,6 @@
 // This file implements a data-driven test runner for ACL compatibility tests.
 // It loads HuJSON golden files from testdata/acl_results/acl-*.hujson and
-// compares tower's ACL engine output against the expected packet filter
+// compares headscale's ACL engine output against the expected packet filter
 // rules captured from a Tailscale-hosted control plane by an external capture tool.
 //
 // Each file is a testcapture.Capture containing:
@@ -202,7 +202,7 @@ func loadACLTestFile(t *testing.T, path string) *testcapture.Capture {
 }
 
 // TestACLCompat is a data-driven test that loads all ACL-*.json test files
-// and compares tower's ACL engine output against the expected behavior.
+// and compares headscale's ACL engine output against the expected behavior.
 //
 // Each JSON file contains:
 //   - A full policy with groups, tagOwners, hosts, and acls
@@ -288,7 +288,7 @@ func testACLError(t *testing.T, tf *testcapture.Capture) {
 	)
 }
 
-// assertACLErrorContains requires that tower's error contains the
+// assertACLErrorContains requires that headscale's error contains the
 // Tailscale SaaS error message exactly. Divergence means an emitter
 // needs to be aligned, not papered over with a translation table.
 func assertACLErrorContains(
@@ -324,7 +324,7 @@ func testACLSuccess(
 ) {
 	t.Helper()
 
-	// Convert Tailscale SaaS user emails to tower @example.com format.
+	// Convert Tailscale SaaS user emails to headscale @example.com format.
 	policyJSON := convertPolicyUserEmails(tf.Input.FullPolicy)
 
 	pol, err := unmarshalPolicy(policyJSON)
@@ -355,7 +355,7 @@ func testACLSuccess(
 				return
 			}
 
-			// Compile tower filter rules for this node
+			// Compile headscale filter rules for this node
 			compiledRules := pol.compileFilterRulesForNode(
 				users,
 				node.View(),

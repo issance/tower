@@ -347,7 +347,7 @@ func snapshotPrimaries(
 	return readPrimaries(rt, srv, clients)
 }
 
-// TestHAProberProperty drives a real Tower TestServer with a small
+// TestHAProberProperty drives a real Headscale TestServer with a small
 // fleet of HA-route-advertising clients through a randomised sequence
 // of connect / disconnect / reconnect / prober-tick operations and
 // asserts that the live PrimaryRoutes() snapshot honours every HA

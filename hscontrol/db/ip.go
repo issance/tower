@@ -45,14 +45,14 @@ type IPAllocator struct {
 	// This might not be in sync with the database,
 	// but it is more conservative. If saves to the
 	// database fails, the IP will be allocated here
-	// until the next restart of Tower.
+	// until the next restart of Headscale.
 	usedIPs netipx.IPSetBuilder
 }
 
 // NewIPAllocator returns a new [IPAllocator] singleton which
 // can be used to hand out unique IP addresses within the
 // provided IPv4 and IPv6 prefix. It needs to be created
-// when tower starts and needs to finish its read
+// when headscale starts and needs to finish its read
 // transaction before any writes to the database occur.
 func NewIPAllocator(
 	db *HSDatabase,
@@ -295,7 +295,7 @@ func isTailscaleReservedIP(ip netip.Addr) bool {
 }
 
 // BackfillNodeIPs will take a database transaction, and
-// iterate through all of the current nodes ([types.Node]) in tower
+// iterate through all of the current nodes ([types.Node]) in headscale
 // and ensure it has IP addresses according to the current
 // configuration.
 // This means that if both IPv4 and IPv6 is set in the
